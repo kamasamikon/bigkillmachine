@@ -113,6 +113,8 @@ static int connect_klog_serv(const char *server, unsigned short port, int *retfd
 	return 0;
 }
 
+#define O_LOG_SHIT klog
+
 int main(int argc, char *argv[])
 {
 	char serv[128];
@@ -128,6 +130,7 @@ int main(int argc, char *argv[])
 	connect_klog_serv(serv, port, &__g_klog_serv_skt);
 
 	while (1) {
+		O_LOG_SHIT("ssssssssssssssssssssssssssssssssssssssss\n");
 		klog("port:%u\n", port);
 		sleep(1);
 	}
