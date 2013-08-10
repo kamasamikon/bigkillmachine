@@ -1,19 +1,21 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <karg.h>
 #include <kstr.h>
 
-/* return the REAL length of the param, -1: error, -2: not found */
-/* XXX: for bmem= alike parameter, the opt is "bmem=" */
-int get_boot_param(const char *opt, char *buf, int blen)
+static int __g_boot_argc;
+static char **__g_boot_argv;
+
+static int load_boot_args()
 {
 	FILE *fp = fopen("/proc/cmdline", "rt");
 
-	char buffer[4096], **argv, **arg_v;
-	int ret = -1, i, bytes, arg_c;
+	char buffer[4096];
+	int ret = -1, bytes;
 
 	if (fp) {
 		bytes = fread(buffer, sizeof(char), sizeof(buffer), fp);
@@ -25,29 +27,28 @@ int get_boot_param(const char *opt, char *buf, int blen)
 		buffer[bytes] = '\0';
 		kstr_trim(buffer);
 
-		argv = build_argv(buffer, &arg_c, &arg_v);
-		for (i = 0; i < arg_c; i++)
-			printf("argv[%d] = \"%s\"\n", i, arg_v[i]);
-
-		i = arg_find(arg_c, arg_v, opt, 0);
-		if (i >= 0) {
-			strncpy(buf, arg_v[i], blen);
-			buf[blen - 1] = '\0';
-			ret = strlen(argv[i]);
-		}
-
-		free_argv(argv);
+		build_argv(buffer, &__g_boot_argc, &__g_boot_argv);
 	}
 	return ret;
 }
 
 int main(int argc, char *argv[])
 {
-	char buf[41];
-	int ret;
+	int i;
 
-	ret = get_boot_param("BOOT_IMAGE", buf, sizeof(buf));
-	printf("ret:%d, opt:\"%s\"\n", ret, buf);
+	printf("usage: dsq OPTNAME FULLMATCH\n\n");
+
+	load_boot_args();
+
+	for (i = 0; i < __g_boot_argc; i++)
+		printf("arg[%02d] = '%s'\n", i, __g_boot_argv[i]);
+
+	printf("\n\nWhat found?\n");
+	i = arg_find(__g_boot_argc, __g_boot_argv, argv[1], atoi(argv[2]));
+	if (i >= 0)
+		printf("arg[%02d] = '%s'\n", i, __g_boot_argv[i]);
+	else
+		printf("Nothing\n");
 
 	return 0;
 }
