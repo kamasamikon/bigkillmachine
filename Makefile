@@ -16,7 +16,7 @@ klogserv: $(klogserv_SRCS)
 
 klogclient_SRCS = klog-client.c
 klogclient: $(klogclient_SRCS)
-	gcc -o $@ $(klogclient_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) 
+	gcc -o $@ $(klogclient_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -save-temps
 
 clean:
 	rm bootpar klogserv klogclient

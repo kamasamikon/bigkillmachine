@@ -115,6 +115,11 @@ static int connect_klog_serv(const char *server, unsigned short port, int *retfd
 
 #define O_LOG_SHIT klog
 
+#define xioctl(fd, req...) do { \
+	klog("shit\n"); \
+	ioctl(fd, req); \
+} while (0)
+
 int main(int argc, char *argv[])
 {
 	char serv[128];
@@ -128,6 +133,8 @@ int main(int argc, char *argv[])
 	klog("port:%u\n", port);
 
 	connect_klog_serv(serv, port, &__g_klog_serv_skt);
+
+	xioctl(1, 222, 333, 444);
 
 	while (1) {
 		O_LOG_SHIT("ssssssssssssssssssssssssssssssssssssssss\n");
