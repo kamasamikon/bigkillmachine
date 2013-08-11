@@ -1,0 +1,10 @@
+
+1) Replace ntvlog.h, use klog
+2) replace ALL ioctl with hook_ioctl()
+
+
+klog-watch-config-file:
+/etc/klog/config
+
+1) klog.c or klog.h will read and monitor this file. When it changed, update the klog settings
+
