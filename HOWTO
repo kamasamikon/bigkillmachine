@@ -8,3 +8,15 @@ klog-watch-config-file:
 
 1) klog.c or klog.h will read and monitor this file. When it changed, update the klog settings
 
+
+---------------------------------------------
+shit.h EOF <<
+#include <stdio.h>
+EOF
+
+gcc xxx.c -include /tmp/shit.h 
+OR
+gcc xxx.c -include shit.h
+OR
+gcc xxx.c -include stdio.h
+
