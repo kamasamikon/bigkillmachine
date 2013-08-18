@@ -10,12 +10,11 @@
 static int __g_boot_argc;
 static char **__g_boot_argv;
 
-static int load_boot_args()
+static int load_boot_args(int *argc, char ***argv)
 {
 	FILE *fp = fopen("/proc/cmdline", "rt");
-
 	char buffer[4096];
-	int ret = -1, bytes;
+	int bytes;
 
 	if (fp) {
 		bytes = fread(buffer, sizeof(char), sizeof(buffer), fp);
@@ -27,9 +26,10 @@ static int load_boot_args()
 		buffer[bytes] = '\0';
 		kstr_trim(buffer);
 
-		build_argv(buffer, &__g_boot_argc, &__g_boot_argv);
+		build_argv(buffer, argc, argv);
+		return 0;
 	}
-	return ret;
+	return -1;
 }
 
 int main(int argc, char *argv[])
@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 
 	printf("usage: dsq OPTNAME FULLMATCH\n\n");
 
-	load_boot_args();
+	load_boot_args(&__g_boot_argc, &__g_boot_argv);
 
 	for (i = 0; i < __g_boot_argc; i++)
 		printf("arg[%02d] = '%s'\n", i, __g_boot_argv[i]);
