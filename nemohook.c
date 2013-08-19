@@ -89,6 +89,14 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 /*-----------------------------------------------------------------------
  * dbus
  */
+dbus_bool_t bus_dispatch_matches (BusTransaction *transaction,
+		DBusConnection *sender,
+		DBusConnection *addressed_recipient,
+		DBusMessage    *message,
+		DBusError      *error)
+{
+}
+
 
 /*-----------------------------------------------------------------------
  * gconf
@@ -97,7 +105,24 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 /*-----------------------------------------------------------------------
  * ioctl - PI
  */
+#include <sys/ioctl.h>
 
-/*-----------------------------------------------------------------------
- * ioctl - PI
- */
+int ioctl(int d, unsigned long int request, ...)
+{
+	static int (*my_ioctl)(int d, unsigned long int request, void*) = NULL;
+	if (!my_ioctl)
+		my_ioctl = dlsym(RTLD_NEXT, "ioctl");
+
+	va_list args;
+	void *argp;
+
+	va_start(args, request);
+	argp = va_arg(args, void *);
+	va_end(args);
+
+	int ret = my_ioctl(d, request, argp);
+	printf("NEMOHOOK: ioctl: d:%d, request:%lu\n", d, request);
+
+	return ret;
+}
+
