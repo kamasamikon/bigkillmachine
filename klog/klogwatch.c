@@ -192,7 +192,7 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < count; i++) {
 		klog("remote klog test. lkasjdeflkjas;dfha;sidggklasdjgfljasd; fkjas;ldkfj;aslkdjf;laksjdf;lkasjd;lfjas;ldkfja;slkdfj;als dfl;asdjfl;kasjg;las fgdlakjsdfl;akjsdf;lasj done<%d>\n", i);
-		spl_sleep(1);
+		/* spl_sleep(1); */
 	}
 
 	cost = spl_get_ticks() - tick;
