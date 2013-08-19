@@ -76,17 +76,74 @@ static char *sqlite_error(int error)
     }
 }
 
+static void sqlite3_dump_result(sqlite3_stmt *stmt, int rc)
+{
+	int col, cols, columnType;
+
+	char buffer[4096];
+	int ofs;
+
+	if (rc != SQLITE_ROW)
+		return;
+
+	cols = sqlite3_column_count(stmt);
+	for (col = 0; col < cols; col++) {
+		ofs = 0;
+
+		columnType = sqlite3_column_type(stmt, col);
+		/* TODO: print the result into buffer first */
+		switch(columnType)
+		{
+		case SQLITE_INTEGER:
+		case SQLITE_FLOAT:
+			syslog(LOG_ERR, "shit>>> [%d] %d.\n", col, sqlite3_column_double(stmt, col));
+			break;
+
+		case SQLITE_TEXT:
+			syslog(LOG_ERR, "shit>>> [%d] %s.\n", col, sqlite3_column_text(stmt, col));
+			break;
+
+		case SQLITE_NULL:
+			syslog(LOG_ERR, "shit>>> [%d] NULL.\n", col);
+			break;
+
+		case SQLITE_BLOB:
+			syslog(LOG_ERR, "shit>>> [%d] BLOB.\n", col);
+			break;
+
+		default:
+			syslog(LOG_ERR, "shit>>> [%d] UNKNOWN.\n", col);
+			break;
+		}
+	}
+}
+
 static int nemo_sqlite3_step(sqlite3_stmt* stmt)
 {
-    int ret;
+	int ret;
 
-    ret = sqlite3_step(stmt);
+	ret = sqlite3_step(stmt);
 
-    syslog(LOG_ERR, "sqlite3_step: return: \"%s\", stmt: \"%s\"\n",
-            sqlite_error(ret), sqlite3_sql(stmt));
+#if 0
+	syslog(LOG_ERR, "sqlite3_step: return: \"%s\", stmt: \"%s\"\n",
+			sqlite_error(ret), sqlite3_sql(stmt));
+#endif
 
-    return ret;
+	return ret;
 }
+
+#if 0
+static void sqliteTrace(void *arg, const char *query)
+{
+	printf("sqliteTrace: query: <%s>\n", query);
+}
+
+int main (int argc, char *argv[])
+{
+	sqlite3 *db = sqlite3_open(argv[1]);
+	sqlite3_trace(db, sqliteTrace, NULL);
+}
+#endif
 
 #define sqlite3_step nemo_sqlite3_step
 

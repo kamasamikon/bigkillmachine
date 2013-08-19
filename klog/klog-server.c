@@ -111,12 +111,17 @@ static void *worker_thread_or_server(void *userdata)
 
 			if (e->data.fd == s_listen) {
 				sin_size = sizeof(their_addr);
-				if ((new_fd = accept(s_listen, (struct sockaddr *) &their_addr, &sin_size)) == -1) {
+				if ((new_fd = accept(s_listen, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
 					kerror("c:%s, e:%s\n", "accept", strerror(errno));
 					continue;
 				}
 
-				klog("new_fd: %d\n", new_fd);
+				unsigned char addr[4];
+				memcpy(addr, &their_addr.sin_addr.s_addr, 4);
+				klog("New connect, addr:%d.%d.%d.%d, port:%d, fd:%d\n",
+						addr[0], addr[1], addr[2], addr[3],
+						ntohs(their_addr.sin_port),
+						new_fd);
 
 				struct epoll_event ev;
 				ev.data.fd = new_fd;
@@ -146,32 +151,6 @@ static void *worker_thread_or_server(void *userdata)
 	return NULL;
 }
 
-int opt_rpc_server_init(unsigned short port, int argc, char *argv[])
-{
-	int i;
-
-	if (port == 0)
-		port = 9000;
-
-	i = arg_find(argc, argv, "--or-port", 1);
-	if (i > 0 && (i + 1) < argc) {
-		int tmp;
-		if (!kstr_toint((const kchar*)argv[i + 1], &tmp))
-			port = tmp;
-	}
-
-	klog("port: %d\n", port);
-
-	ignore_pipe();
-	spl_thread_create(worker_thread_or_server, (void*)(int)port, 0);
-	return 0;
-}
-
-int opt_rpc_server_final()
-{
-	return 0;
-}
-
 static void config_socket(int s)
 {
 	int yes = 1;
@@ -194,14 +173,15 @@ static void ignore_pipe()
 
 static int logger_wlogf(const char *content, int len)
 {
-	return printf(content);
+	return fwrite(content, sizeof(char), len, stdout);
 }
 
 int main(int argc, char *argv[])
 {
 	kushort port;
+	kuint mask = LOG_TYPE_ALL | LOG_RTM | LOG_LINE | LOG_FILE | LOG_MODU;
 
-	klog_init(-1, argc, argv);
+	klog_init(mask, argc, argv);
 	klog_add_logger(logger_wlogf);
 
 	klogs("usage: klogserv PORT TOFILE\n");

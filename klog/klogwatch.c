@@ -179,21 +179,27 @@ klog()
 int main(int argc, char *argv[])
 {
 	unsigned long i, tick, cost;
+	unsigned int count;
 
 	init_log_monitor();
 
+	if (argv[1])
+		count = strtoul(argv[1], NULL, 10);
+	else
+		count = 100000;
+
 	tick = spl_get_ticks();
 
-	for (i = 0; i < 100000; i++) {
-		klog("remote klog test. <%d>\n", i);
-		// spl_sleep(1);
+	for (i = 0; i < count; i++) {
+		klog("remote klog test. lkasjdeflkjas;dfha;sidggklasdjgfljasd; fkjas;ldkfj;aslkdjf;laksjdf;lkasjd;lfjas;ldkfja;slkdfj;als dfl;asdjfl;kasjg;las fgdlakjsdfl;akjsdf;lasj done<%d>\n", i);
+		spl_sleep(1);
 	}
 
 	cost = spl_get_ticks() - tick;
 
 	printf("time cost: %lu\n", cost);
-	printf("count: %lu\n", i);
-	printf("count / ms = %lu\n", i / cost);
+	printf("count: %lu\n", count);
+	printf("count / ms = %lu\n", count / cost);
 
 	return 0;
 }
