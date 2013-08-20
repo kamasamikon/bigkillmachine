@@ -47,7 +47,7 @@ static int os_klog_argv(int ses, void *opt, void *pa, void *pb)
 
 static int load_boot_args(int *argc, char ***argv)
 {
-	FILE *fp = fopen("/proc/cmdline", "rt");
+	FILE *fp = fopen("/proc/self/cmdline", "rt");
 	char buffer[4096];
 	int bytes;
 
@@ -61,7 +61,7 @@ static int load_boot_args(int *argc, char ***argv)
 		buffer[bytes] = '\0';
 		kstr_trim(buffer);
 
-		build_argv(buffer, argc, argv);
+		build_argv_nul(buffer, bytes, argc, argv);
 		return 0;
 	}
 	return -1;
@@ -86,7 +86,6 @@ static void get_klog_server(char *serv, kushort *port)
 		serv[j] = '\0';
 		*port = atoi((const char*)&__g_boot_argv[i][j + 1 + 12]);
 	} else {
-		strcpy(serv, "172.22.7.144");
 		strcpy(serv, "127.0.0.1");
 		*port = 9000;
 	}
@@ -156,6 +155,14 @@ static void init_log_monitor()
 
 	inited = 1;
 	load_boot_args(&__g_boot_argc, &__g_boot_argv);
+
+	if (1) {
+		int i;
+
+		for (i = 0; i < __g_boot_argc; i++)
+			printf("argv[%d], <%s>\n", i, __g_boot_argv[i]);
+	}
+
 	setup_env(__g_boot_argc, __g_boot_argv);
 
 	setup_klog(__g_boot_argc, __g_boot_argv);
@@ -190,15 +197,19 @@ int main(int argc, char *argv[])
 
 	tick = spl_get_ticks();
 
+	printf("usage: klog count klog-server=172.22.1.144:9000\n");
+
 	for (i = 0; i < count; i++) {
-		klog("remote klog test. lkasjdeflkjas;dfha;sidggklasdjgfljasd; fkjas;ldkfj;aslkdjf;laksjdf;lkasjd;lfjas;ldkfja;slkdfj;als dfl;asdjfl;kasjg;las fgdlakjsdfl;akjsdf;lasj done<%d>\n", i);
-		/* spl_sleep(1); */
+		klog("remote klog test. puppy FANG is a bad egg. done<%d>\n", i);
 	}
 
 	cost = spl_get_ticks() - tick;
 
+	if (cost == 0)
+		cost = 1;
+
 	printf("time cost: %lu\n", cost);
-	printf("count: %lu\n", count);
+	printf("count: %u\n", count);
 	printf("count / ms = %lu\n", count / cost);
 
 	return 0;

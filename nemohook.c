@@ -1,40 +1,15 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
 #define _GNU_SOURCE
+#include <dlfcn.h>
 
-/* LD_PRELOAD=/home/dibyendu/malloc_hook/libprog2.so ./prog1 */
+/* LD_PRELOAD=/home/shit/malloc_hook/libprog2.so ./prog1 */
 
 /*-----------------------------------------------------------------------
  * Dummy
  */
 #include <stdio.h>
 #include <stdint.h>
-#include <dlfcn.h>                               /* header required for dlsym() */
-
-/* lcheck() is for memory leak check; its code is not shown
- *  here */
-void lcheck(void);
-void* xxxxmalloc(size_t size)
-{
-	static void* (*my_malloc)(size_t) = NULL;
-
-	printf("inside shared object...\n");
-
-	if (!my_malloc)
-		my_malloc = dlsym(RTLD_NEXT, "malloc");  /* returns the object reference for malloc */
-
-	void *p = my_malloc(size);               /* call malloc() using function pointer my_malloc */
-	printf("malloc(%d) = %p\n", size, p);
-	lcheck();                                /* calling do_your_stuff function */
-	printf("returning from shared object...\n");
-
-	return p;
-}
-void lcheck(void)
-{
-	printf("displaying memory leaks...\n");
-	/* do required stuff here */
-}
 
 /*-----------------------------------------------------------------------
  * sqlite
@@ -89,6 +64,7 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 /*-----------------------------------------------------------------------
  * dbus
  */
+#if 0
 dbus_bool_t bus_dispatch_matches (BusTransaction *transaction,
 		DBusConnection *sender,
 		DBusConnection *addressed_recipient,
@@ -96,7 +72,7 @@ dbus_bool_t bus_dispatch_matches (BusTransaction *transaction,
 		DBusError      *error)
 {
 }
-
+#endif
 
 /*-----------------------------------------------------------------------
  * gconf
