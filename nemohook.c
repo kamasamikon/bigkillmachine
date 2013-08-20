@@ -1,15 +1,13 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
+/* XXX: define before include dlfcn.h */
 #define _GNU_SOURCE
+
+#include <stdio.h>
+#include <stdint.h>
 #include <dlfcn.h>
 
 /* LD_PRELOAD=/home/shit/malloc_hook/libprog2.so ./prog1 */
-
-/*-----------------------------------------------------------------------
- * Dummy
- */
-#include <stdio.h>
-#include <stdint.h>
 
 /*-----------------------------------------------------------------------
  * sqlite
@@ -64,15 +62,28 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 /*-----------------------------------------------------------------------
  * dbus
  */
-#if 0
-dbus_bool_t bus_dispatch_matches (BusTransaction *transaction,
+#include <glib.h>
+#include <dbus/dbus.h>
+#include <dbus/dbus-glib-lowlevel.h>
+
+#include "dbus-print-message.h"
+
+dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
 		DBusConnection *sender,
 		DBusConnection *addressed_recipient,
 		DBusMessage    *message,
 		DBusError      *error)
 {
+	static dbus_bool_t (*my_bus_dispatch_matches)(void*, void*, void*, void*, void*) = NULL;
+	if (!my_bus_dispatch_matches)
+		my_bus_dispatch_matches = dlsym(RTLD_NEXT, "bus_dispatch_matches");
+
+	print_message(message, FALSE);
+	dbus_bool_t ret = my_bus_dispatch_matches(transaction, sender, addressed_recipient, message, error);
+	printf("NEMOHOOK: my_bus_dispatch_matches: ret:%d\n", ret);
+
+	return ret;
 }
-#endif
 
 /*-----------------------------------------------------------------------
  * gconf
