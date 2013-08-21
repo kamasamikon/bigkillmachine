@@ -4,6 +4,7 @@
 #define _GNU_SOURCE
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <dlfcn.h>
 
@@ -71,8 +72,8 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
 		DBusConnection *sender,
 		DBusConnection *addressed_recipient,
-		DBusMessage    *message,
-		DBusError      *error)
+		DBusMessage *message,
+		DBusError *error)
 {
 	static dbus_bool_t (*my_bus_dispatch_matches)(void*, void*, void*, void*, void*) = NULL;
 	if (!my_bus_dispatch_matches)
@@ -88,6 +89,103 @@ dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
 /*-----------------------------------------------------------------------
  * gconf
  */
+#include <gconf/gconf-client.h>
+
+/* Return buf, if ret != buf, should call free(ret) */
+static char *entry_value(const GConfValue *val, char *buf, int len)
+{
+	const char *tmp;
+
+	switch (val->type) {
+	case GCONF_VALUE_STRING:
+		tmp = gconf_value_get_string(val);
+		if (!tmp)
+			return NULL;
+		if (strlen(tmp) >= len)
+			return strdup(tmp);
+		strcpy(buf, tmp);
+		return buf;
+
+	case GCONF_VALUE_INT:
+		sprintf(buf, "%d", gconf_value_get_int(val));
+		return buf;
+
+	case GCONF_VALUE_FLOAT:
+		sprintf(buf, "%f", gconf_value_get_float(val));
+		return buf;
+
+	case GCONF_VALUE_BOOL:
+		sprintf(buf, "%s", gconf_value_get_bool(val) ? "True" : "False");
+		return buf;
+
+	case GCONF_VALUE_SCHEMA:
+	case GCONF_VALUE_LIST:
+	case GCONF_VALUE_PAIR:
+	default:
+		/* TODO: do it */
+		sprintf(buf, "??? Not supported !!!");
+		return buf;
+	}
+}
+
+GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
+		const gchar *key,
+		const gchar **locales,
+		gboolean use_schema_default,
+		gboolean *value_is_default,
+		gboolean *value_is_writable,
+		gchar **schema_name,
+		GError **err)
+{
+	char buf[256], *val;
+
+	static GConfValue *(*my_gconf_sources_query_value)(void*, const gchar*, const gchar**, gboolean, gboolean*, gboolean*, gchar**, GError**) = NULL;
+	if (!my_gconf_sources_query_value)
+		my_gconf_sources_query_value = dlsym(RTLD_NEXT, "gconf_sources_query_value");
+
+	GConfValue *ret = my_gconf_sources_query_value(sources, key, locales, use_schema_default, value_is_default, value_is_writable, schema_name, err);
+
+	val = entry_value(ret, buf, sizeof(buf));
+	printf("NEMOHOOK: my_gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
+	if (val != buf)
+		free(val);
+
+	return ret;
+}
+
+void gconf_sources_set_value(/* GConfSources */ void *sources,
+		const gchar *key,
+		const GConfValue *value,
+		/* GConfSources */ void **modified_sources,
+		GError **err)
+{
+	char buf[256], *val;
+
+	static void (*my_gconf_sources_set_value)(void*, const gchar*, const GConfValue*, void**, GError**) = NULL;
+	if (!my_gconf_sources_set_value)
+		my_gconf_sources_set_value = dlsym(RTLD_NEXT, "gconf_sources_set_value");
+
+	my_gconf_sources_set_value(sources, key, value, modified_sources, err);
+
+	val = entry_value(value, buf, sizeof(buf));
+	printf("NEMOHOOK: my_gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
+	if (val != buf)
+		free(val);
+}
+
+void gconf_sources_unset_value(/* GConfSources */ void *sources,
+		const gchar *key,
+		const gchar *locale,
+		/* GConfSources */ void **modified_sources,
+		GError **err)
+{
+	static void (*my_gconf_sources_unset_value)(void*, const gchar*, const gchar*, void**, GError**) = NULL;
+	if (!my_gconf_sources_unset_value)
+		my_gconf_sources_unset_value = dlsym(RTLD_NEXT, "gconf_sources_unset_value");
+
+	my_gconf_sources_unset_value(sources, key, locale, modified_sources, err);
+	printf("NEMOHOOK: my_gconf_sources_unset_value: key:<%s>\n", key);
+}
 
 /*-----------------------------------------------------------------------
  * ioctl - PI
