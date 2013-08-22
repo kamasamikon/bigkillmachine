@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <dlfcn.h>
 
-/* LD_PRELOAD=/home/shit/malloc_hook/libprog2.so ./prog1 */
+/* LD_PRELOAD=/home/auv/nemohook.so ./prog1 */
 
 /*-----------------------------------------------------------------------
  * sqlite
@@ -22,40 +22,40 @@ static void sqliteTrace(void *arg, const char *query)
 
 int sqlite3_open(const char *filename, sqlite3 **ppDb)
 {
-	static int (*my_sqlite3_open)(const char*, sqlite3**) = NULL;
-	if (!my_sqlite3_open)
-		my_sqlite3_open = dlsym(RTLD_NEXT, "sqlite3_open");
+	static int (*realfunc)(const char*, sqlite3**) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "sqlite3_open");
 
-	int ret = my_sqlite3_open(filename, ppDb);
+	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	printf("NEMOHOOK: my_sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
+	printf("NEMOHOOK: sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }
 int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 {
-	static int (*my_sqlite3_open16)(const char*, sqlite3**) = NULL;
-	if (!my_sqlite3_open16)
-		my_sqlite3_open16 = dlsym(RTLD_NEXT, "sqlite3_open16");
+	static int (*realfunc)(const char*, sqlite3**) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "sqlite3_open16");
 
-	int ret = my_sqlite3_open16(filename, ppDb);
+	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	printf("NEMOHOOK: my_sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
+	printf("NEMOHOOK: sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
 
 	return ret;
 }
 int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char *zVfs)
 {
-	static int (*my_sqlite3_open_v2)(const char*, sqlite3**, int, const char*) = NULL;
-	if (!my_sqlite3_open_v2)
-		my_sqlite3_open_v2 = dlsym(RTLD_NEXT, "sqlite3_open_v2");
+	static int (*realfunc)(const char*, sqlite3**, int, const char*) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "sqlite3_open_v2");
 
-	int ret = my_sqlite3_open_v2(filename, ppDb, flags, zVfs);
+	int ret = realfunc(filename, ppDb, flags, zVfs);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	printf("NEMOHOOK: my_sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
+	printf("NEMOHOOK: sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }
@@ -75,13 +75,13 @@ dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
 		DBusMessage *message,
 		DBusError *error)
 {
-	static dbus_bool_t (*my_bus_dispatch_matches)(void*, void*, void*, void*, void*) = NULL;
-	if (!my_bus_dispatch_matches)
-		my_bus_dispatch_matches = dlsym(RTLD_NEXT, "bus_dispatch_matches");
+	static dbus_bool_t (*realfunc)(void*, void*, void*, void*, void*) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "bus_dispatch_matches");
 
 	print_message(message, FALSE);
-	dbus_bool_t ret = my_bus_dispatch_matches(transaction, sender, addressed_recipient, message, error);
-	printf("NEMOHOOK: my_bus_dispatch_matches: ret:%d\n", ret);
+	dbus_bool_t ret = realfunc(transaction, sender, addressed_recipient, message, error);
+	printf("NEMOHOOK: bus_dispatch_matches: ret:%d\n", ret);
 
 	return ret;
 }
@@ -139,14 +139,14 @@ GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
 {
 	char buf[256], *val;
 
-	static GConfValue *(*my_gconf_sources_query_value)(void*, const gchar*, const gchar**, gboolean, gboolean*, gboolean*, gchar**, GError**) = NULL;
-	if (!my_gconf_sources_query_value)
-		my_gconf_sources_query_value = dlsym(RTLD_NEXT, "gconf_sources_query_value");
+	static GConfValue *(*realfunc)(void*, const gchar*, const gchar**, gboolean, gboolean*, gboolean*, gchar**, GError**) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "gconf_sources_query_value");
 
-	GConfValue *ret = my_gconf_sources_query_value(sources, key, locales, use_schema_default, value_is_default, value_is_writable, schema_name, err);
+	GConfValue *ret = realfunc(sources, key, locales, use_schema_default, value_is_default, value_is_writable, schema_name, err);
 
 	val = entry_value(ret, buf, sizeof(buf));
-	printf("NEMOHOOK: my_gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
+	printf("NEMOHOOK: gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 
@@ -161,14 +161,14 @@ void gconf_sources_set_value(/* GConfSources */ void *sources,
 {
 	char buf[256], *val;
 
-	static void (*my_gconf_sources_set_value)(void*, const gchar*, const GConfValue*, void**, GError**) = NULL;
-	if (!my_gconf_sources_set_value)
-		my_gconf_sources_set_value = dlsym(RTLD_NEXT, "gconf_sources_set_value");
+	static void (*realfunc)(void*, const gchar*, const GConfValue*, void**, GError**) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "gconf_sources_set_value");
 
-	my_gconf_sources_set_value(sources, key, value, modified_sources, err);
+	realfunc(sources, key, value, modified_sources, err);
 
 	val = entry_value(value, buf, sizeof(buf));
-	printf("NEMOHOOK: my_gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
+	printf("NEMOHOOK: gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 }
@@ -179,12 +179,12 @@ void gconf_sources_unset_value(/* GConfSources */ void *sources,
 		/* GConfSources */ void **modified_sources,
 		GError **err)
 {
-	static void (*my_gconf_sources_unset_value)(void*, const gchar*, const gchar*, void**, GError**) = NULL;
-	if (!my_gconf_sources_unset_value)
-		my_gconf_sources_unset_value = dlsym(RTLD_NEXT, "gconf_sources_unset_value");
+	static void (*realfunc)(void*, const gchar*, const gchar*, void**, GError**) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "gconf_sources_unset_value");
 
-	my_gconf_sources_unset_value(sources, key, locale, modified_sources, err);
-	printf("NEMOHOOK: my_gconf_sources_unset_value: key:<%s>\n", key);
+	realfunc(sources, key, locale, modified_sources, err);
+	printf("NEMOHOOK: gconf_sources_unset_value: key:<%s>\n", key);
 }
 
 /*-----------------------------------------------------------------------
@@ -194,9 +194,9 @@ void gconf_sources_unset_value(/* GConfSources */ void *sources,
 
 int ioctl(int d, unsigned long int request, ...)
 {
-	static int (*my_ioctl)(int d, unsigned long int request, void*) = NULL;
-	if (!my_ioctl)
-		my_ioctl = dlsym(RTLD_NEXT, "ioctl");
+	static int (*realfunc)(int d, unsigned long int request, void*) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "ioctl");
 
 	va_list args;
 	void *argp;
@@ -205,9 +205,13 @@ int ioctl(int d, unsigned long int request, ...)
 	argp = va_arg(args, void *);
 	va_end(args);
 
-	int ret = my_ioctl(d, request, argp);
+	int ret = realfunc(d, request, argp);
 	printf("NEMOHOOK: ioctl: d:%d, request:%lu\n", d, request);
 
 	return ret;
 }
 
+/*-----------------------------------------------------------------------
+ * pcd
+ */
+/* XXX: Add -v to pcd command line */

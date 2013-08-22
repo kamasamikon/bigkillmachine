@@ -47,7 +47,7 @@ static int os_klog_argv(int ses, void *opt, void *pa, void *pb)
 
 static int load_boot_args(int *argc, char ***argv)
 {
-	FILE *fp = fopen("/proc/self/cmdline", "rt");
+	FILE *fp = fopen("/proc/cmdline", "rt");
 	char buffer[4096];
 	int bytes;
 
@@ -61,7 +61,7 @@ static int load_boot_args(int *argc, char ***argv)
 		buffer[bytes] = '\0';
 		kstr_trim(buffer);
 
-		build_argv_nul(buffer, bytes, argc, argv);
+		build_argv(buffer, argc, argv);
 		return 0;
 	}
 	return -1;
