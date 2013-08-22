@@ -5,10 +5,29 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <dlfcn.h>
 
 /* LD_PRELOAD=/home/auv/nemohook.so ./prog1 */
+/*-----------------------------------------------------------------------
+ * helper
+ */
+int klogf(const char *fmt, ...);
+int klogf(const char *fmt, ...)
+{
+	static FILE *fp = NULL;
+	if (!fp)
+		fp = fopen("/tmp/nemohook.out", "wt");
+
+	va_list ap;
+	va_start(ap, fmt);
+	vfprintf(fp, fmt, ap);
+	fflush(fp);
+	va_end(ap);
+
+	return 0;
+}
 
 /*-----------------------------------------------------------------------
  * sqlite
@@ -17,7 +36,7 @@
 
 static void sqliteTrace(void *arg, const char *query)
 {
-	printf("sqliteTrace: <%s>\n", query);
+	klogf("sqliteTrace: <%s>\n", query);
 }
 
 int sqlite3_open(const char *filename, sqlite3 **ppDb)
@@ -29,7 +48,7 @@ int sqlite3_open(const char *filename, sqlite3 **ppDb)
 	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	printf("NEMOHOOK: sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
+	klogf("NEMOHOOK: sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }
@@ -42,7 +61,7 @@ int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	printf("NEMOHOOK: sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
+	klogf("NEMOHOOK: sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
 
 	return ret;
 }
@@ -55,7 +74,7 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 	int ret = realfunc(filename, ppDb, flags, zVfs);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	printf("NEMOHOOK: sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
+	klogf("NEMOHOOK: sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }
@@ -68,6 +87,11 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 #include <dbus/dbus-glib-lowlevel.h>
 
 #include "dbus-print-message.h"
+dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
+		DBusConnection *sender,
+		DBusConnection *addressed_recipient,
+		DBusMessage *message,
+		DBusError *error);
 
 dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
 		DBusConnection *sender,
@@ -89,6 +113,7 @@ dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
 /*-----------------------------------------------------------------------
  * gconf
  */
+#if 0
 #include <gconf/gconf-client.h>
 
 /* Return buf, if ret != buf, should call free(ret) */
@@ -146,7 +171,7 @@ GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
 	GConfValue *ret = realfunc(sources, key, locales, use_schema_default, value_is_default, value_is_writable, schema_name, err);
 
 	val = entry_value(ret, buf, sizeof(buf));
-	printf("NEMOHOOK: gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
+	klogf("NEMOHOOK: gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 
@@ -168,7 +193,7 @@ void gconf_sources_set_value(/* GConfSources */ void *sources,
 	realfunc(sources, key, value, modified_sources, err);
 
 	val = entry_value(value, buf, sizeof(buf));
-	printf("NEMOHOOK: gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
+	klogf("NEMOHOOK: gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 }
@@ -184,8 +209,9 @@ void gconf_sources_unset_value(/* GConfSources */ void *sources,
 		realfunc = dlsym(RTLD_NEXT, "gconf_sources_unset_value");
 
 	realfunc(sources, key, locale, modified_sources, err);
-	printf("NEMOHOOK: gconf_sources_unset_value: key:<%s>\n", key);
+	klogf("NEMOHOOK: gconf_sources_unset_value: key:<%s>\n", key);
 }
+#endif
 
 /*-----------------------------------------------------------------------
  * ioctl - PI
@@ -206,7 +232,7 @@ int ioctl(int d, unsigned long int request, ...)
 	va_end(args);
 
 	int ret = realfunc(d, request, argp);
-	printf("NEMOHOOK: ioctl: d:%d, request:%lu\n", d, request);
+	klogf("NEMOHOOK: ioctl: d:%d, request:%lu\n", d, request);
 
 	return ret;
 }

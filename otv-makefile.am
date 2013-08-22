@@ -1,0 +1,12 @@
+SUBDIRS = .
+
+lib_LTLIBRARIES = libird.la
+libird_la_SOURCES = ird.c
+libird_la_LDFLAGS = -module
+AM_CFLAGS = $(IRDC_INCLUDE) $(BUILD_CFLAGS) $(IRDC_CFLAGS)
+
+lib_LTLIBRARIES = libnemohook.la
+libnemohook_la_SOURCES = nemohook.c dbus-print-message.c
+libnemohook_la_LDFLAGS = -module
+AM_CFLAGS = $(IRDC_INCLUDE) $(BUILD_CFLAGS) $(IRDC_CFLAGS)
+

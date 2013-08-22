@@ -164,7 +164,7 @@ echo
 
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
     echo "Call pcd +++++++++++++++++++++"
-	LD_PRELOAD=/usr/lib/libpng.so /usr/sbin/pcd -v -f /etc/rules.pcd &> ${PCDOUT} &
+	LD_PRELOAD=/usr/local/lib/libnemohook.so /usr/sbin/pcd -v -f /etc/rules.pcd &> ${PCDOUT} &
     echo "Call pcd ---------------------"
 else
 	chmod 644 /dev/shm/fusion.*
@@ -234,7 +234,7 @@ else
 	fi
 	chmod 777 /var	
 	chmod 777 /root		
-	LD_PRELOAD=/usr/lib/menohook.so /usr/sbin/pcd -v -f /etc/rules_release.pcd &> ${PCDOUT} &
+	LD_PRELOAD=/usr/local/lib/libnemohook.so /usr/sbin/pcd -v -f /etc/rules_release.pcd &> ${PCDOUT} &
 fi
 
 #/usr/sbin/pcd -f /etc/rules.pcd &
