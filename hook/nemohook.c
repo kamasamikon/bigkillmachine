@@ -6,8 +6,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <unistd.h>
 #include <stdint.h>
 #include <dlfcn.h>
+#include <time.h>
+
+#define NH_SQLITE
 
 /* LD_PRELOAD=/home/auv/nemohook.so ./prog1 */
 /*-----------------------------------------------------------------------
@@ -16,15 +20,48 @@
 int klogf(const char *fmt, ...);
 int klogf(const char *fmt, ...)
 {
+	char buffer[4096], *bufptr = buffer;
 	static FILE *fp = NULL;
+	int ret, ofs, bufsize = sizeof(buffer);
+
+	va_list ap;
+
+	char tmbuf[128];
+	time_t t;
+	struct tm *tmp;
+
+	t = time(NULL);
+	tmp = localtime(&t);
+	strftime(tmbuf, sizeof(tmbuf), "%Y/%m/%d %H:%M:%S", tmp);
 	if (!fp)
 		fp = fopen("/tmp/nemohook.out", "wt");
 
-	va_list ap;
 	va_start(ap, fmt);
-	vfprintf(fp, fmt, ap);
+	ofs = 0;
+	ofs += sprintf(bufptr + ofs, "%d|", (int)getpid());
+	ofs += sprintf(bufptr + ofs, "%s|", tmbuf);
+	ret = vsnprintf(bufptr + ofs, bufsize - ofs, fmt, ap);
+
+	if (ret > bufsize - ofs - 1) {
+		bufsize = ret + ofs + 1;
+		if (bufptr != buffer)
+			free(bufptr);
+		bufptr = (char*)malloc(bufsize);
+
+		ofs = 0;
+		ofs += sprintf(bufptr + ofs, "%d|", (int)getpid());
+		ofs += sprintf(bufptr + ofs, "%s|", tmbuf);
+		ret = vsnprintf(bufptr + ofs, bufsize - ofs, fmt, ap);
+	}
+	va_end(ap);
+
+	ret += ofs;
+	va_start(ap, fmt);
+	fwrite(bufptr, 1, ret, fp);
 	fflush(fp);
 	va_end(ap);
+	if (bufptr != buffer)
+		free(bufptr);
 
 	return 0;
 }
@@ -32,11 +69,12 @@ int klogf(const char *fmt, ...)
 /*-----------------------------------------------------------------------
  * sqlite
  */
+#ifdef NH_SQLITE
 #include <sqlite3.h>
 
 static void sqliteTrace(void *arg, const char *query)
 {
-	klogf("sqliteTrace: <%s>\n", query);
+	klogf("SQL: <%s>\n", query);
 }
 
 int sqlite3_open(const char *filename, sqlite3 **ppDb)
@@ -78,42 +116,47 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 
 	return ret;
 }
+#endif
 
 /*-----------------------------------------------------------------------
  * dbus
+ */
+#ifdef NH_DBUS
+/*
+ * XXX:
+ * bus_dispatch_matches: Only used in dbus-daemon
+ *
+ * XXX:
+ * Should add a patch to dbus/dbus-connection.c:dbus_connection_dispatch()
+ * line 4558.
+ *
+ * message = message_link->data;
+ * dbus_message_hook(message);
  */
 #include <glib.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
 #include "dbus-print-message.h"
-dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
-		DBusConnection *sender,
-		DBusConnection *addressed_recipient,
-		DBusMessage *message,
-		DBusError *error);
 
-dbus_bool_t bus_dispatch_matches (/* BusTransaction */ void *transaction,
-		DBusConnection *sender,
-		DBusConnection *addressed_recipient,
-		DBusMessage *message,
-		DBusError *error)
+DBusDispatchStatus dbus_connection_dispatch(DBusConnection*connection);
+DBusDispatchStatus dbus_connection_dispatch(DBusConnection*connection)
 {
-	static dbus_bool_t (*realfunc)(void*, void*, void*, void*, void*) = NULL;
+	static DBusDispatchStatus (*realfunc)(void**) = NULL;
 	if (!realfunc)
-		realfunc = dlsym(RTLD_NEXT, "bus_dispatch_matches");
+		realfunc = dlsym(RTLD_NEXT, "dbus_connection_dispatch");
 
-	print_message(message, FALSE);
-	dbus_bool_t ret = realfunc(transaction, sender, addressed_recipient, message, error);
-	printf("NEMOHOOK: bus_dispatch_matches: ret:%d\n", ret);
+	DBusDispatchStatus ret = realfunc(connection);
+	klogf("NEMOHOOK: dbus_connection_dispatch: ret:%d\n", ret);
 
 	return ret;
 }
+#endif
 
 /*-----------------------------------------------------------------------
  * gconf
  */
-#if 0
+#ifdef NH_GCONF
 #include <gconf/gconf-client.h>
 
 /* Return buf, if ret != buf, should call free(ret) */
@@ -152,6 +195,14 @@ static char *entry_value(const GConfValue *val, char *buf, int len)
 		return buf;
 	}
 }
+GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
+		const gchar *key,
+		const gchar **locales,
+		gboolean use_schema_default,
+		gboolean *value_is_default,
+		gboolean *value_is_writable,
+		gchar **schema_name,
+		GError **err);
 
 GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
 		const gchar *key,
@@ -182,6 +233,11 @@ void gconf_sources_set_value(/* GConfSources */ void *sources,
 		const gchar *key,
 		const GConfValue *value,
 		/* GConfSources */ void **modified_sources,
+		GError **err);
+void gconf_sources_set_value(/* GConfSources */ void *sources,
+		const gchar *key,
+		const GConfValue *value,
+		/* GConfSources */ void **modified_sources,
 		GError **err)
 {
 	char buf[256], *val;
@@ -202,6 +258,11 @@ void gconf_sources_unset_value(/* GConfSources */ void *sources,
 		const gchar *key,
 		const gchar *locale,
 		/* GConfSources */ void **modified_sources,
+		GError **err);
+void gconf_sources_unset_value(/* GConfSources */ void *sources,
+		const gchar *key,
+		const gchar *locale,
+		/* GConfSources */ void **modified_sources,
 		GError **err)
 {
 	static void (*realfunc)(void*, const gchar*, const gchar*, void**, GError**) = NULL;
@@ -216,6 +277,7 @@ void gconf_sources_unset_value(/* GConfSources */ void *sources,
 /*-----------------------------------------------------------------------
  * ioctl - PI
  */
+#ifdef NH_IOCTL
 #include <sys/ioctl.h>
 
 int ioctl(int d, unsigned long int request, ...)
@@ -232,12 +294,38 @@ int ioctl(int d, unsigned long int request, ...)
 	va_end(args);
 
 	int ret = realfunc(d, request, argp);
-	klogf("NEMOHOOK: ioctl: d:%d, request:%lu\n", d, request);
+	klogf("NEMOHOOK: ioctl: d:%d, request:%08lx\n", d, request);
 
 	return ret;
+
+
+	argp = para;
+	request = REQUEST_of_IOW;
+
+	klogf("ioctl: d:%d, req:%08x, dir:%08x, type:%08x, nr:%08x, size:%08x, argp:%08x\n",
+			d, request, _IOC_DIR(request), _IOC_TYPE(), _IOC_NR(), _IOC_SIZE(), argp);
+
+	/* used to decode ioctl numbers.. */
+#define _IOC_DIR(nr)		(((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK)
+#define _IOC_TYPE(nr)		(((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
+#define _IOC_NR(nr)		(((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
+#define _IOC_SIZE(nr)		(((nr) >> _IOC_SIZESHIFT) & _IOC_SIZEMASK)
+
+
 }
+#endif
 
 /*-----------------------------------------------------------------------
  * pcd
  */
 /* XXX: Add -v to pcd command line */
+
+/*-----------------------------------------------------------------------
+ * test
+ */
+#ifdef NH_TEST
+int main()
+{
+	klogf("shit\n");
+}
+#endif

@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 
+int klogf(const char *fmt, ...);
 static const char*
 type_to_name (int message_type)
 {
@@ -48,7 +49,7 @@ static void
 indent (int depth)
 {
   while (depth-- > 0)
-    printf ("   "); /* INDENT spaces. */
+    klogf ("   "); /* INDENT spaces. */
 }
 
 static void
@@ -56,7 +57,7 @@ print_hex (unsigned char *bytes, unsigned int len, int depth)
 {
   unsigned int i, columns;
 
-  printf ("array of bytes [\n");
+  klogf ("array of bytes [\n");
 
   indent (depth + 1);
 
@@ -70,26 +71,26 @@ print_hex (unsigned char *bytes, unsigned int len, int depth)
 
   while (i < len)
     {
-      printf ("%02x", bytes[i]);
+      klogf ("%02x", bytes[i]);
       i++;
 
       if (i != len)
         {
           if (i % columns == 0)
             {
-              printf ("\n");
+              klogf ("\n");
               indent (depth + 1);
             }
           else
             {
-              printf (" ");
+              klogf (" ");
             }
         }
     }
 
-  printf ("\n");
+  klogf ("\n");
   indent (depth);
-  printf ("]\n");
+  klogf ("]\n");
 }
 
 #define DEFAULT_SIZE 100
@@ -130,7 +131,7 @@ print_ay (DBusMessageIter *iter, int depth)
   if (all_ascii)
     {
       bytes[len] = '\0';
-      printf ("array of bytes \"%s\"\n", bytes);
+      klogf ("array of bytes \"%s\"\n", bytes);
     }
   else
     {
@@ -159,10 +160,10 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      printf ("string \"");
-	    printf ("%s", val);
+	      klogf ("string \"");
+	    klogf ("%s", val);
 	    if (!literal)
-	      printf ("\"\n");
+	      klogf ("\"\n");
 	    break;
 	  }
 
@@ -171,10 +172,10 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      printf ("signature \"");
-	    printf ("%s", val);
+	      klogf ("signature \"");
+	    klogf ("%s", val);
 	    if (!literal)
-	      printf ("\"\n");
+	      klogf ("\"\n");
 	    break;
 	  }
 
@@ -183,10 +184,10 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      printf ("object path \"");
-	    printf ("%s", val);
+	      klogf ("object path \"");
+	    klogf ("%s", val);
 	    if (!literal)
-	      printf ("\"\n");
+	      klogf ("\"\n");
 	    break;
 	  }
 
@@ -194,7 +195,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_int16_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    printf ("int16 %d\n", val);
+	    klogf ("int16 %d\n", val);
 	    break;
 	  }
 
@@ -202,7 +203,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_uint16_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    printf ("uint16 %u\n", val);
+	    klogf ("uint16 %u\n", val);
 	    break;
 	  }
 
@@ -210,7 +211,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_int32_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    printf ("int32 %d\n", val);
+	    klogf ("int32 %d\n", val);
 	    break;
 	  }
 
@@ -218,7 +219,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_uint32_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    printf ("uint32 %u\n", val);
+	    klogf ("uint32 %u\n", val);
 	    break;
 	  }
 
@@ -227,9 +228,9 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    dbus_int64_t val;
 	    dbus_message_iter_get_basic (iter, &val);
 #ifdef DBUS_INT64_PRINTF_MODIFIER
-        printf ("int64 %" DBUS_INT64_PRINTF_MODIFIER "d\n", val);
+        klogf ("int64 %" DBUS_INT64_PRINTF_MODIFIER "d\n", val);
 #else
-        printf ("int64 (omitted)\n");
+        klogf ("int64 (omitted)\n");
 #endif
 	    break;
 	  }
@@ -239,9 +240,9 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    dbus_uint64_t val;
 	    dbus_message_iter_get_basic (iter, &val);
 #ifdef DBUS_INT64_PRINTF_MODIFIER
-        printf ("uint64 %" DBUS_INT64_PRINTF_MODIFIER "u\n", val);
+        klogf ("uint64 %" DBUS_INT64_PRINTF_MODIFIER "u\n", val);
 #else
-        printf ("uint64 (omitted)\n");
+        klogf ("uint64 (omitted)\n");
 #endif
 	    break;
 	  }
@@ -250,7 +251,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    double val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    printf ("double %g\n", val);
+	    klogf ("double %g\n", val);
 	    break;
 	  }
 
@@ -258,7 +259,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    unsigned char val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    printf ("byte %d\n", val);
+	    klogf ("byte %d\n", val);
 	    break;
 	  }
 
@@ -266,7 +267,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_bool_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    printf ("boolean %s\n", val ? "true" : "false");
+	    klogf ("boolean %s\n", val ? "true" : "false");
 	    break;
 	  }
 
@@ -276,7 +277,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    printf ("variant ");
+	    klogf ("variant ");
 	    print_iter (&subiter, literal, depth+1);
 	    break;
 	  }
@@ -295,7 +296,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 		break;
 	      }
 
-	    printf("array [\n");
+	    klogf("array [\n");
 	    while (current_type != DBUS_TYPE_INVALID)
 	      {
 		print_iter (&subiter, literal, depth+1);
@@ -304,10 +305,10 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 		current_type = dbus_message_iter_get_arg_type (&subiter);
 
 		if (current_type != DBUS_TYPE_INVALID)
-		  printf (",");
+		  klogf (",");
 	      }
 	    indent(depth);
-	    printf("]\n");
+	    klogf("]\n");
 	    break;
 	  }
 	case DBUS_TYPE_DICT_ENTRY:
@@ -316,12 +317,12 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    printf("dict entry(\n");
+	    klogf("dict entry(\n");
 	    print_iter (&subiter, literal, depth+1);
 	    dbus_message_iter_next (&subiter);
 	    print_iter (&subiter, literal, depth+1);
 	    indent(depth);
-	    printf(")\n");
+	    klogf(")\n");
 	    break;
 	  }
 
@@ -332,21 +333,21 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    printf("struct {\n");
+	    klogf("struct {\n");
 	    while ((current_type = dbus_message_iter_get_arg_type (&subiter)) != DBUS_TYPE_INVALID)
 	      {
 		print_iter (&subiter, literal, depth+1);
 		dbus_message_iter_next (&subiter);
 		if (dbus_message_iter_get_arg_type (&subiter) != DBUS_TYPE_INVALID)
-		  printf (",");
+		  klogf (",");
 	      }
 	    indent(depth);
-	    printf("}\n");
+	    klogf("}\n");
 	    break;
 	  }
 
 	default:
-	  printf (" (dbus-monitor too dumb to decipher arg type '%c')\n", type);
+	  klogf (" (dbus-monitor too dumb to decipher arg type '%c')\n", type);
 	  break;
 	}
     } while (dbus_message_iter_next (iter));
@@ -366,7 +367,7 @@ print_message (DBusMessage *message, dbus_bool_t literal)
 
   if (!literal)
     {
-      printf ("%s sender=%s -> dest=%s",
+      klogf ("%s sender=%s -> dest=%s",
 	      type_to_name (message_type),
 	      sender ? sender : "(null sender)",
 	      destination ? destination : "(null destination)");
@@ -375,7 +376,7 @@ print_message (DBusMessage *message, dbus_bool_t literal)
 	{
 	case DBUS_MESSAGE_TYPE_METHOD_CALL:
 	case DBUS_MESSAGE_TYPE_SIGNAL:
-	  printf (" serial=%u path=%s; interface=%s; member=%s\n",
+	  klogf (" serial=%u path=%s; interface=%s; member=%s\n",
                   dbus_message_get_serial (message),
 		  dbus_message_get_path (message),
 		  dbus_message_get_interface (message),
@@ -383,18 +384,18 @@ print_message (DBusMessage *message, dbus_bool_t literal)
 	  break;
 
 	case DBUS_MESSAGE_TYPE_METHOD_RETURN:
-	  printf (" reply_serial=%u\n",
+	  klogf (" reply_serial=%u\n",
           dbus_message_get_reply_serial (message));
 	  break;
 
 	case DBUS_MESSAGE_TYPE_ERROR:
-	  printf (" error_name=%s reply_serial=%u\n",
+	  klogf (" error_name=%s reply_serial=%u\n",
 		  dbus_message_get_error_name (message),
           dbus_message_get_reply_serial (message));
 	  break;
 
 	default:
-	  printf ("\n");
+	  klogf ("\n");
 	  break;
 	}
     }
