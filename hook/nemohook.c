@@ -11,6 +11,9 @@
 #include <dlfcn.h>
 #include <time.h>
 
+#define NH_IOCTL
+#define NH_GCONF
+#define NH_DBUS
 #define NH_SQLITE
 
 /* LD_PRELOAD=/home/auv/nemohook.so ./prog1 */
@@ -72,9 +75,12 @@ int klogf(const char *fmt, ...)
 #ifdef NH_SQLITE
 #include <sqlite3.h>
 
+static int __g_sqlite_klog = 0;
+
 static void sqliteTrace(void *arg, const char *query)
 {
-	klogf("SQL: <%s>\n", query);
+	if (__g_sqlite_klog)
+		klogf("SQL: <%s>\n", query);
 }
 
 int sqlite3_open(const char *filename, sqlite3 **ppDb)
@@ -86,7 +92,9 @@ int sqlite3_open(const char *filename, sqlite3 **ppDb)
 	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	klogf("NEMOHOOK: sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
+
+	if (__g_sqlite_klog)
+		klogf("NEMOHOOK: sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }
@@ -99,7 +107,8 @@ int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	klogf("NEMOHOOK: sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
+	if (__g_sqlite_klog)
+		klogf("NEMOHOOK: sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
 
 	return ret;
 }
@@ -112,7 +121,8 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 	int ret = realfunc(filename, ppDb, flags, zVfs);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
-	klogf("NEMOHOOK: sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
+	if (__g_sqlite_klog)
+		klogf("NEMOHOOK: sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }
@@ -122,34 +132,25 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
  * dbus
  */
 #ifdef NH_DBUS
-/*
- * XXX:
- * bus_dispatch_matches: Only used in dbus-daemon
- *
- * XXX:
- * Should add a patch to dbus/dbus-connection.c:dbus_connection_dispatch()
- * line 4558.
- *
- * message = message_link->data;
- * dbus_message_hook(message);
- */
+
 #include <glib.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
 
 #include "dbus-print-message.h"
 
-DBusDispatchStatus dbus_connection_dispatch(DBusConnection*connection);
-DBusDispatchStatus dbus_connection_dispatch(DBusConnection*connection)
+static int __g_dbus_klog = 0;
+
+void dbus_connection_dispatch_hook(DBusMessage *message);
+void dbus_connection_dispatch_hook(DBusMessage *message)
 {
-	static DBusDispatchStatus (*realfunc)(void**) = NULL;
+	static void (*realfunc)(DBusMessage *message) = NULL;
 	if (!realfunc)
-		realfunc = dlsym(RTLD_NEXT, "dbus_connection_dispatch");
+		realfunc = dlsym(RTLD_NEXT, "dbus_connection_dispatch_hook");
 
-	DBusDispatchStatus ret = realfunc(connection);
-	klogf("NEMOHOOK: dbus_connection_dispatch: ret:%d\n", ret);
-
-	return ret;
+	realfunc(message);
+	if (__g_dbus_klog)
+		klogf("NEMOHOOK: dbus_connection_dispatch_hook\n");
 }
 #endif
 
@@ -158,6 +159,8 @@ DBusDispatchStatus dbus_connection_dispatch(DBusConnection*connection)
  */
 #ifdef NH_GCONF
 #include <gconf/gconf-client.h>
+
+static int __g_gconf_klog = 0;
 
 /* Return buf, if ret != buf, should call free(ret) */
 static char *entry_value(const GConfValue *val, char *buf, int len)
@@ -222,7 +225,8 @@ GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
 	GConfValue *ret = realfunc(sources, key, locales, use_schema_default, value_is_default, value_is_writable, schema_name, err);
 
 	val = entry_value(ret, buf, sizeof(buf));
-	klogf("NEMOHOOK: gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
+	if (__g_gconf_klog)
+		klogf("NEMOHOOK: gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 
@@ -249,7 +253,8 @@ void gconf_sources_set_value(/* GConfSources */ void *sources,
 	realfunc(sources, key, value, modified_sources, err);
 
 	val = entry_value(value, buf, sizeof(buf));
-	klogf("NEMOHOOK: gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
+	if (__g_gconf_klog)
+		klogf("NEMOHOOK: gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 }
@@ -270,7 +275,8 @@ void gconf_sources_unset_value(/* GConfSources */ void *sources,
 		realfunc = dlsym(RTLD_NEXT, "gconf_sources_unset_value");
 
 	realfunc(sources, key, locale, modified_sources, err);
-	klogf("NEMOHOOK: gconf_sources_unset_value: key:<%s>\n", key);
+	if (__g_gconf_klog)
+		klogf("NEMOHOOK: gconf_sources_unset_value: key:<%s>\n", key);
 }
 #endif
 
@@ -280,38 +286,27 @@ void gconf_sources_unset_value(/* GConfSources */ void *sources,
 #ifdef NH_IOCTL
 #include <sys/ioctl.h>
 
-int ioctl(int d, unsigned long int request, ...)
+static int __g_ioctl_klog = 0;
+
+int ioctl(int d, unsigned long int r, ...)
 {
-	static int (*realfunc)(int d, unsigned long int request, void*) = NULL;
+	static int (*realfunc)(int d, unsigned long int r, void*) = NULL;
 	if (!realfunc)
 		realfunc = dlsym(RTLD_NEXT, "ioctl");
 
 	va_list args;
 	void *argp;
 
-	va_start(args, request);
+	va_start(args, r);
 	argp = va_arg(args, void *);
 	va_end(args);
 
-	int ret = realfunc(d, request, argp);
-	klogf("NEMOHOOK: ioctl: d:%d, request:%08lx\n", d, request);
+	int ret = realfunc(d, r, argp);
+	if (__g_ioctl_klog)
+		klogf("ioctl: d:%d, r:%08x, dir:%08x, type:%08x, nr:%08x, size:%08x, argp:%08x\n",
+				d, r, _IOC_DIR(r), _IOC_TYPE(r), _IOC_NR(r), _IOC_SIZE(r), argp);
 
 	return ret;
-
-
-	argp = para;
-	request = REQUEST_of_IOW;
-
-	klogf("ioctl: d:%d, req:%08x, dir:%08x, type:%08x, nr:%08x, size:%08x, argp:%08x\n",
-			d, request, _IOC_DIR(request), _IOC_TYPE(), _IOC_NR(), _IOC_SIZE(), argp);
-
-	/* used to decode ioctl numbers.. */
-#define _IOC_DIR(nr)		(((nr) >> _IOC_DIRSHIFT) & _IOC_DIRMASK)
-#define _IOC_TYPE(nr)		(((nr) >> _IOC_TYPESHIFT) & _IOC_TYPEMASK)
-#define _IOC_NR(nr)		(((nr) >> _IOC_NRSHIFT) & _IOC_NRMASK)
-#define _IOC_SIZE(nr)		(((nr) >> _IOC_SIZESHIFT) & _IOC_SIZEMASK)
-
-
 }
 #endif
 
