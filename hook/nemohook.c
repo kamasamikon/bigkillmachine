@@ -198,86 +198,44 @@ static char *entry_value(const GConfValue *val, char *buf, int len)
 		return buf;
 	}
 }
-GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
-		const gchar *key,
-		const gchar **locales,
-		gboolean use_schema_default,
-		gboolean *value_is_default,
-		gboolean *value_is_writable,
-		gchar **schema_name,
-		GError **err);
 
-GConfValue *gconf_sources_query_value(/* GConfSources */ void *sources,
-		const gchar *key,
-		const gchar **locales,
-		gboolean use_schema_default,
-		gboolean *value_is_default,
-		gboolean *value_is_writable,
-		gchar **schema_name,
-		GError **err)
+void gconf_client_set(GConfClient* client, const gchar* key,
+		const GConfValue* val, GError** err)
+{
+	char buf[256], *vstr;
+
+	static void *(*realfunc)(GConfClient*, const gchar*, const GConfValue*, GError**) = NULL;
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "gconf_client_set");
+
+	realfunc(client, key, val, err);
+
+	vstr = entry_value(val, buf, sizeof(buf));
+	if (__g_gconf_klog)
+		klogf("NEMOHOOK: gconf_sources_query_value: key: <%s>, vstr:<%s>\n", key, vstr);
+	if (vstr != buf)
+		free(vstr);
+}
+
+GConfValue* gconf_client_get(GConfClient* client, const gchar* key, GError** err)
 {
 	char buf[256], *val;
 
-	static GConfValue *(*realfunc)(void*, const gchar*, const gchar**, gboolean, gboolean*, gboolean*, gchar**, GError**) = NULL;
+	static GConfValue *(*realfunc)(GConfClient*, const gchar*, GError**) = NULL;
 	if (!realfunc)
-		realfunc = dlsym(RTLD_NEXT, "gconf_sources_query_value");
+		realfunc = dlsym(RTLD_NEXT, "gconf_client_get");
 
-	GConfValue *ret = realfunc(sources, key, locales, use_schema_default, value_is_default, value_is_writable, schema_name, err);
+	GConfValue *ret = realfunc(client, key, err);
 
 	val = entry_value(ret, buf, sizeof(buf));
 	if (__g_gconf_klog)
-		klogf("NEMOHOOK: gconf_sources_query_value: key: <%s>, val:<%s>\n", key, val);
+		klogf("NEMOHOOK: gconf_client_get: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 
 	return ret;
 }
 
-void gconf_sources_set_value(/* GConfSources */ void *sources,
-		const gchar *key,
-		const GConfValue *value,
-		/* GConfSources */ void **modified_sources,
-		GError **err);
-void gconf_sources_set_value(/* GConfSources */ void *sources,
-		const gchar *key,
-		const GConfValue *value,
-		/* GConfSources */ void **modified_sources,
-		GError **err)
-{
-	char buf[256], *val;
-
-	static void (*realfunc)(void*, const gchar*, const GConfValue*, void**, GError**) = NULL;
-	if (!realfunc)
-		realfunc = dlsym(RTLD_NEXT, "gconf_sources_set_value");
-
-	realfunc(sources, key, value, modified_sources, err);
-
-	val = entry_value(value, buf, sizeof(buf));
-	if (__g_gconf_klog)
-		klogf("NEMOHOOK: gconf_sources_set_value: key: <%s>, val:<%s>\n", key, val);
-	if (val != buf)
-		free(val);
-}
-
-void gconf_sources_unset_value(/* GConfSources */ void *sources,
-		const gchar *key,
-		const gchar *locale,
-		/* GConfSources */ void **modified_sources,
-		GError **err);
-void gconf_sources_unset_value(/* GConfSources */ void *sources,
-		const gchar *key,
-		const gchar *locale,
-		/* GConfSources */ void **modified_sources,
-		GError **err)
-{
-	static void (*realfunc)(void*, const gchar*, const gchar*, void**, GError**) = NULL;
-	if (!realfunc)
-		realfunc = dlsym(RTLD_NEXT, "gconf_sources_unset_value");
-
-	realfunc(sources, key, locale, modified_sources, err);
-	if (__g_gconf_klog)
-		klogf("NEMOHOOK: gconf_sources_unset_value: key:<%s>\n", key);
-}
 #endif
 
 /*-----------------------------------------------------------------------

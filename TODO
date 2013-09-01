@@ -1,0 +1,7 @@
+1) watch pcd, print timestamp of each process start and start done.
+2) watch sqlite3, print raw statement and return value.
+3) watch devmgr PI's ioctl call, print the command parameter
+4) watch ccomx interface, print the command and parameter
+5) watch gconf Set and Get
+6) watch dbus Do like dbus-monitor
+7) watch gstreamer Snapshot or pipeline
