@@ -48,8 +48,8 @@ static FILE *__g_fp_out = NULL;
  */
 static int process_klog_data(int s, char *buf, int len)
 {
-	fwrite(buf, sizeof(char), len, __g_fp_out);
-	fflush(__g_fp_out);
+	if (len != fwrite(buf, sizeof(char), len, __g_fp_out))
+		kerror("fwrite error: %d\n", errno);
 	return 0;
 }
 
@@ -140,6 +140,9 @@ static void *worker_thread_or_server(void *userdata)
 			} else {
 				klog("Remote close socket: %d\n", e->data.fd);
 				close_connect(e->data.fd);
+
+				/* XXX: Should not put it here */
+				fflush(__g_fp_out);
 			}
 		}
 	}

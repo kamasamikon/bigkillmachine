@@ -69,8 +69,9 @@ static int load_boot_args(int *argc, char ***argv)
 
 static int logger_wlogf(const char *content, int len)
 {
-	// printf(content);
-	send(__g_klog_serv_skt, content, len, 0);
+	if (len != send(__g_klog_serv_skt, content, len, 0))
+		printf("logger_wlogf: send error: %d\n", errno);
+
 	return 0;
 }
 
