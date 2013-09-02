@@ -10,12 +10,12 @@ HILDA_FLAGS += -I `echo $$HILDA_INC`
 HILDA_FLAGS += -L `echo $$HILDA_LIB`
 HILDA_FLAGS += -lhilda
 
-all: nemohook
+all: libnemohook.so
 
 nemohook_SRCS = dbus-print-message.c nh_dbus.c nh_gconf.c nh_helper.c nh_ioctl.c nh_sqlite.c
-nemohook: $(nemohook_SRCS)
+libnemohook.so: $(nemohook_SRCS)
 	gcc -shared -ldl -fPIC $(CFLAGS) $(LDFLAGS) $(nemohook_SRCS) -o libnemohook.so
 
 clean:
-	rm nemohook
+	rm libnemohook.so
 
