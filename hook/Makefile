@@ -12,7 +12,7 @@ HILDA_FLAGS += -lhilda
 
 all: nemohook
 
-nemohook_SRCS = nemohook.c dbus-print-message.c
+nemohook_SRCS = dbus-print-message.c nh_dbus.c nh_gconf.c nh_helper.c nh_ioctl.c nh_sqlite.c
 nemohook: $(nemohook_SRCS)
 	gcc -shared -ldl -fPIC $(CFLAGS) $(LDFLAGS) $(nemohook_SRCS) -o libnemohook.so
 
