@@ -27,6 +27,7 @@
 == /tmp/klog.cfg ==
 tss=leftA...
 
+
 == klog ==
 1) 除了每个进程都使用一个单独的ORServer之外，还可以这样
     1) 存在一个单独的daemon，各个klog启动的过程中，向怹注册__g_klog_dirty的地址，

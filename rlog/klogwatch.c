@@ -7,11 +7,7 @@
 #include <errno.h>
 #include <netdb.h>
 #include <signal.h>
-#include <sys/types.h>
-#include <netinet/in.h>
 #include <sys/socket.h>
-#include <sys/epoll.h>
-#include <sys/select.h>
 
 #include <kstr.h>
 #include <karg.h>
@@ -29,12 +25,9 @@ static void init_log_monitor();
 
 static void setup_env(int argc, char *argv[])
 {
-	void *logcc, *optcc;
+	void *optcc;
 
 	optcc = opt_init(argc, argv);
-
-	opt_add_s("p:/env/log/cc", OA_GET, NULL, NULL);
-	opt_setptr("p:/env/log/cc", logcc);
 
 	opt_add_s("p:/env/opt/cc", OA_GET, NULL, NULL);
 	opt_setptr("p:/env/opt/cc", optcc);
@@ -66,21 +59,6 @@ static int load_boot_args(int *argc, char ***argv)
 		return 0;
 	}
 	return -1;
-}
-
-int rlog_s(const char *content, int len)
-{
-	init_log_monitor();
-
-	if (len != send(__g_rlog_serv_skt, content, len, 0))
-		printf("logger_wlogf: send error: %s, %d\n", strerror(errno), __g_rlog_serv_skt);
-
-	return 0;
-}
-
-int rlog_v(unsigned char type, unsigned int flg, const char *modu, const char *file, int ln, const char *fmt, va_list ap)
-{
-	return 0;
 }
 
 
@@ -140,7 +118,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	return 0;
 }
 
-int setup_rlog(int argc, char *argv[])
+static void setup_rlog(int argc, char *argv[])
 {
 	char serv[128];
 	kushort port;
@@ -150,9 +128,6 @@ int setup_rlog(int argc, char *argv[])
 	printf("port:%u\n", port);
 
 	connect_rlog_serv(serv, port, &__g_rlog_serv_skt);
-	printf("__g_rlog_serv_skt: %d\n", __g_rlog_serv_skt);
-
-	return 0;
 }
 
 static void init_log_monitor()
@@ -181,34 +156,23 @@ static void init_log_monitor()
 	opt_rpc_server_init(9000 + getpid(), __g_boot_argc, __g_boot_argv);
 }
 
-#if 0
-rlog()
+
+
+int rlog_s(const char *content, int len)
 {
-	/* Should LOG PID and TID */
-
 	init_log_monitor();
-	rlog(...);
+
+	if (len != send(__g_rlog_serv_skt, content, len, 0))
+		printf("logger_wlogf: send error: %s, %d\n", strerror(errno), __g_rlog_serv_skt);
+
+	return 0;
 }
-#endif
 
-#if 0
-#define GET_LOG_LEVEL() do { \
-	int touches = rlog_touches(); \
-	if (logger_not_set) \
-		rlog_add_logger(buitin_logger); \
-	if (__g_rlog_touches < touches) { \
-		__g_rlog_touches = touches; \
-		__gc_rlog_level = rlog_getflg((const kchar*)__FILE__); \
-	} \
-} while (0)
+int rlog_v(unsigned char type, unsigned int flg, const char *modu, const char *file, int ln, const char *fmt, va_list ap)
+{
+	return 0;
+}
 
-#define rlog(fmt, ...) do { \
-	GET_LOG_LEVEL(); \
-	if (__gc_rlog_level & LOG_LOG) { \
-		rlogf('L', __gc_rlog_level, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
-	} \
-} while (0)
-#endif
 
 int main(int argc, char *argv[])
 {

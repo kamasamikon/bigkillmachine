@@ -64,7 +64,7 @@ void rlog_setflg(const char *cmd);
 kinline int rlog_touches(void);
 
 static int VAR_UNUSED __g_rlog_touches = -1;
-static unsigned int VAR_UNUSED __gc_rlog_level;
+static unsigned int VAR_UNUSED __g_rlog_flg;
 
 /* RLOG Full */
 /* modu = MODULE, file = FileName, ln = Line */
@@ -79,7 +79,7 @@ int rlogf(unsigned char type, unsigned int flg, const char *modu, const char *fi
 	int touches = rlog_touches(); \
 	if (__g_rlog_touches < touches) { \
 		__g_rlog_touches = touches; \
-		__gc_rlog_level = rlog_getflg((const char*)__FILE__); \
+		__g_rlog_flg = rlog_getflg((const char*)__FILE__); \
 	} \
 } while (0)
 
@@ -89,15 +89,15 @@ int rlogf(unsigned char type, unsigned int flg, const char *modu, const char *fi
 #ifdef RLOG_MODU
 #define rlog(fmt, ...) do { \
 	GET_LOG_LEVEL(); \
-	if (__gc_rlog_level & LOG_LOG) { \
-		rlogf('L', __gc_rlog_level, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (__g_rlog_flg & LOG_LOG) { \
+		rlogf('L', __g_rlog_flg, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 #else
 #define rlog(fmt, ...) do { \
 	GET_LOG_LEVEL(); \
-	if (__gc_rlog_level & LOG_LOG) { \
-		rlogf('L', __gc_rlog_level, NULL, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (__g_rlog_flg & LOG_LOG) { \
+		rlogf('L', __g_rlog_flg, NULL, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 #endif
@@ -109,15 +109,15 @@ int rlogf(unsigned char type, unsigned int flg, const char *modu, const char *fi
 #ifdef RLOG_MODU
 #define kerror(fmt, ...) do { \
 	GET_LOG_LEVEL(); \
-	if (__gc_rlog_level & LOG_ERR) { \
-		rlogf('E', __gc_rlog_level, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (__g_rlog_flg & LOG_ERR) { \
+		rlogf('E', __g_rlog_flg, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 #else
 #define kerror(fmt, ...) do { \
 	GET_LOG_LEVEL(); \
-	if (__gc_rlog_level & LOG_ERR) { \
-		rlogf('E', __gc_rlog_level, NULL, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (__g_rlog_flg & LOG_ERR) { \
+		rlogf('E', __g_rlog_flg, NULL, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 #endif
@@ -129,15 +129,15 @@ int rlogf(unsigned char type, unsigned int flg, const char *modu, const char *fi
 #ifdef RLOG_MODU
 #define kfatal(fmt, ...) do { \
 	GET_LOG_LEVEL(); \
-	if (__gc_rlog_level & LOG_FAT) { \
-		rlogf('F', __gc_rlog_level, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (__g_rlog_flg & LOG_FAT) { \
+		rlogf('F', __g_rlog_flg, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 #else
 #define kfatal(fmt, ...) do { \
 	GET_LOG_LEVEL(); \
-	if (__gc_rlog_level & LOG_FAT) { \
-		rlogf('F', __gc_rlog_level, NULL, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (__g_rlog_flg & LOG_FAT) { \
+		rlogf('F', __g_rlog_flg, NULL, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 #endif
