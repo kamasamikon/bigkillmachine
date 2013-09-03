@@ -5,13 +5,13 @@ HILDA_FLAGS += -I `echo $$HILDA_INC`
 HILDA_FLAGS += -L `echo $$HILDA_LIB`
 HILDA_FLAGS += -lhilda
 
-all: klog 
+all: rlog 
 
-klog_SRCS = rlog.c klogwatch.c 
-klog: $(klog_SRCS)
-	gcc -o $@ $(klog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS)
+rlog_SRCS = rlog.c klogwatch.c 
+rlog: $(rlog_SRCS)
+	gcc -o $@ $(rlog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS)
 
 clean:
-	rm klog 
+	rm rlog 
 
 

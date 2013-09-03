@@ -25,12 +25,12 @@ static char **__g_boot_argv;
 
 static int __g_rlog_serv_skt;
 
+static void init_log_monitor();
+
 static void setup_env(int argc, char *argv[])
 {
 	void *logcc, *optcc;
-	unsigned int flg = LOG_LOG | LOG_ERR | LOG_FAT | LOG_ATM | LOG_MODU | LOG_FILE | LOG_LINE;
 
-	logcc = rlog_init(flg, argc, argv);
 	optcc = opt_init(argc, argv);
 
 	opt_add_s("p:/env/log/cc", OA_GET, NULL, NULL);
@@ -70,8 +70,10 @@ static int load_boot_args(int *argc, char ***argv)
 
 int rlog_s(const char *content, int len)
 {
+	init_log_monitor();
+
 	if (len != send(__g_rlog_serv_skt, content, len, 0))
-		printf("logger_wlogf: send error: %d\n", errno);
+		printf("logger_wlogf: send error: %s, %d\n", strerror(errno), __g_rlog_serv_skt);
 
 	return 0;
 }
@@ -82,7 +84,7 @@ int rlog_v(unsigned char type, unsigned int flg, const char *modu, const char *f
 }
 
 
-static void get_rlog_server(char *serv, kushort *port)
+static void rlog_serv_from_kernel_cmdline(char *serv, kushort *port)
 {
 	int i, j;
 
@@ -143,11 +145,12 @@ int setup_rlog(int argc, char *argv[])
 	char serv[128];
 	kushort port;
 
-	get_rlog_server(serv, &port);
-	rlog("serv:%s\n", serv);
-	rlog("port:%u\n", port);
+	rlog_serv_from_kernel_cmdline(serv, &port);
+	printf("serv:%s\n", serv);
+	printf("port:%u\n", port);
 
 	connect_rlog_serv(serv, port, &__g_rlog_serv_skt);
+	printf("__g_rlog_serv_skt: %d\n", __g_rlog_serv_skt);
 
 	return 0;
 }
@@ -211,8 +214,6 @@ int main(int argc, char *argv[])
 {
 	unsigned long i, tick, cost;
 	unsigned int count;
-
-	init_log_monitor();
 
 	rlog("sdlfasdflf\n");
 
