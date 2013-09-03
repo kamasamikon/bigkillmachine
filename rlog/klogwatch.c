@@ -13,23 +13,24 @@
 #include <sys/epoll.h>
 #include <sys/select.h>
 
-#include <klog.h>
 #include <kstr.h>
 #include <karg.h>
 #include <opt.h>
 #include <opt-rpc-server.h>
 
+#include <rlog.h>
+
 static int __g_boot_argc;
 static char **__g_boot_argv;
 
-static int __g_klog_serv_skt;
+static int __g_rlog_serv_skt;
 
 static void setup_env(int argc, char *argv[])
 {
 	void *logcc, *optcc;
 	unsigned int flg = LOG_LOG | LOG_ERR | LOG_FAT | LOG_ATM | LOG_MODU | LOG_FILE | LOG_LINE;
 
-	logcc = klog_init(flg, argc, argv);
+	logcc = rlog_init(flg, argc, argv);
 	optcc = opt_init(argc, argv);
 
 	opt_add_s("p:/env/log/cc", OA_GET, NULL, NULL);
@@ -39,9 +40,9 @@ static void setup_env(int argc, char *argv[])
 	opt_setptr("p:/env/opt/cc", optcc);
 }
 
-static int os_klog_argv(int ses, void *opt, void *pa, void *pb)
+static int os_rlog_argv(int ses, void *opt, void *pa, void *pb)
 {
-	klog_setflg(opt_get_new_str(opt));
+	rlog_setflg(opt_get_new_str(opt));
 	return 0;
 }
 
@@ -67,20 +68,26 @@ static int load_boot_args(int *argc, char ***argv)
 	return -1;
 }
 
-static int logger_wlogf(const char *content, int len)
+int rlog_s(const char *content, int len)
 {
-	if (len != send(__g_klog_serv_skt, content, len, 0))
+	if (len != send(__g_rlog_serv_skt, content, len, 0))
 		printf("logger_wlogf: send error: %d\n", errno);
 
 	return 0;
 }
 
-static void get_klog_server(char *serv, kushort *port)
+int rlog_v(unsigned char type, unsigned int flg, const char *modu, const char *file, int ln, const char *fmt, va_list ap)
+{
+	return 0;
+}
+
+
+static void get_rlog_server(char *serv, kushort *port)
 {
 	int i, j;
 
-	/* klog-server=172.22.7.144:2123 */
-	i = arg_find(__g_boot_argc, __g_boot_argv, "klog-server=", 0);
+	/* rlog-server=172.22.7.144:2123 */
+	i = arg_find(__g_boot_argc, __g_boot_argv, "rlog-server=", 0);
 	if (i >= 0) {
 		for (j = 0; __g_boot_argv[i][j + 12] != ':'; j++)
 			serv[j] = __g_boot_argv[i][j + 12];
@@ -103,7 +110,7 @@ static void config_socket(int s)
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 }
 
-static int connect_klog_serv(const char *server, unsigned short port, int *retfd)
+static int connect_rlog_serv(const char *server, unsigned short port, int *retfd)
 {
 	int sockfd;
 	struct hostent *he;
@@ -131,18 +138,16 @@ static int connect_klog_serv(const char *server, unsigned short port, int *retfd
 	return 0;
 }
 
-int setup_klog(int argc, char *argv[])
+int setup_rlog(int argc, char *argv[])
 {
 	char serv[128];
 	kushort port;
 
-	klog_add_logger(logger_wlogf);
+	get_rlog_server(serv, &port);
+	rlog("serv:%s\n", serv);
+	rlog("port:%u\n", port);
 
-	get_klog_server(serv, &port);
-	klog("serv:%s\n", serv);
-	klog("port:%u\n", port);
-
-	connect_klog_serv(serv, port, &__g_klog_serv_skt);
+	connect_rlog_serv(serv, port, &__g_rlog_serv_skt);
 
 	return 0;
 }
@@ -166,23 +171,41 @@ static void init_log_monitor()
 
 	setup_env(__g_boot_argc, __g_boot_argv);
 
-	setup_klog(__g_boot_argc, __g_boot_argv);
+	setup_rlog(__g_boot_argc, __g_boot_argv);
 
-	opt_add_s("s:/klog/argv", OA_DFT, os_klog_argv, NULL);
+	opt_add_s("s:/rlog/argv", OA_DFT, os_rlog_argv, NULL);
 
 	opt_rpc_server_init(9000 + getpid(), __g_boot_argc, __g_boot_argv);
 }
 
 #if 0
-klog()
+rlog()
 {
 	/* Should LOG PID and TID */
 
 	init_log_monitor();
-	klog(...);
+	rlog(...);
 }
 #endif
 
+#if 0
+#define GET_LOG_LEVEL() do { \
+	int touches = rlog_touches(); \
+	if (logger_not_set) \
+		rlog_add_logger(buitin_logger); \
+	if (__g_rlog_touches < touches) { \
+		__g_rlog_touches = touches; \
+		__gc_rlog_level = rlog_getflg((const kchar*)__FILE__); \
+	} \
+} while (0)
+
+#define rlog(fmt, ...) do { \
+	GET_LOG_LEVEL(); \
+	if (__gc_rlog_level & LOG_LOG) { \
+		rlogf('L', __gc_rlog_level, RLOG_MODU, __FILE__, __LINE__, fmt, ##__VA_ARGS__); \
+	} \
+} while (0)
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -191,6 +214,8 @@ int main(int argc, char *argv[])
 
 	init_log_monitor();
 
+	rlog("sdlfasdflf\n");
+
 	if (argv[1])
 		count = strtoul(argv[1], NULL, 10);
 	else
@@ -198,10 +223,10 @@ int main(int argc, char *argv[])
 
 	tick = spl_get_ticks();
 
-	printf("usage: klog count klog-server=172.22.1.144:9000\n");
+	printf("usage: rlog count rlog-server=172.22.1.144:9000\n");
 
 	for (i = 0; i < count; i++) {
-		klog("remote klog test. puppy FANG is a bad egg. done<%d>\n", i);
+		rlog("remote rlog test. puppy FANG is a bad egg. done<%d>\n", i);
 	}
 
 	cost = spl_get_ticks() - tick;
