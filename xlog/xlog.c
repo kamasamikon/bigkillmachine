@@ -14,12 +14,23 @@
  */
 
 inline int klog_ver();
+void parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
 
-/*
- * FILE_NAME
- * MODU_NAME
- * PROC_ID
- */
+#define KLOG_LOG         0x00000001 /* l: Log */
+#define KLOG_ERR         0x00000002 /* e: Error */
+#define KLOG_FAT         0x00000004 /* f: Fatal Error */
+#define KLOG_TYPE_ALL    0x0000000f
+
+#define KLOG_RTM         0x00000100 /* t: Relative Time, in MS */
+#define KLOG_ATM         0x00000200 /* T: ABS Time, in MS */
+
+#define KLOG_PID         0x00001000 /* p: Process ID */
+#define KLOG_TID         0x00002000 /* P: Thread ID */
+
+#define KLOG_LINE        0x00010000 /* N: Line Number */
+#define KLOG_FILE        0x00020000 /* F: File Name */
+#define KLOG_MODU        0x00040000 /* M: Module Name */
+#define KLOG_FUNC        0x00080000 /* H: Function Name, 'HanShu' */
 
 /* __FILE__ 的名字都比较奇怪，应该去掉路径部分，只保留文件名 */
 static int __file_name_id = -1;
@@ -31,6 +42,9 @@ static char *__prog_name = NULL;
 
 /* 模块的名字是需要的 */
 static int __modu_name_id = -1;
+
+#define O_LOG_COMPNAME "XLOG"
+
 #if (defined(O_LOG_COMPNAME))
     #define COMP_NAME  O_LOG_COMPNAME
 #elif (defined(PACKAGE_NAME))
@@ -46,39 +60,50 @@ static int file_nr, modu_nr, prog_nr;
 #define INNER_VAR_DEF() \
 	static int ver_sav = -1; \
 	static int func_name_id = -1; \
+	static int flg = 0; \
 	int ver_get = klog_ver()
 
 #define SETUP_NAME_AND_ID() do { \
-	if (__file_name_id != -1) { \
+	if (__file_name_id == -1) { \
 		__file_name = only_name(__FILE__); \
 		__file_name_id = file_name_add(__file_name); \
 	} \
-	if (__prog_name_id != -1) { \
+	if (__prog_name_id == -1) { \
 		__prog_name = prog_name(); \
 		__prog_name_id = prog_name_add(__prog_name); \
 	} \
-	if (__modu_name_id != -1) { \
-		__modu_name = MODU_NAME; \
-		__modu_name_id = modu_name_add(__modu_name); \
+	if (__modu_name_id == -1) { \
+		__modu_name_id = modu_name_add(MODU_NAME); \
 	} \
-	if (func_name_id != -1) { \
+	if (func_name_id == -1) { \
 		func_name_id = func_name_add(__func__); \
 	} \
 } while (0)
 
-int rlogf(unsigned char type, unsigned int flg, const char *modu, const char *file, int ln, const char *fmt, ...);
+int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...)
+{
+	printf("type: %c\n", type);
+	printf("flag: %x\n", flg);
+	printf("prog: %s\n", prog);
+	printf("modu: %s\n", modu);
+	printf("file: %s\n", file);
+	printf("func: %s\n", func);
+	printf("line: %d\n", ln);
+	printf("fmt: %s\n", fmt);
+	return 0;
+}
 
 #define klog(fmt, ...) do { \
 	INNER_VAR_DEF(); \
-	int flg; \
-	if (ver_get < ver_sav) { \
+	if (ver_get > ver_sav) { \
 		ver_sav = ver_get; \
 		SETUP_NAME_AND_ID(); \
-		flg = klog_calc_flg(__prog_name_id, __modu_name_id, __file_name_id, func_name_id, getpid(), __LINE__); \
-		showme = ???; \
+		flg = klog_calc_flg(__prog_name_id, __modu_name_id, __file_name_id, func_name_id, __LINE__, getpid()); \
+		if (!(flg & KLOG_LOG)) \
+			flg = 0; \
 	} \
-	if (flg & LOG_LOG) \
-		klogf('L', flg, __prog_name, __modu_name, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (flg) \
+		rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
 } while (0)
 
 char *only_name(char *name)
@@ -86,28 +111,32 @@ char *only_name(char *name)
 	char *dup = strdup(name);
 	char *bn = basename(dup);
 
-	free(dup);
-	if (bn)
+	if (!bn)
 		bn = "";
+	else
+		bn = strdup(bn);
+
+	free(dup);
+
 	return strdup(bn);
 }
 
 char *prog_name()
 {
-	static char *prog_name = NULL;
+	static char *pname = NULL;
 	char buf[256];
 	FILE *fp;
 
-	if (!prog_name) {
+	if (!pname) {
 		sprintf(buf, "/proc/%d/cmdline", getpid());
 		fp = fopen(buf, "rt");
 		if (fp) {
 			fread(buf, sizeof(char), sizeof(buf), fp);
 			fclose(fp);
-			prog_name = only_name(buf);
+			pname = only_name(buf);
 		}
 	}
-	return prog_name;
+	return pname;
 }
 
 inline int klog_ver()
@@ -283,24 +312,9 @@ void rule_add(const char *rule)
 	unsigned int set = 0, clr = 0;
 	parse_flg(tmp + 1, &set, &clr);
 
-	rulearr_add(rulearr, program_name, module_name, file_name, function_name, line_number, pid);
+	rulearr_add(&rulearr, program_name, module_name, file_name, function_name, line_number, pid);
 }
 
-#define LOG_LOG         0x00000001 /* l: Log */
-#define LOG_ERR         0x00000002 /* e: Error */
-#define LOG_FAT         0x00000004 /* f: Fatal Error */
-#define LOG_TYPE_ALL    0x0000000f
-
-#define LOG_RTM         0x00000100 /* t: Relative Time, in MS */
-#define LOG_ATM         0x00000200 /* T: ABS Time, in MS */
-
-#define LOG_PID         0x00001000 /* p: Process ID */
-#define LOG_TID         0x00002000 /* P: Thread ID */
-
-#define LOG_LINE        0x00010000 /* N: Line Number */
-#define LOG_FILE        0x00020000 /* F: File Name */
-#define LOG_MODU        0x00040000 /* M: Module Name */
-#define LOG_FUNC        0x00080000 /* H: Function Name, 'HanShu' */
 
 typedef struct _flgmap_t flgmap_t;
 struct _flgmap_t {
@@ -309,20 +323,20 @@ struct _flgmap_t {
 };
 
 flgmap_t flgmap[] = {
-	{ 'l', LOG_LOG },
-	{ 'e', LOG_ERR },
-	{ 'f', LOG_FAT },
+	{ 'l', KLOG_LOG },
+	{ 'e', KLOG_ERR },
+	{ 'f', KLOG_FAT },
 
-	{ 't', LOG_RTM },
-	{ 'T', LOG_ATM },
+	{ 't', KLOG_RTM },
+	{ 'T', KLOG_ATM },
 
-	{ 'p', LOG_PID },
-	{ 'P', LOG_TID },
+	{ 'p', KLOG_PID },
+	{ 'P', KLOG_TID },
 
-	{ 'N', LOG_LINE },
-	{ 'F', LOG_FILE },
-	{ 'M', LOG_MODU },
-	{ 'H', LOG_FUNC },
+	{ 'N', KLOG_LINE },
+	{ 'F', KLOG_FILE },
+	{ 'M', KLOG_MODU },
+	{ 'H', KLOG_FUNC },
 };
 
 unsigned int get_flg(char c)
@@ -353,7 +367,7 @@ void parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
 	}
 }
 
-int klog_calc_flg(int program_name, int module_name, int file_name, int function_name, int line_number, int pid, int tid)
+int klog_calc_flg(int program_name, int module_name, int file_name, int function_name, int line_number, int pid)
 {
 	int i;
 
@@ -373,14 +387,18 @@ int klog_calc_flg(int program_name, int module_name, int file_name, int function
 	// 初始化的时候，命令行就已经拿到了
 	// 文件名应该格式化一下，
 
-	for (i = 0; i < MAX; i++) {
-		if (fname)
-			if (fname == rule[i].name)
-				shit;
+	for (i = 0; i < rulearr.cnt; i++) {
 	}
+
+	return 0;
 }
 
 /*-----------------------------------------------------------------------
  * main.c part
  */
+int main(int argc, char *argv[])
+{
+	klog("shit\n");
 
+	return 0;
+}
