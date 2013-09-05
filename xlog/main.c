@@ -65,9 +65,9 @@ int main(int argc, char *argv[])
 	show_help();
 
 	sprintf(fmt, "%s%s", rule0, argv[2]);
-	klog_rule_add(fmt);
-	klog_rule_add(rule1);
-	klog_rule_add(rule2);
+	// klog_rule_add(fmt);
+	// klog_rule_add(rule1);
+	// klog_rule_add(rule2);
 
 	count = strtoul(argv[1], NULL, 10);
 	tick = spl_get_ticks();

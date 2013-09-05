@@ -91,6 +91,7 @@ void *klog_attach(void *logcc)
 	return (void*)cc;
 }
 
+
 kinline void *klog_cc(void)
 {
 	int argc;
@@ -131,7 +132,38 @@ kinline int klog_touches(void)
 	return cc->touches;
 }
 
-/* FIXME: getenv also? */
+static void load_cfg_file(const char *path)
+{
+	char buf[4096];
+	FILE *fp;
+
+	fp = fopen(path, "rt");
+	if (!fp)
+		return;
+
+	while (fgets(buf, sizeof(buf), fp))
+		klog_rule_add(buf);
+
+	fclose(fp);
+}
+
+static void load_cfg(int argc, char *argv[])
+{
+	char *cfgpath;
+	int i;
+
+	/* Load configure from env */
+	cfgpath = getenv("KLOG_CFGFILE");
+	if (cfgpath)
+		load_cfg_file(cfgpath);
+
+	/* Load configure from command line */
+	i = arg_find(argc, argv, "--klog-cfgfile", 1);
+	if (i > 1)
+		load_cfg_file(argv[i + 1]);
+
+}
+
 /* Should set default log level to tlef-s-Sj-x-P-MF-HN, because time cost too much */
 void *klog_init(kuint flg, int argc, char **argv)
 {
@@ -142,6 +174,8 @@ void *klog_init(kuint flg, int argc, char **argv)
 
 	cc = (klogcc_t*)kmem_alloz(1, klogcc_t);
 	__g_klogcc = cc;
+
+	load_cfg(argc, argv);
 
 	klog_touch();
 
@@ -340,21 +374,25 @@ static int strarr_add(strarr_t *sa, const char *str)
 int klog_file_name_add(const char *name)
 {
 	klogcc_t *cc = (klogcc_t*)klog_cc();
+
 	return strarr_add(&cc->arr_file_name, name);
 }
 int klog_modu_name_add(const char *name)
 {
 	klogcc_t *cc = (klogcc_t*)klog_cc();
+
 	return strarr_add(&cc->arr_modu_name, name);
 }
 int klog_prog_name_add(const char *name)
 {
 	klogcc_t *cc = (klogcc_t*)klog_cc();
+
 	return strarr_add(&cc->arr_prog_name, name);
 }
 int klog_func_name_add(const char *name)
 {
 	klogcc_t *cc = (klogcc_t*)klog_cc();
+
 	return strarr_add(&cc->arr_func_name, name);
 }
 
@@ -422,7 +460,8 @@ void klog_rule_add(const char *rule)
 	unsigned int set = 0, clr = 0;
 	klog_parse_flg(tmp, &set, &clr);
 
-	rulearr_add(&cc->arr_rule, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
+	if (set || clr)
+		rulearr_add(&cc->arr_rule, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
 }
 
 static unsigned int get_flg(char c)
