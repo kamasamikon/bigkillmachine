@@ -9,8 +9,7 @@ extern "C" {
 
 #include <sysdeps.h>
 
-inline int klog_ver();
-void parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
+#define KLOG_ALL         0xffffffff
 
 #define KLOG_TRC         0x00000001 /* t: Trace */
 #define KLOG_LOG         0x00000002 /* l: Log */
@@ -42,7 +41,6 @@ static int VAR_UNUSED __modu_name_id = -1;
 #define MODU_NAME  "?"
 #endif
 
-
 #define klogs(fmt, ...) do { \
 	rlogf(0, 0, NULL, NULL, NULL, NULL, NULL, fmt, ##__VA_ARGS__); \
 } while (0)
@@ -51,7 +49,7 @@ static int VAR_UNUSED __modu_name_id = -1;
 	static int ver_sav = -1; \
 	static int func_name_id = -1; \
 	static int flg = 0; \
-	int ver_get = klog_ver()
+	int ver_get = klog_touches()
 
 #define KLOG_SETUP_NAME_AND_ID() do { \
 	if (__file_name_id == -1) { \
@@ -83,6 +81,13 @@ static int VAR_UNUSED __modu_name_id = -1;
 		rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
 } while (0)
 
+void *klog_init(kuint deflev, int argc, char **argv);
+kinline void *klog_cc(void);
+void *klog_attach(void *logcc);
+
+kinline void klog_touch(void);
+kinline int klog_touches(void);
+
 char *klog_get_name_part(char *name);
 char *klog_get_prog_name();
 
@@ -93,7 +98,6 @@ int klog_func_name_add(const char *name);
 
 void klog_rule_add(const char *rule);
 
-void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
 unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid);
 
 int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...);

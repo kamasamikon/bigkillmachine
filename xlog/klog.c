@@ -12,6 +12,7 @@
 #include <kmem.h>
 #include <kflg.h>
 #include <xtcool.h>
+#include <karg.h>
 
 #include "xlog.h"
 
@@ -54,50 +55,106 @@ struct _rulearr_t {
 	rule_t *arr;
 };
 
-typedef struct _flgmap_t flgmap_t;
-struct _flgmap_t {
-	char code;
-	unsigned int bit;
+
+/* Control Center for klog */
+typedef struct _klogcc_t klogcc_t;
+struct _klogcc_t {
+	/** version is a ref count user change klog arg */
+	int touches;
+
+	strarr_t arr_file_name;
+	strarr_t arr_modu_name;
+	strarr_t arr_prog_name;
+	strarr_t arr_func_name;
+
+	rulearr_t arr_rule;
 };
 
-static flgmap_t __g_flgmap[] = {
-	{ 't', KLOG_TRC },
-	{ 'l', KLOG_LOG },
-	{ 'e', KLOG_ERR },
-	{ 'f', KLOG_FAT },
-
-	{ 's', KLOG_RTM },
-	{ 'S', KLOG_ATM },
-
-	{ 'j', KLOG_PID },
-	{ 'x', KLOG_TID },
-
-	{ 'N', KLOG_LINE },
-	{ 'F', KLOG_FILE },
-	{ 'M', KLOG_MODU },
-	{ 'H', KLOG_FUNC },
-	{ 'P', KLOG_PROG },
-};
+static klogcc_t *__g_klogcc = NULL;
 
 /*-----------------------------------------------------------------------
  * xlog.c part
  */
-static strarr_t __g_sa_file_name = { 0 };
-static strarr_t __g_sa_modu_name = { 0 };
-static strarr_t __g_sa_prog_name = { 0 };
-static strarr_t __g_sa_func_name = { 0 };
-
-static rulearr_t __g_rulearr = { 0 };
 
 inline int klog_ver();
-void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
+static void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
+
+/**
+ * \brief Other module call this to use already inited CC
+ *
+ * It should be called by other so or dll.
+ */
+void *klog_attach(void *logcc)
+{
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+
+	return (void*)cc;
+}
+
+kinline void *klog_cc(void)
+{
+	int argc;
+	char **argv, *cmdline;
+	void *cc;
+
+	if (__g_klogcc)
+		return (void*)__g_klogcc;
+
+	/*
+	 * klog_init not called, load args by myself
+	 */
+	argc = 0;
+	argv = NULL;
+
+	cmdline = spl_get_cmdline();
+	if (cmdline)
+		build_argv(cmdline, &argc, &argv);
+
+	cc = klog_init(KLOG_ALL, argc, argv);
+
+	kmem_free(cmdline);
+	free_argv(argv);
+
+	return cc;
+}
+
+kinline void klog_touch(void)
+{
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+
+	cc->touches++;
+}
+kinline int klog_touches(void)
+{
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+
+	return cc->touches;
+}
+
+/* FIXME: getenv also? */
+/* Should set default log level to tlef-s-Sj-x-P-MF-HN, because time cost too much */
+void *klog_init(kuint flg, int argc, char **argv)
+{
+	klogcc_t *cc;
+
+	if (__g_klogcc)
+		return (void*)__g_klogcc;
+
+	cc = (klogcc_t*)kmem_alloz(1, klogcc_t);
+	__g_klogcc = cc;
+
+	klog_touch();
+
+	return (void*)__g_klogcc;
+}
 
 int rlogf(unsigned char type, unsigned int flg,
 		const char *prog, const char *modu,
 		const char *file, const char *func, int ln,
 		const char *fmt, ...)
 {
-	// klogcc_t *cc = (klogcc_t*)klog_cc();
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+
 	va_list ap;
 	char buffer[2048], *bufptr = buffer;
 	int ret, ofs, bufsize = sizeof(buffer);
@@ -253,11 +310,6 @@ char *klog_get_prog_name()
 	return pname;
 }
 
-inline int klog_ver()
-{
-	return 2;
-}
-
 static int strarr_find(strarr_t *sa, const char *str)
 {
 	int i;
@@ -287,19 +339,23 @@ static int strarr_add(strarr_t *sa, const char *str)
 
 int klog_file_name_add(const char *name)
 {
-	return strarr_add(&__g_sa_file_name, name);
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	return strarr_add(&cc->arr_file_name, name);
 }
 int klog_modu_name_add(const char *name)
 {
-	return strarr_add(&__g_sa_modu_name, name);
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	return strarr_add(&cc->arr_modu_name, name);
 }
 int klog_prog_name_add(const char *name)
 {
-	return strarr_add(&__g_sa_prog_name, name);
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	return strarr_add(&cc->arr_prog_name, name);
 }
 int klog_func_name_add(const char *name)
 {
-	return strarr_add(&__g_sa_func_name, name);
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	return strarr_add(&cc->arr_func_name, name);
 }
 
 static int rulearr_add(rulearr_t *ra, int prog, int modu,
@@ -333,6 +389,7 @@ static int rulearr_add(rulearr_t *ra, int prog, int modu,
  */
 void klog_rule_add(const char *rule)
 {
+	klogcc_t *cc = (klogcc_t*)klog_cc();
 	int i_prog, i_modu, i_file, i_func, i_line, i_pid;
 	char *s_prog, *s_modu, *s_file, *s_func, *s_line, *s_pid;
 	const char *tmp = rule;
@@ -365,20 +422,42 @@ void klog_rule_add(const char *rule)
 	unsigned int set = 0, clr = 0;
 	klog_parse_flg(tmp, &set, &clr);
 
-	rulearr_add(&__g_rulearr, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
+	rulearr_add(&cc->arr_rule, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
 }
 
 static unsigned int get_flg(char c)
 {
 	int i;
 
-	for (i = 0; i < sizeof(__g_flgmap) / sizeof(__g_flgmap[0]); i++)
-		if (__g_flgmap[i].code == c)
-			return __g_flgmap[i].bit;
+	static struct {
+		char code;
+		unsigned int bit;
+	} flagmap[] = {
+		{ 't', KLOG_TRC },
+		{ 'l', KLOG_LOG },
+		{ 'e', KLOG_ERR },
+		{ 'f', KLOG_FAT },
+
+		{ 's', KLOG_RTM },
+		{ 'S', KLOG_ATM },
+
+		{ 'j', KLOG_PID },
+		{ 'x', KLOG_TID },
+
+		{ 'N', KLOG_LINE },
+		{ 'F', KLOG_FILE },
+		{ 'M', KLOG_MODU },
+		{ 'H', KLOG_FUNC },
+		{ 'P', KLOG_PROG },
+	};
+
+	for (i = 0; i < sizeof(flagmap) / sizeof(flagmap[0]); i++)
+		if (flagmap[i].code == c)
+			return flagmap[i].bit;
 	return 0;
 }
 
-void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
+static void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
 {
 	int i = 0, len = strlen(flg);
 	char c;
@@ -398,10 +477,11 @@ void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
 
 unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid)
 {
+	klogcc_t *cc = (klogcc_t*)klog_cc();
 	unsigned int i, all = 0;
 
-	for (i = 0; i < __g_rulearr.cnt; i++) {
-		rule_t *rule = &__g_rulearr.arr[i];
+	for (i = 0; i < cc->arr_rule.cnt; i++) {
+		rule_t *rule = &cc->arr_rule.arr[i];
 
 		if (rule->prog && rule->prog != prog)
 			continue;
