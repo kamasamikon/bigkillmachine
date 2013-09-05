@@ -69,7 +69,7 @@ static int file_nr, modu_nr, prog_nr;
 		__file_name_id = file_name_add(__file_name); \
 	} \
 	if (__prog_name_id == -1) { \
-		__prog_name = prog_name(); \
+		__prog_name = get_prog_name(); \
 		__prog_name_id = prog_name_add(__prog_name); \
 	} \
 	if (__modu_name_id == -1) { \
@@ -111,17 +111,14 @@ char *only_name(char *name)
 	char *dup = strdup(name);
 	char *bn = basename(dup);
 
-	if (!bn)
-		bn = "";
-	else
-		bn = strdup(bn);
+	bn = bn ? strdup(bn) : strdup("");
 
 	free(dup);
 
-	return strdup(bn);
+	return bn;
 }
 
-char *prog_name()
+char *get_prog_name()
 {
 	static char *pname = NULL;
 	char buf[256];
@@ -156,18 +153,17 @@ struct _rule_t {
 	/* 0 is know care */
 	/* -1 is all */
 
-	int program_name;
-	int module_name;
-	int file_name;
-	int function_name;
+	int prog;	/* Program command line */
+	int modu;	/* Module name */
+	int file;	/* File name */
+	int func;	/* Function name */
 
-	int line_number;
+	int line;	/* Line number */
 
-	int pid;
-	int tid;
+	int pid;	/* Process ID */
 
 	/* After parse =leftXXX */
-	unsigned int flag;
+	unsigned int set, clr;
 };
 
 
@@ -256,20 +252,24 @@ struct _rulearr_t {
 
 static rulearr_t rulearr = { 0 };
 
-static int rulearr_add(rulearr_t *ra, int program_name, int module_name,
-		int file_name, int function_name, int line_number, int pid)
+static int rulearr_add(rulearr_t *ra, int prog, int modu,
+		int file, int func, int line, int pid,
+		unsigned int fset, unsigned int fclr)
 {
 	if (ra->cnt >= ra->size)
 		ARR_INC(10, ra->arr, ra->size, rule_t*);
 
 	rule_t *rule = &ra->arr[ra->cnt];
 
-	rule->program_name = program_name;
-	rule->module_name = module_name;
-	rule->file_name = file_name;
-	rule->function_name = function_name;
-	rule->line_number = line_number;
+	rule->prog = prog;
+	rule->modu = modu;
+	rule->file = file;
+	rule->func = func;
+	rule->line = line;
 	rule->pid = pid;
+
+	rule->set = fset;
+	rule->clr = fclr;
 
 	ra->cnt++;
 
@@ -277,42 +277,45 @@ static int rulearr_add(rulearr_t *ra, int program_name, int module_name,
 	return ra->cnt - 1;
 }
 
+/*
+ * rule =
+ * prog | modu | file | func | line | pid = left
+ */
 void rule_add(const char *rule)
 {
-	int program_name;
-	int module_name;
-	int file_name;
-	int function_name;
-	int line_number;
-	int pid;
-
+	int i_prog, i_modu, i_file, i_func, i_line, i_pid;
+	char *s_prog, *s_modu, *s_file, *s_func, *s_line, *s_pid;
 	const char *tmp = rule;
+	char buf[4096];
 
-	tmp = strchr(tmp, '|');
-	program_name = atoi(tmp);
+	/* TODO: split the rule first */
+	/* strtok or strsplit */
 
-	tmp = strchr(tmp, '|') + 1;
-	module_name = atoi(tmp);
+	strcpy(buf, rule);
 
-	tmp = strchr(tmp, '|') + 1;
-	file_name = atoi(tmp);
+	s_prog = strtok(buf, " |=");
+	s_modu = strtok(NULL, " |=");
+	s_file = strtok(NULL, " |=");
+	s_func = strtok(NULL, " |=");
+	s_line = strtok(NULL, " |=");
+	s_pid = strtok(NULL, " |=");
 
-	tmp = strchr(tmp, '|') + 1;
-	function_name = atoi(tmp);
 
-	tmp = strchr(tmp, '|') + 1;
-	line_number = atoi(tmp);
+	i_prog = prog_name_add(s_prog);
+	i_modu = modu_name_add(s_modu);
+	i_file = file_name_add(s_file);
+	i_func = func_name_add(s_func);
 
-	tmp = strchr(tmp, '|') + 1;
-	pid = atoi(tmp);
+	i_line = atoi(s_line);
+	i_pid = atoi(s_pid);
 
-	tmp = strchr(tmp, '=') + 1;
+	tmp = strchr(s_line, '=') + 1;
 
 	/* OK, parse the flag into int */
 	unsigned int set = 0, clr = 0;
 	parse_flg(tmp + 1, &set, &clr);
 
-	rulearr_add(&rulearr, program_name, module_name, file_name, function_name, line_number, pid);
+	rulearr_add(&rulearr, prog, modu, file, func, line, pid, set, clr);
 }
 
 
@@ -367,27 +370,38 @@ void parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
 	}
 }
 
-int klog_calc_flg(int program_name, int module_name, int file_name, int function_name, int line_number, int pid)
+int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid)
 {
 	int i;
 
-	unsigned int all, set, clr;
+	unsigned int all = 0;
 
 	/* 0 means ignore */
 
-	// PID, TID, 命令行
-
 	// |程序|模块|PID|TID|file|func|line=left
 	// /usr/bin/shit|shit.c|SHIT|3423|45234|455=leftAM
-
-	/* shit.c 的第100行 */
 	// NULL|shit.c|NULL|3423|0|100=leftAM
+	// NULL|NULL|NULL|3423|0|100=leftAM
 	//
 
-	// 初始化的时候，命令行就已经拿到了
-	// 文件名应该格式化一下，
-
 	for (i = 0; i < rulearr.cnt; i++) {
+		rule_t *rule = &rulearr.arr[i];
+
+		if (rule->prog && rule->prog != prog)
+			continue;
+		if (rule->modu && rule->modu != modu)
+			continue;
+		if (rule->file && rule->file != file)
+			continue;
+		if (rule->func && rule->func != func)
+			continue;
+		if (rule->line && rule->line != line)
+			continue;
+		if (rule->pid && rule->pid != pid)
+			continue;
+
+		all &= ^rule->clr;
+		all |= rule->set;
 	}
 
 	return 0;
@@ -398,6 +412,11 @@ int klog_calc_flg(int program_name, int module_name, int file_name, int function
  */
 int main(int argc, char *argv[])
 {
+	char *rule = "0|0|0|0|0|0|=leftRMHN";
+	char *rule = "0|0|0|0|0|0|=leftRMHN";
+
+	rule_add(rule);
+
 	klog("shit\n");
 
 	return 0;
