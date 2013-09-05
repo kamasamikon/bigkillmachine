@@ -10,12 +10,12 @@ HILDA_FLAGS += -I `echo $$HILDA_INC`
 HILDA_FLAGS += -L `echo $$HILDA_LIB`
 HILDA_FLAGS += -lhilda
 
-all: xlog 
+all: klog 
 
-xlog_SRCS = xlog.c
-xlog: $(xlog_SRCS)
-	gcc -o $@ $(xlog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS)
+klog_SRCS = klog.c
+klog: $(klog_SRCS)
+	gcc -o $@ $(klog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -DMODU_NAME=\"XLOG_MODU\"
 
 clean:
-	rm xlog 
+	rm klog 
 
