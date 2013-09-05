@@ -7,6 +7,8 @@
 extern "C" {
 #endif
 
+#include <sysdeps.h>
+
 inline int klog_ver();
 void parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
 
@@ -28,13 +30,13 @@ void parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
 #define KLOG_FUNC        0x00080000 /* H: Function Name, 'HanShu' */
 #define KLOG_LINE        0x00100000 /* N: Line Number */
 
-static int __file_name_id = -1;
-static char *__file_name = NULL;
+static int VAR_UNUSED __file_name_id = -1;
+static char VAR_UNUSED *__file_name = NULL;
 
-static int __prog_name_id = -1;
-static char *__prog_name = NULL;
+static int VAR_UNUSED __prog_name_id = -1;
+static char VAR_UNUSED *__prog_name = NULL;
 
-static int __modu_name_id = -1;
+static int VAR_UNUSED __modu_name_id = -1;
 
 #ifndef MODU_NAME
 #define MODU_NAME  "?"
@@ -53,18 +55,18 @@ static int __modu_name_id = -1;
 
 #define KLOG_SETUP_NAME_AND_ID() do { \
 	if (__file_name_id == -1) { \
-		__file_name = only_name(__FILE__); \
-		__file_name_id = file_name_add(__file_name); \
+		__file_name = klog_get_name_part(__FILE__); \
+		__file_name_id = klog_file_name_add(__file_name); \
 	} \
 	if (__prog_name_id == -1) { \
-		__prog_name = get_prog_name(); \
-		__prog_name_id = prog_name_add(__prog_name); \
+		__prog_name = klog_get_prog_name(); \
+		__prog_name_id = klog_prog_name_add(__prog_name); \
 	} \
 	if (__modu_name_id == -1) { \
-		__modu_name_id = modu_name_add(MODU_NAME); \
+		__modu_name_id = klog_modu_name_add(MODU_NAME); \
 	} \
 	if (func_name_id == -1) { \
-		func_name_id = func_name_add(__func__); \
+		func_name_id = klog_func_name_add(__func__); \
 	} \
 } while (0)
 
@@ -81,19 +83,20 @@ static int __modu_name_id = -1;
 		rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
 } while (0)
 
-int file_name_add(const char *name);
-int file_name_find(const char *name);
-int modu_name_add(const char *name);
-int modu_name_find(const char *name);
-int prog_name_add(const char *name);
-int prog_name_find(const char *name);
-int func_name_add(const char *name);
-int func_name_find(const char *name);
+char *klog_get_name_part(char *name);
+char *klog_get_prog_name();
+
+int klog_file_name_add(const char *name);
+int klog_modu_name_add(const char *name);
+int klog_prog_name_add(const char *name);
+int klog_func_name_add(const char *name);
 
 void klog_rule_add(const char *rule);
 
 void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
 unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid);
+
+int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...);
 
 #ifdef __cplusplus
 }

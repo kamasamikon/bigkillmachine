@@ -12,7 +12,7 @@ HILDA_FLAGS += -lhilda
 
 all: klog 
 
-klog_SRCS = klog.c
+klog_SRCS = klog.c main.c
 klog: $(klog_SRCS)
 	gcc -o $@ $(klog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -DMODU_NAME=\"XLOG_MODU\"
 

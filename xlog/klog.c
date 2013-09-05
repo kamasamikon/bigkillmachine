@@ -223,7 +223,7 @@ int rlogf(unsigned char type, unsigned int flg,
 
 }
 
-char *only_name(char *name)
+char *klog_get_name_part(char *name)
 {
 	char *dup = strdup(name);
 	char *bn = basename(dup);
@@ -235,7 +235,7 @@ char *only_name(char *name)
 	return bn;
 }
 
-char *get_prog_name()
+char *klog_get_prog_name()
 {
 	static char *pname = NULL;
 	char buf[256];
@@ -247,7 +247,7 @@ char *get_prog_name()
 		if (fp) {
 			fread(buf, sizeof(char), sizeof(buf), fp);
 			fclose(fp);
-			pname = only_name(buf);
+			pname = klog_get_name_part(buf);
 		}
 	}
 	return pname;
@@ -285,40 +285,22 @@ static int strarr_add(strarr_t *sa, const char *str)
 	return sa->cnt - 1;
 }
 
-int file_name_add(const char *name)
+int klog_file_name_add(const char *name)
 {
 	return strarr_add(&__g_sa_file_name, name);
 }
-int file_name_find(const char *name)
-{
-	return strarr_find(&__g_sa_file_name, name);
-}
-int modu_name_add(const char *name)
+int klog_modu_name_add(const char *name)
 {
 	return strarr_add(&__g_sa_modu_name, name);
 }
-int modu_name_find(const char *name)
-{
-	return strarr_find(&__g_sa_modu_name, name);
-}
-int prog_name_add(const char *name)
+int klog_prog_name_add(const char *name)
 {
 	return strarr_add(&__g_sa_prog_name, name);
 }
-int prog_name_find(const char *name)
-{
-	return strarr_find(&__g_sa_prog_name, name);
-}
-int func_name_add(const char *name)
+int klog_func_name_add(const char *name)
 {
 	return strarr_add(&__g_sa_func_name, name);
 }
-int func_name_find(const char *name)
-{
-	return strarr_find(&__g_sa_func_name, name);
-}
-
-
 
 static int rulearr_add(rulearr_t *ra, int prog, int modu,
 		int file, int func, int line, int pid,
@@ -369,10 +351,10 @@ void klog_rule_add(const char *rule)
 	s_pid = strtok(NULL, " |=");
 
 
-	i_prog = prog_name_add(s_prog);
-	i_modu = modu_name_add(s_modu);
-	i_file = file_name_add(s_file);
-	i_func = func_name_add(s_func);
+	i_prog = klog_prog_name_add(s_prog);
+	i_modu = klog_modu_name_add(s_modu);
+	i_file = klog_file_name_add(s_file);
+	i_func = klog_func_name_add(s_func);
 
 	i_line = atoi(s_line);
 	i_pid = atoi(s_pid);
@@ -441,77 +423,3 @@ unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int
 	return all;
 }
 
-/*-----------------------------------------------------------------------
- * main.c part
- */
-void show_help()
-{
-	printf("Usage: xlog count fmt\n\n");
-
-	printf("\tt: Trace\n");
-	printf("\tl: Log\n");
-	printf("\te: Error\n");
-	printf("\tf: Fatal Error\n");
-
-	printf("\ts: Relative Time, in MS, 'ShiJian'\n");
-	printf("\tS: ABS Time, in MS, 'ShiJian'\n");
-
-	printf("\tj: Process ID, 'JinCheng'\n");
-	printf("\tx: Thread ID, 'XianCheng'\n");
-
-	printf("\tP: Process Name\n");
-	printf("\tM: Module Name\n");
-	printf("\tF: File Name\n");
-	printf("\tH: Function Name, 'HanShu'\n");
-	printf("\tN: Line Number\n");
-}
-
-/*
- * s_prog = strtok(buf, " |=");
- * s_modu = strtok(NULL, " |=");
- * s_file = strtok(NULL, " |=");
- * s_func = strtok(NULL, " |=");
- * s_line = strtok(NULL, " |=");
- * s_pid = strtok(NULL, " |=");
- */
-
-void shit()
-{
-	klog("Swming in shit\n");
-}
-
-int main(int argc, char *argv[])
-{
-	unsigned long i, tick, cost;
-	unsigned int count;
-
-	char fmt[1024];
-
-	char *rule0 = "0|0|0|0|0|0|=";
-	char *rule1 = "0|0|0|0|505|0|=-l";
-	char *rule2 = "0|0|0|shit|0|0|=l-P-x-j";
-
-	show_help();
-
-	sprintf(fmt, "%s%s", rule0, argv[2]);
-	klog_rule_add(fmt);
-	klog_rule_add(rule1);
-	klog_rule_add(rule2);
-
-	count = strtoul(argv[1], NULL, 10);
-	tick = spl_get_ticks();
-
-	shit();
-	klog("Shit\n");
-
-	for (i = 0; i < count; i++) {
-		klog("remote rlog test. puppy FANG is a bad egg. done<%d>\n", i);
-	}
-
-	cost = spl_get_ticks() - tick;
-	fprintf(stderr, "count: %u\n", count);
-	fprintf(stderr, "time cost: %lu\n", cost);
-	fprintf(stderr, "count / ms = %lu\n", count / (cost ? cost : 1));
-
-	return 0;
-}
