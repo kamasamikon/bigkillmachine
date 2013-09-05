@@ -8,6 +8,7 @@
 
 #include <helper.h>
 #include <kmem.h>
+#include <kflg.h>
 
 /*-----------------------------------------------------------------------
  * xlog.h part
@@ -43,7 +44,7 @@ static char *__prog_name = NULL;
 /* 模块的名字是需要的 */
 static int __modu_name_id = -1;
 
-#define O_LOG_COMPNAME "XLOG"
+#define O_LOG_COMPNAME "MODU_XLOG"
 
 #if (defined(O_LOG_COMPNAME))
     #define COMP_NAME  O_LOG_COMPNAME
@@ -309,13 +310,13 @@ void rule_add(const char *rule)
 	i_line = atoi(s_line);
 	i_pid = atoi(s_pid);
 
-	tmp = strchr(s_line, '=') + 1;
+	tmp = strchr(rule, '=') + 1;
 
 	/* OK, parse the flag into int */
 	unsigned int set = 0, clr = 0;
-	parse_flg(tmp + 1, &set, &clr);
+	parse_flg(tmp, &set, &clr);
 
-	rulearr_add(&rulearr, prog, modu, file, func, line, pid, set, clr);
+	rulearr_add(&rulearr, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
 }
 
 
@@ -400,24 +401,65 @@ int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid)
 		if (rule->pid && rule->pid != pid)
 			continue;
 
-		all &= ^rule->clr;
-		all |= rule->set;
+		kflg_clr(all, rule->clr);
+		kflg_set(all, rule->set);
 	}
 
-	return 0;
+	return all;
 }
 
 /*-----------------------------------------------------------------------
  * main.c part
  */
+void show_help()
+{
+	printf("\tl: Log\n");
+	printf("\te: Error\n");
+	printf("\tf: Fatal Error\n");
+
+	printf("\tt: Relative Time, in MS\n");
+	printf("\tT: ABS Time, in MS\n");
+
+	printf("\tp: Process ID\n");
+	printf("\tP: Thread ID\n");
+
+	printf("\tN: Line Number\n");
+	printf("\tF: File Name\n");
+	printf("\tM: Module Name\n");
+	printf("\tH: Function Name, 'HanShu'\n\n");
+}
+
 int main(int argc, char *argv[])
 {
-	char *rule = "0|0|0|0|0|0|=leftRMHN";
-	char *rule = "0|0|0|0|0|0|=leftRMHN";
+	unsigned long i, tick, cost;
+	unsigned int count;
 
-	rule_add(rule);
+	char *rule0 = "0|0|0|0|0|0|=e";
+	char *rule1 = "0|0|0|0|0|0|=l";
 
-	klog("shit\n");
+	if (argv[1])
+		count = strtoul(argv[1], NULL, 10);
+	else
+		count = 100000;
+
+	show_help();
+
+	rule_add(rule0);
+
+	tick = spl_get_ticks();
+
+	for (i = 0; i < count; i++) {
+		klog("remote rlog test. puppy FANG is a bad egg. done<%d>\n", i);
+	}
+
+	cost = spl_get_ticks() - tick;
+
+	if (cost == 0)
+		cost = 1;
+
+	fprintf(stderr, "time cost: %lu\n", cost);
+	fprintf(stderr, "count: %u\n", count);
+	fprintf(stderr, "count / ms = %lu\n", count / cost);
 
 	return 0;
 }
