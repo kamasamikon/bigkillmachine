@@ -6,10 +6,12 @@
 #include <string.h>
 #include <libgen.h>
 #include <unistd.h>
+#include <time.h>
 
 #include <helper.h>
 #include <kmem.h>
 #include <kflg.h>
+#include <xtcool.h>
 
 /*-----------------------------------------------------------------------
  * xlog.h part
@@ -59,8 +61,6 @@ static int __modu_name_id = -1;
 
 #define MODU_NAME COMP_NAME
 
-static int file_nr, modu_nr, prog_nr;
-
 #define INNER_VAR_DEF() \
 	static int ver_sav = -1; \
 static int func_name_id = -1; \
@@ -101,7 +101,7 @@ int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *mo
 	// klogcc_t *cc = (klogcc_t*)klog_cc();
 	va_list ap;
 	char buffer[2048], *bufptr = buffer;
-	int i, ret, ofs, bufsize = sizeof(buffer);
+	int ret, ofs, bufsize = sizeof(buffer);
 
 	char tmbuf[128];
 	time_t t;
@@ -214,7 +214,7 @@ int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *mo
 		if (cc->nloggers[i])
 			cc->nloggers[i](bufptr, ret);
 #endif
-	printf(bufptr);
+	printf("%s", bufptr);
 
 	if (bufptr != buffer)
 		kmem_free(bufptr);
@@ -386,7 +386,7 @@ static int rulearr_add(rulearr_t *ra, int prog, int modu,
 		unsigned int fset, unsigned int fclr)
 {
 	if (ra->cnt >= ra->size)
-		ARR_INC(10, ra->arr, ra->size, rule_t*);
+		ARR_INC(1, ra->arr, ra->size, rule_t);
 
 	rule_t *rule = &ra->arr[ra->cnt];
 
@@ -455,7 +455,7 @@ struct _flgmap_t {
 };
 
 static flgmap_t flgmap[] = {
-	{ 't', KLOG_LOG },
+	{ 't', KLOG_TRC },
 	{ 'l', KLOG_LOG },
 	{ 'e', KLOG_ERR },
 	{ 'f', KLOG_FAT },
@@ -563,6 +563,15 @@ void show_help()
 	printf("\tN: Line Number\n");
 }
 
+/*
+ * s_prog = strtok(buf, " |=");
+ * s_modu = strtok(NULL, " |=");
+ * s_file = strtok(NULL, " |=");
+ * s_func = strtok(NULL, " |=");
+ * s_line = strtok(NULL, " |=");
+ * s_pid = strtok(NULL, " |=");
+ */
+
 int main(int argc, char *argv[])
 {
 	unsigned long i, tick, cost;
@@ -571,15 +580,18 @@ int main(int argc, char *argv[])
 	char fmt[1024];
 
 	char *rule0 = "0|0|0|0|0|0|=";
-	char *rule1 = "0|0|0|0|0|0|=l";
+	char *rule1 = "0|0|0|0|594|0|=-l";
 
 	show_help();
 
 	sprintf(fmt, "%s%s", rule0, argv[2]);
 	rule_add(fmt);
+	rule_add(rule1);
 
 	count = strtoul(argv[1], NULL, 10);
 	tick = spl_get_ticks();
+
+	klog("Shit\n");
 
 	for (i = 0; i < count; i++) {
 		klog("remote rlog test. puppy FANG is a bad egg. done<%d>\n", i);
