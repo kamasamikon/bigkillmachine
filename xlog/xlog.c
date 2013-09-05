@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 #include <libgen.h>
 #include <unistd.h>
@@ -17,21 +18,23 @@
 inline int klog_ver();
 void parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
 
-#define KLOG_LOG         0x00000001 /* l: Log */
-#define KLOG_ERR         0x00000002 /* e: Error */
-#define KLOG_FAT         0x00000004 /* f: Fatal Error */
+#define KLOG_TRC         0x00000001 /* t: Trace */
+#define KLOG_LOG         0x00000002 /* l: Log */
+#define KLOG_ERR         0x00000004 /* e: Error */
+#define KLOG_FAT         0x00000008 /* f: Fatal Error */
 #define KLOG_TYPE_ALL    0x0000000f
 
-#define KLOG_RTM         0x00000100 /* t: Relative Time, in MS */
-#define KLOG_ATM         0x00000200 /* T: ABS Time, in MS */
+#define KLOG_RTM         0x00000100 /* s: Relative Time, in MS, 'ShiJian' */
+#define KLOG_ATM         0x00000200 /* S: ABS Time, in MS, 'ShiJian' */
 
-#define KLOG_PID         0x00001000 /* p: Process ID */
-#define KLOG_TID         0x00002000 /* P: Thread ID */
+#define KLOG_PID         0x00001000 /* j: Process ID, 'JinCheng' */
+#define KLOG_TID         0x00002000 /* x: Thread ID, 'XianCheng' */
 
-#define KLOG_LINE        0x00010000 /* N: Line Number */
-#define KLOG_FILE        0x00020000 /* F: File Name */
-#define KLOG_MODU        0x00040000 /* M: Module Name */
+#define KLOG_PROG        0x00010000 /* P: Process Name */
+#define KLOG_MODU        0x00020000 /* M: Module Name */
+#define KLOG_FILE        0x00040000 /* F: File Name */
 #define KLOG_FUNC        0x00080000 /* H: Function Name, 'HanShu' */
+#define KLOG_LINE        0x00100000 /* N: Line Number */
 
 /* __FILE__ 的名字都比较奇怪，应该去掉路径部分，只保留文件名 */
 static int __file_name_id = -1;
@@ -47,11 +50,11 @@ static int __modu_name_id = -1;
 #define O_LOG_COMPNAME "MODU_XLOG"
 
 #if (defined(O_LOG_COMPNAME))
-    #define COMP_NAME  O_LOG_COMPNAME
+#define COMP_NAME  O_LOG_COMPNAME
 #elif (defined(PACKAGE_NAME))
-    #define COMP_NAME  PACKAGE_NAME
+#define COMP_NAME  PACKAGE_NAME
 #else
-    #define COMP_NAME  "?"
+#define COMP_NAME  "?"
 #endif
 
 #define MODU_NAME COMP_NAME
@@ -60,9 +63,9 @@ static int file_nr, modu_nr, prog_nr;
 
 #define INNER_VAR_DEF() \
 	static int ver_sav = -1; \
-	static int func_name_id = -1; \
-	static int flg = 0; \
-	int ver_get = klog_ver()
+static int func_name_id = -1; \
+static int flg = 0; \
+int ver_get = klog_ver()
 
 #define SETUP_NAME_AND_ID() do { \
 	if (__file_name_id == -1) { \
@@ -83,6 +86,7 @@ static int file_nr, modu_nr, prog_nr;
 
 int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...)
 {
+#if 0
 	printf("type: %c\n", type);
 	printf("flag: %x\n", flg);
 	printf("prog: %s\n", prog);
@@ -92,6 +96,130 @@ int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *mo
 	printf("line: %d\n", ln);
 	printf("fmt: %s\n", fmt);
 	return 0;
+#endif
+
+	// klogcc_t *cc = (klogcc_t*)klog_cc();
+	va_list ap;
+	char buffer[2048], *bufptr = buffer;
+	int i, ret, ofs, bufsize = sizeof(buffer);
+
+	char tmbuf[128];
+	time_t t;
+	struct tm *tmp;
+
+	unsigned long tick;
+
+	va_start(ap, fmt);
+
+#if 0
+	for (i = 0; i < cc->rlogger_cnt; i++)
+		if (cc->rloggers[i])
+			cc->rloggers[i](type, flg, modu, file, ln, fmt, ap);
+#endif
+
+	if (flg & (KLOG_RTM | KLOG_ATM))
+		tick = spl_get_ticks();
+
+	ofs = 0;
+
+	/* Type */
+	if (type)
+		ofs += sprintf(bufptr, "|%c|", type);
+
+	/* Time */
+	if (flg & KLOG_RTM)
+		ofs += sprintf(bufptr + ofs, "s:%lu|", tick);
+	if (flg & KLOG_ATM) {
+		t = time(NULL);
+		tmp = localtime(&t);
+		strftime(tmbuf, sizeof(tmbuf), "%Y/%m/%d %H:%M:%S", tmp);
+		ofs += sprintf(bufptr + ofs, "S:%s.%03d|", tmbuf, (kuint)(tick % 1000));
+	}
+
+	/* ID */
+	if (flg & KLOG_PID)
+		ofs += sprintf(bufptr + ofs, "j:%d|", (int)spl_process_currrent());
+	if (flg & KLOG_TID)
+		ofs += sprintf(bufptr + ofs, "x:%x|", (int)spl_thread_current());
+
+	/* Name and LINE */
+	if ((flg & KLOG_PROG) && prog)
+		ofs += sprintf(bufptr + ofs, "P:%s|", prog);
+
+	if ((flg & KLOG_MODU) && modu)
+		ofs += sprintf(bufptr + ofs, "M:%s|", modu);
+
+	if ((flg & KLOG_FILE) && file)
+		ofs += sprintf(bufptr + ofs, "F:%s|", file);
+
+	if ((flg & KLOG_FUNC) && func)
+		ofs += sprintf(bufptr + ofs, "H:%s|", func);
+
+	if (flg & KLOG_LINE)
+		ofs += sprintf(bufptr + ofs, "L:%d|", ln);
+
+	ofs += sprintf(bufptr + ofs, " ");
+
+	ret = vsnprintf(bufptr + ofs, bufsize - ofs, fmt, ap);
+	while (ret > bufsize - ofs - 1) {
+		bufsize = ret + ofs + 1;
+		if (bufptr != buffer)
+			kmem_free(bufptr);
+		bufptr = kmem_get(bufsize);
+
+
+		ofs = 0;
+
+		/* Type */
+		if (type)
+			ofs += sprintf(bufptr, "|%c|", type);
+
+		/* Time */
+		if (flg & KLOG_RTM)
+			ofs += sprintf(bufptr + ofs, "s:%lu|", tick);
+		if (flg & KLOG_ATM)
+			ofs += sprintf(bufptr + ofs, "%s.%03d|", tmbuf, (kuint)(tick % 1000));
+
+		/* ID */
+		if (flg & KLOG_PID)
+			ofs += sprintf(bufptr + ofs, "j:%d|", (int)spl_process_currrent());
+		if (flg & KLOG_TID)
+			ofs += sprintf(bufptr + ofs, "x:%x|", (int)spl_thread_current());
+
+		/* Name and LINE */
+		if ((flg & KLOG_PROG) && prog)
+			ofs += sprintf(bufptr + ofs, "P:%s|", prog);
+
+		if ((flg & KLOG_MODU) && modu)
+			ofs += sprintf(bufptr + ofs, "M:%s|", modu);
+
+		if ((flg & KLOG_FILE) && file)
+			ofs += sprintf(bufptr + ofs, "F:%s|", file);
+
+		if ((flg & KLOG_FUNC) && func)
+			ofs += sprintf(bufptr + ofs, "H:%s|", func);
+
+		if (flg & KLOG_LINE)
+			ofs += sprintf(bufptr + ofs, "L:%d|", ln);
+
+		ofs += sprintf(bufptr + ofs, " ");
+
+		ret = vsnprintf(bufptr + ofs, bufsize - ofs, fmt, ap);
+	}
+	va_end(ap);
+
+	ret += ofs;
+#if 0
+	for (i = 0; i < cc->nlogger_cnt; i++)
+		if (cc->nloggers[i])
+			cc->nloggers[i](bufptr, ret);
+#endif
+	printf(bufptr);
+
+	if (bufptr != buffer)
+		kmem_free(bufptr);
+	return ret;
+
 }
 
 #define klog(fmt, ...) do { \
@@ -101,10 +229,10 @@ int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *mo
 		SETUP_NAME_AND_ID(); \
 		flg = klog_calc_flg(__prog_name_id, __modu_name_id, __file_name_id, func_name_id, __LINE__, getpid()); \
 		if (!(flg & KLOG_LOG)) \
-			flg = 0; \
+		flg = 0; \
 	} \
 	if (flg) \
-		rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
+	rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
 } while (0)
 
 char *only_name(char *name)
@@ -326,21 +454,23 @@ struct _flgmap_t {
 	unsigned int bit;
 };
 
-flgmap_t flgmap[] = {
+static flgmap_t flgmap[] = {
+	{ 't', KLOG_LOG },
 	{ 'l', KLOG_LOG },
 	{ 'e', KLOG_ERR },
 	{ 'f', KLOG_FAT },
 
-	{ 't', KLOG_RTM },
-	{ 'T', KLOG_ATM },
+	{ 's', KLOG_RTM },
+	{ 'S', KLOG_ATM },
 
-	{ 'p', KLOG_PID },
-	{ 'P', KLOG_TID },
+	{ 'j', KLOG_PID },
+	{ 'x', KLOG_TID },
 
 	{ 'N', KLOG_LINE },
 	{ 'F', KLOG_FILE },
 	{ 'M', KLOG_MODU },
 	{ 'H', KLOG_FUNC },
+	{ 'P', KLOG_PROG },
 };
 
 unsigned int get_flg(char c)
@@ -413,20 +543,24 @@ int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid)
  */
 void show_help()
 {
+	printf("Usage: xlog count fmt\n\n");
+
+	printf("\tt: Trace\n");
 	printf("\tl: Log\n");
 	printf("\te: Error\n");
 	printf("\tf: Fatal Error\n");
 
-	printf("\tt: Relative Time, in MS\n");
-	printf("\tT: ABS Time, in MS\n");
+	printf("\ts: Relative Time, in MS, 'ShiJian'\n");
+	printf("\tS: ABS Time, in MS, 'ShiJian'\n");
 
-	printf("\tp: Process ID\n");
-	printf("\tP: Thread ID\n");
+	printf("\tj: Process ID, 'JinCheng'\n");
+	printf("\tx: Thread ID, 'XianCheng'\n");
 
-	printf("\tN: Line Number\n");
-	printf("\tF: File Name\n");
+	printf("\tP: Process Name\n");
 	printf("\tM: Module Name\n");
-	printf("\tH: Function Name, 'HanShu'\n\n");
+	printf("\tF: File Name\n");
+	printf("\tH: Function Name, 'HanShu'\n");
+	printf("\tN: Line Number\n");
 }
 
 int main(int argc, char *argv[])
@@ -434,18 +568,17 @@ int main(int argc, char *argv[])
 	unsigned long i, tick, cost;
 	unsigned int count;
 
-	char *rule0 = "0|0|0|0|0|0|=e";
-	char *rule1 = "0|0|0|0|0|0|=l";
+	char fmt[1024];
 
-	if (argv[1])
-		count = strtoul(argv[1], NULL, 10);
-	else
-		count = 100000;
+	char *rule0 = "0|0|0|0|0|0|=";
+	char *rule1 = "0|0|0|0|0|0|=l";
 
 	show_help();
 
-	rule_add(rule0);
+	sprintf(fmt, "%s%s", rule0, argv[2]);
+	rule_add(fmt);
 
+	count = strtoul(argv[1], NULL, 10);
 	tick = spl_get_ticks();
 
 	for (i = 0; i < count; i++) {
