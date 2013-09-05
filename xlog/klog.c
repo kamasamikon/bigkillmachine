@@ -82,17 +82,20 @@ static flgmap_t __g_flgmap[] = {
 /*-----------------------------------------------------------------------
  * xlog.c part
  */
-static strarr_t sa_file_name = { 0 };
-static strarr_t sa_modu_name = { 0 };
-static strarr_t sa_prog_name = { 0 };
-static strarr_t sa_func_name = { 0 };
+static strarr_t __g_sa_file_name = { 0 };
+static strarr_t __g_sa_modu_name = { 0 };
+static strarr_t __g_sa_prog_name = { 0 };
+static strarr_t __g_sa_func_name = { 0 };
 
-static rulearr_t rulearr = { 0 };
+static rulearr_t __g_rulearr = { 0 };
 
 inline int klog_ver();
-void parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
+void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
 
-int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...)
+int rlogf(unsigned char type, unsigned int flg,
+		const char *prog, const char *modu,
+		const char *file, const char *func, int ln,
+		const char *fmt, ...)
 {
 	// klogcc_t *cc = (klogcc_t*)klog_cc();
 	va_list ap;
@@ -154,7 +157,8 @@ int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *mo
 	if (flg & KLOG_LINE)
 		ofs += sprintf(bufptr + ofs, "L:%d|", ln);
 
-	ofs += sprintf(bufptr + ofs, " ");
+	if (ofs)
+		ofs += sprintf(bufptr + ofs, " ");
 
 	ret = vsnprintf(bufptr + ofs, bufsize - ofs, fmt, ap);
 	while (ret > bufsize - ofs - 1) {
@@ -198,7 +202,8 @@ int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *mo
 		if (flg & KLOG_LINE)
 			ofs += sprintf(bufptr + ofs, "L:%d|", ln);
 
-		ofs += sprintf(bufptr + ofs, " ");
+		if (ofs)
+			ofs += sprintf(bufptr + ofs, " ");
 
 		ret = vsnprintf(bufptr + ofs, bufsize - ofs, fmt, ap);
 	}
@@ -282,35 +287,35 @@ static int strarr_add(strarr_t *sa, const char *str)
 
 int file_name_add(const char *name)
 {
-	return strarr_add(&sa_file_name, name);
+	return strarr_add(&__g_sa_file_name, name);
 }
 int file_name_find(const char *name)
 {
-	return strarr_find(&sa_file_name, name);
+	return strarr_find(&__g_sa_file_name, name);
 }
 int modu_name_add(const char *name)
 {
-	return strarr_add(&sa_modu_name, name);
+	return strarr_add(&__g_sa_modu_name, name);
 }
 int modu_name_find(const char *name)
 {
-	return strarr_find(&sa_modu_name, name);
+	return strarr_find(&__g_sa_modu_name, name);
 }
 int prog_name_add(const char *name)
 {
-	return strarr_add(&sa_prog_name, name);
+	return strarr_add(&__g_sa_prog_name, name);
 }
 int prog_name_find(const char *name)
 {
-	return strarr_find(&sa_prog_name, name);
+	return strarr_find(&__g_sa_prog_name, name);
 }
 int func_name_add(const char *name)
 {
-	return strarr_add(&sa_func_name, name);
+	return strarr_add(&__g_sa_func_name, name);
 }
 int func_name_find(const char *name)
 {
-	return strarr_find(&sa_func_name, name);
+	return strarr_find(&__g_sa_func_name, name);
 }
 
 
@@ -344,7 +349,7 @@ static int rulearr_add(rulearr_t *ra, int prog, int modu,
  * rule =
  * prog | modu | file | func | line | pid = left
  */
-void rule_add(const char *rule)
+void klog_rule_add(const char *rule)
 {
 	int i_prog, i_modu, i_file, i_func, i_line, i_pid;
 	char *s_prog, *s_modu, *s_file, *s_func, *s_line, *s_pid;
@@ -376,14 +381,12 @@ void rule_add(const char *rule)
 
 	/* OK, parse the flag into int */
 	unsigned int set = 0, clr = 0;
-	parse_flg(tmp, &set, &clr);
+	klog_parse_flg(tmp, &set, &clr);
 
-	rulearr_add(&rulearr, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
+	rulearr_add(&__g_rulearr, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
 }
 
-
-
-unsigned int get_flg(char c)
+static unsigned int get_flg(char c)
 {
 	int i;
 
@@ -393,7 +396,7 @@ unsigned int get_flg(char c)
 	return 0;
 }
 
-void parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
+void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
 {
 	int i = 0, len = strlen(flg);
 	char c;
@@ -411,22 +414,12 @@ void parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
 	}
 }
 
-int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid)
+unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid)
 {
-	int i;
+	unsigned int i, all = 0;
 
-	unsigned int all = 0;
-
-	/* 0 means ignore */
-
-	// |³ÌÐò|Ä£¿é|PID|TID|file|func|line=left
-	// /usr/bin/shit|shit.c|SHIT|3423|45234|455=leftAM
-	// NULL|shit.c|NULL|3423|0|100=leftAM
-	// NULL|NULL|NULL|3423|0|100=leftAM
-	//
-
-	for (i = 0; i < rulearr.cnt; i++) {
-		rule_t *rule = &rulearr.arr[i];
+	for (i = 0; i < __g_rulearr.cnt; i++) {
+		rule_t *rule = &__g_rulearr.arr[i];
 
 		if (rule->prog && rule->prog != prog)
 			continue;
@@ -482,6 +475,11 @@ void show_help()
  * s_pid = strtok(NULL, " |=");
  */
 
+void shit()
+{
+	klog("Swming in shit\n");
+}
+
 int main(int argc, char *argv[])
 {
 	unsigned long i, tick, cost;
@@ -490,17 +488,20 @@ int main(int argc, char *argv[])
 	char fmt[1024];
 
 	char *rule0 = "0|0|0|0|0|0|=";
-	char *rule1 = "0|0|0|0|594|0|=-l";
+	char *rule1 = "0|0|0|0|505|0|=-l";
+	char *rule2 = "0|0|0|shit|0|0|=l-P-x-j";
 
 	show_help();
 
 	sprintf(fmt, "%s%s", rule0, argv[2]);
-	rule_add(fmt);
-	rule_add(rule1);
+	klog_rule_add(fmt);
+	klog_rule_add(rule1);
+	klog_rule_add(rule2);
 
 	count = strtoul(argv[1], NULL, 10);
 	tick = spl_get_ticks();
 
+	shit();
 	klog("Shit\n");
 
 	for (i = 0; i < count; i++) {
@@ -508,13 +509,9 @@ int main(int argc, char *argv[])
 	}
 
 	cost = spl_get_ticks() - tick;
-
-	if (cost == 0)
-		cost = 1;
-
-	fprintf(stderr, "time cost: %lu\n", cost);
 	fprintf(stderr, "count: %u\n", count);
-	fprintf(stderr, "count / ms = %lu\n", count / cost);
+	fprintf(stderr, "time cost: %lu\n", cost);
+	fprintf(stderr, "count / ms = %lu\n", count / (cost ? cost : 1));
 
 	return 0;
 }

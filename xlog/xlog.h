@@ -40,6 +40,11 @@ static int __modu_name_id = -1;
 #define MODU_NAME  "?"
 #endif
 
+
+#define klogs(fmt, ...) do { \
+	rlogf(0, 0, NULL, NULL, NULL, NULL, NULL, fmt, ##__VA_ARGS__); \
+} while (0)
+
 #define KLOG_INNER_VAR_DEF() \
 	static int ver_sav = -1; \
 	static int func_name_id = -1; \
@@ -63,7 +68,6 @@ static int __modu_name_id = -1;
 	} \
 } while (0)
 
-
 #define klog(fmt, ...) do { \
 	KLOG_INNER_VAR_DEF(); \
 	if (ver_get > ver_sav) { \
@@ -71,10 +75,10 @@ static int __modu_name_id = -1;
 		KLOG_SETUP_NAME_AND_ID(); \
 		flg = klog_calc_flg(__prog_name_id, __modu_name_id, __file_name_id, func_name_id, __LINE__, getpid()); \
 		if (!(flg & KLOG_LOG)) \
-		flg = 0; \
+			flg = 0; \
 	} \
 	if (flg) \
-	rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
+		rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
 } while (0)
 
 int file_name_add(const char *name);
@@ -86,13 +90,10 @@ int prog_name_find(const char *name);
 int func_name_add(const char *name);
 int func_name_find(const char *name);
 
-void rule_add(const char *rule);
+void klog_rule_add(const char *rule);
 
-unsigned int get_flg(char c);
-
-void parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
-
-int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid);
+void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
+unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid);
 
 #ifdef __cplusplus
 }
