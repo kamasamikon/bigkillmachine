@@ -186,7 +186,7 @@ kinline void *klog_cc(void)
 	build_argv_nul(cl_buf, cl_size, &argc, &argv);
 	kmem_free(cl_buf);
 
-	cc = klog_init(KLOG_ALL, argc, argv);
+	cc = klog_init(KLOG_DFT, argc, argv);
 	free_argv(argv);
 
 	return cc;
@@ -275,6 +275,7 @@ static void rule_add_from_mask(unsigned int mask)
 	if (mask & KLOG_PROG)
 		rule[i++] = 'P';
 
+	rule[i++] = '\0';
 	klog_rule_add(rule);
 }
 

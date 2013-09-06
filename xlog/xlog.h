@@ -58,7 +58,7 @@ typedef void (*KRLOGGER)(unsigned char type, unsigned int mask, const char *prog
 #define KLOG_LINE        0x00100000 /* N: Line Number */
 
 #define KLOG_ALL         0xffffffff
-#define KLOG_DFT         (KLOG_LOG | KLOG_ERR | KLOG_FAT | KLOG_ATM | KLOG_FILE | KLOG_LINE)
+#define KLOG_DFT         (KLOG_LOG | KLOG_ERR | KLOG_FAT | KLOG_RTM | KLOG_FILE | KLOG_LINE)
 
 
 /*-----------------------------------------------------------------------
