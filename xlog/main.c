@@ -56,18 +56,11 @@ int main(int argc, char *argv[])
 	unsigned long i, tick, cost;
 	unsigned int count;
 
-	char fmt[1024];
-
 	char *rule0 = "0|0|0|0|0|0|=";
 	char *rule1 = "0|0|0|0|505|0|=-l";
 	char *rule2 = "0|0|0|shit|0|0|=l-P-x-j";
 
 	show_help();
-
-	sprintf(fmt, "%s%s", rule0, argv[2]);
-	// klog_rule_add(fmt);
-	// klog_rule_add(rule1);
-	// klog_rule_add(rule2);
 
 	count = strtoul(argv[1], NULL, 10);
 	tick = spl_get_ticks();

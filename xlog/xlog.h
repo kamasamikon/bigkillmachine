@@ -9,8 +9,36 @@ extern "C" {
 
 #include <sysdeps.h>
 
-#define KLOG_ALL         0xffffffff
+/*-----------------------------------------------------------------------
+ * Embedded variable used by ktrace, klog, kerror, kfatal etc
+ */
+static int VAR_UNUSED __file_name_id = -1;
+static char VAR_UNUSED *__file_name = NULL;
 
+static int VAR_UNUSED __prog_name_id = -1;
+static char VAR_UNUSED *__prog_name = NULL;
+
+static int VAR_UNUSED __modu_name_id = -1;
+
+
+/*-----------------------------------------------------------------------
+ * Normal and Raw Logger
+ */
+typedef int (*KNLOGGER)(const char *content, int len);
+typedef int (*KRLOGGER)(unsigned char type, unsigned int mask, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, va_list ap);
+
+
+/*-----------------------------------------------------------------------
+ * Define MODU_NAME if someone forgot it.
+ */
+#ifndef MODU_NAME
+#define MODU_NAME  "?"
+#endif
+
+
+/*-----------------------------------------------------------------------
+ * KLog switch mask
+ */
 #define KLOG_TRC         0x00000001 /* t: Trace */
 #define KLOG_LOG         0x00000002 /* l: Log */
 #define KLOG_ERR         0x00000004 /* e: Error */
@@ -29,26 +57,17 @@ extern "C" {
 #define KLOG_FUNC        0x00080000 /* H: Function Name, 'HanShu' */
 #define KLOG_LINE        0x00100000 /* N: Line Number */
 
-static int VAR_UNUSED __file_name_id = -1;
-static char VAR_UNUSED *__file_name = NULL;
+#define KLOG_ALL         0xffffffff
+#define KLOG_DFT         (KLOG_TYPE_ALL | KLOG_ATM | KLOG_FILE | KLOG_LINE)
 
-static int VAR_UNUSED __prog_name_id = -1;
-static char VAR_UNUSED *__prog_name = NULL;
 
-static int VAR_UNUSED __modu_name_id = -1;
-
-#ifndef MODU_NAME
-#define MODU_NAME  "?"
-#endif
-
-#define klogs(fmt, ...) do { \
-	rlogf(0, 0, NULL, NULL, NULL, NULL, NULL, fmt, ##__VA_ARGS__); \
-} while (0)
-
+/*-----------------------------------------------------------------------
+ * Embedded variable used by ktrace, klog, kerror, kfatal etc
+ */
 #define KLOG_INNER_VAR_DEF() \
 	static int ver_sav = -1; \
 	static int func_name_id = -1; \
-	static int flg = 0; \
+	static int mask = 0; \
 	int ver_get = klog_touches()
 
 #define KLOG_SETUP_NAME_AND_ID() do { \
@@ -68,20 +87,32 @@ static int VAR_UNUSED __modu_name_id = -1;
 	} \
 } while (0)
 
+
+/*-----------------------------------------------------------------------
+ * ktrace, klog, kerror, kfatal etc
+ */
+#define klogs(fmt, ...) do { \
+	rlogf(0, 0, NULL, NULL, NULL, NULL, NULL, fmt, ##__VA_ARGS__); \
+} while (0)
+
 #define klog(fmt, ...) do { \
 	KLOG_INNER_VAR_DEF(); \
 	if (ver_get > ver_sav) { \
 		ver_sav = ver_get; \
 		KLOG_SETUP_NAME_AND_ID(); \
-		flg = klog_calc_flg(__prog_name_id, __modu_name_id, __file_name_id, func_name_id, __LINE__, getpid()); \
-		if (!(flg & KLOG_LOG)) \
-			flg = 0; \
+		mask = klog_calc_mask(__prog_name_id, __modu_name_id, __file_name_id, func_name_id, __LINE__, getpid()); \
+		if (!(mask & KLOG_LOG)) \
+			mask = 0; \
 	} \
-	if (flg) \
-		rlogf('L', flg, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
+	if (mask) \
+		rlogf('L', mask, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
 } while (0)
 
-void *klog_init(kuint deflev, int argc, char **argv);
+
+/*-----------------------------------------------------------------------
+ * Functions:
+ */
+void *klog_init(unsigned int deflev, int argc, char **argv);
 kinline void *klog_cc(void);
 void *klog_attach(void *logcc);
 
@@ -98,9 +129,10 @@ int klog_func_name_add(const char *name);
 
 void klog_rule_add(const char *rule);
 
-unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid);
+unsigned int klog_calc_mask(int prog, int modu, int file, int func, int line, int pid);
 
-int rlogf(unsigned char type, unsigned int flg, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...);
+int rlogf(unsigned char type, unsigned int mask, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...);
+
 
 #ifdef __cplusplus
 }

@@ -77,7 +77,7 @@ static klogcc_t *__g_klogcc = NULL;
  */
 
 inline int klog_ver();
-static void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr);
+static void klog_parse_mask(const char *mask, unsigned int *set, unsigned int *clr);
 
 /**
  * \brief Other module call this to use already inited CC
@@ -157,11 +157,50 @@ static void load_cfg(int argc, char *argv[])
 	i = arg_find(argc, argv, "--klog-cfgfile", 1);
 	if (i > 1)
 		load_cfg_file(argv[i + 1]);
-
 }
 
-/* Should set default log level to tlef-s-Sj-x-P-MF-HN, because time cost too much */
-void *klog_init(kuint flg, int argc, char **argv)
+static void rule_add_from_mask(unsigned int mask)
+{
+	char rule[256];
+	int i;
+
+	strcpy(rule, "0|0|0|0|0|0|=");
+	i = 13;
+
+	if (mask & KLOG_TRC)
+		rule[i++] = 't';
+	if (mask & KLOG_LOG)
+		rule[i++] = 'l';
+	if (mask & KLOG_ERR)
+		rule[i++] = 'e';
+	if (mask & KLOG_FAT)
+		rule[i++] = 'f';
+
+	if (mask & KLOG_RTM)
+		rule[i++] = 's';
+	if (mask & KLOG_ATM)
+		rule[i++] = 'S';
+
+	if (mask & KLOG_PID)
+		rule[i++] = 'j';
+	if (mask & KLOG_TID)
+		rule[i++] = 'x';
+
+	if (mask & KLOG_LINE)
+		rule[i++] = 'N';
+	if (mask & KLOG_FILE)
+		rule[i++] = 'F';
+	if (mask & KLOG_MODU)
+		rule[i++] = 'M';
+	if (mask & KLOG_FUNC)
+		rule[i++] = 'H';
+	if (mask & KLOG_PROG)
+		rule[i++] = 'P';
+
+	klog_rule_add(rule);
+}
+
+void *klog_init(unsigned int mask, int argc, char **argv)
 {
 	klogcc_t *cc;
 
@@ -171,6 +210,10 @@ void *klog_init(kuint flg, int argc, char **argv)
 	cc = (klogcc_t*)kmem_alloz(1, klogcc_t);
 	__g_klogcc = cc;
 
+	/* Set default before configure file */
+	if (mask)
+		rule_add_from_mask(mask);
+
 	load_cfg(argc, argv);
 
 	klog_touch();
@@ -178,7 +221,7 @@ void *klog_init(kuint flg, int argc, char **argv)
 	return (void*)__g_klogcc;
 }
 
-int rlogf(unsigned char type, unsigned int flg,
+int rlogf(unsigned char type, unsigned int mask,
 		const char *prog, const char *modu,
 		const char *file, const char *func, int ln,
 		const char *fmt, ...)
@@ -200,10 +243,10 @@ int rlogf(unsigned char type, unsigned int flg,
 #if 0
 	for (i = 0; i < cc->rlogger_cnt; i++)
 		if (cc->rloggers[i])
-			cc->rloggers[i](type, flg, modu, file, ln, fmt, ap);
+			cc->rloggers[i](type, mask, prog, modu, file, func, ln, fmt, ap);
 #endif
 
-	if (flg & (KLOG_RTM | KLOG_ATM))
+	if (mask & (KLOG_RTM | KLOG_ATM))
 		tick = spl_get_ticks();
 
 	ofs = 0;
@@ -213,35 +256,35 @@ int rlogf(unsigned char type, unsigned int flg,
 		ofs += sprintf(bufptr, "|%c|", type);
 
 	/* Time */
-	if (flg & KLOG_RTM)
+	if (mask & KLOG_RTM)
 		ofs += sprintf(bufptr + ofs, "s:%lu|", tick);
-	if (flg & KLOG_ATM) {
+	if (mask & KLOG_ATM) {
 		t = time(NULL);
 		tmp = localtime(&t);
 		strftime(tmbuf, sizeof(tmbuf), "%Y/%m/%d %H:%M:%S", tmp);
-		ofs += sprintf(bufptr + ofs, "S:%s.%03d|", tmbuf, (kuint)(tick % 1000));
+		ofs += sprintf(bufptr + ofs, "S:%s.%03d|", tmbuf, (unsigned int)(tick % 1000));
 	}
 
 	/* ID */
-	if (flg & KLOG_PID)
+	if (mask & KLOG_PID)
 		ofs += sprintf(bufptr + ofs, "j:%d|", (int)spl_process_currrent());
-	if (flg & KLOG_TID)
+	if (mask & KLOG_TID)
 		ofs += sprintf(bufptr + ofs, "x:%x|", (int)spl_thread_current());
 
 	/* Name and LINE */
-	if ((flg & KLOG_PROG) && prog)
+	if ((mask & KLOG_PROG) && prog)
 		ofs += sprintf(bufptr + ofs, "P:%s|", prog);
 
-	if ((flg & KLOG_MODU) && modu)
+	if ((mask & KLOG_MODU) && modu)
 		ofs += sprintf(bufptr + ofs, "M:%s|", modu);
 
-	if ((flg & KLOG_FILE) && file)
+	if ((mask & KLOG_FILE) && file)
 		ofs += sprintf(bufptr + ofs, "F:%s|", file);
 
-	if ((flg & KLOG_FUNC) && func)
+	if ((mask & KLOG_FUNC) && func)
 		ofs += sprintf(bufptr + ofs, "H:%s|", func);
 
-	if (flg & KLOG_LINE)
+	if (mask & KLOG_LINE)
 		ofs += sprintf(bufptr + ofs, "L:%d|", ln);
 
 	if (ofs)
@@ -254,7 +297,6 @@ int rlogf(unsigned char type, unsigned int flg,
 			kmem_free(bufptr);
 		bufptr = kmem_get(bufsize);
 
-
 		ofs = 0;
 
 		/* Type */
@@ -262,31 +304,31 @@ int rlogf(unsigned char type, unsigned int flg,
 			ofs += sprintf(bufptr, "|%c|", type);
 
 		/* Time */
-		if (flg & KLOG_RTM)
+		if (mask & KLOG_RTM)
 			ofs += sprintf(bufptr + ofs, "s:%lu|", tick);
-		if (flg & KLOG_ATM)
-			ofs += sprintf(bufptr + ofs, "%s.%03d|", tmbuf, (kuint)(tick % 1000));
+		if (mask & KLOG_ATM)
+			ofs += sprintf(bufptr + ofs, "%s.%03d|", tmbuf, (unsigned int)(tick % 1000));
 
 		/* ID */
-		if (flg & KLOG_PID)
+		if (mask & KLOG_PID)
 			ofs += sprintf(bufptr + ofs, "j:%d|", (int)spl_process_currrent());
-		if (flg & KLOG_TID)
+		if (mask & KLOG_TID)
 			ofs += sprintf(bufptr + ofs, "x:%x|", (int)spl_thread_current());
 
 		/* Name and LINE */
-		if ((flg & KLOG_PROG) && prog)
+		if ((mask & KLOG_PROG) && prog)
 			ofs += sprintf(bufptr + ofs, "P:%s|", prog);
 
-		if ((flg & KLOG_MODU) && modu)
+		if ((mask & KLOG_MODU) && modu)
 			ofs += sprintf(bufptr + ofs, "M:%s|", modu);
 
-		if ((flg & KLOG_FILE) && file)
+		if ((mask & KLOG_FILE) && file)
 			ofs += sprintf(bufptr + ofs, "F:%s|", file);
 
-		if ((flg & KLOG_FUNC) && func)
+		if ((mask & KLOG_FUNC) && func)
 			ofs += sprintf(bufptr + ofs, "H:%s|", func);
 
-		if (flg & KLOG_LINE)
+		if (mask & KLOG_LINE)
 			ofs += sprintf(bufptr + ofs, "L:%d|", ln);
 
 		if (ofs)
@@ -454,13 +496,13 @@ void klog_rule_add(const char *rule)
 
 	/* OK, parse the flag into int */
 	unsigned int set = 0, clr = 0;
-	klog_parse_flg(tmp, &set, &clr);
+	klog_parse_mask(tmp, &set, &clr);
 
 	if (set || clr)
 		rulearr_add(&cc->arr_rule, i_prog, i_modu, i_file, i_func, i_line, i_pid, set, clr);
 }
 
-static unsigned int get_flg(char c)
+static unsigned int get_mask(char c)
 {
 	int i;
 
@@ -492,25 +534,25 @@ static unsigned int get_flg(char c)
 	return 0;
 }
 
-static void klog_parse_flg(const char *flg, unsigned int *set, unsigned int *clr)
+static void klog_parse_mask(const char *mask, unsigned int *set, unsigned int *clr)
 {
-	int i = 0, len = strlen(flg);
+	int i = 0, len = strlen(mask);
 	char c;
 
 	*set = 0;
 	*clr = 0;
 
 	for (i = 0; i < len; i++) {
-		c = flg[i];
+		c = mask[i];
 		if (c == '-') {
-			c = flg[++i];
-			*clr |= get_flg(c);
+			c = mask[++i];
+			*clr |= get_mask(c);
 		} else
-			*set |= get_flg(c);
+			*set |= get_mask(c);
 	}
 }
 
-unsigned int klog_calc_flg(int prog, int modu, int file, int func, int line, int pid)
+unsigned int klog_calc_mask(int prog, int modu, int file, int func, int line, int pid)
 {
 	klogcc_t *cc = (klogcc_t*)klog_cc();
 	unsigned int i, all = 0;
