@@ -51,16 +51,19 @@ void shit()
 	klog("Swming in shit\n");
 }
 
+static void mylogger(const char *content, int len)
+{
+	printf("%s", content);
+}
+
 int main(int argc, char *argv[])
 {
 	unsigned long i, tick, cost;
 	unsigned int count;
 
-	char *rule0 = "0|0|0|0|0|0|=";
-	char *rule1 = "0|0|0|0|505|0|=-l";
-	char *rule2 = "0|0|0|shit|0|0|=l-P-x-j";
-
 	show_help();
+
+	klog_add_logger(mylogger);
 
 	count = strtoul(argv[1], NULL, 10);
 	tick = spl_get_ticks();

@@ -24,8 +24,8 @@ static int VAR_UNUSED __modu_name_id = -1;
 /*-----------------------------------------------------------------------
  * Normal and Raw Logger
  */
-typedef int (*KNLOGGER)(const char *content, int len);
-typedef int (*KRLOGGER)(unsigned char type, unsigned int mask, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, va_list ap);
+typedef void (*KNLOGGER)(const char *content, int len);
+typedef void (*KRLOGGER)(unsigned char type, unsigned int mask, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, va_list ap);
 
 
 /*-----------------------------------------------------------------------
@@ -58,7 +58,7 @@ typedef int (*KRLOGGER)(unsigned char type, unsigned int mask, const char *prog,
 #define KLOG_LINE        0x00100000 /* N: Line Number */
 
 #define KLOG_ALL         0xffffffff
-#define KLOG_DFT         (KLOG_TYPE_ALL | KLOG_ATM | KLOG_FILE | KLOG_LINE)
+#define KLOG_DFT         (KLOG_LOG | KLOG_ERR | KLOG_FAT | KLOG_ATM | KLOG_FILE | KLOG_LINE)
 
 
 /*-----------------------------------------------------------------------
@@ -132,6 +132,12 @@ void klog_rule_add(const char *rule);
 unsigned int klog_calc_mask(int prog, int modu, int file, int func, int line, int pid);
 
 int rlogf(unsigned char type, unsigned int mask, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, ...);
+
+
+int klog_add_logger(KNLOGGER logger);
+int klog_del_logger(KNLOGGER logger);
+int klog_add_rlogger(KRLOGGER logger);
+int klog_del_rlogger(KRLOGGER logger);
 
 
 #ifdef __cplusplus

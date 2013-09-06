@@ -17,7 +17,7 @@
 #include "xlog.h"
 
 /*-----------------------------------------------------------------------
- * xlog.h part
+ * Local definition:
  */
 
 /* STRing ARRay to save programe name, module name, file name etc */
@@ -56,6 +56,10 @@ struct _rulearr_t {
 };
 
 
+/* How many logger slot */
+#define MAX_NLOGGER 8
+#define MAX_RLOGGER 8
+
 /* Control Center for klog */
 typedef struct _klogcc_t klogcc_t;
 struct _klogcc_t {
@@ -68,15 +72,89 @@ struct _klogcc_t {
 	strarr_t arr_func_name;
 
 	rulearr_t arr_rule;
+
+	unsigned char nlogger_cnt, rlogger_cnt;
+	KNLOGGER nloggers[MAX_NLOGGER];
+	KRLOGGER rloggers[MAX_RLOGGER];
 };
 
 static klogcc_t *__g_klogcc = NULL;
 
 /*-----------------------------------------------------------------------
- * xlog.c part
+ * klog-logger
  */
+int klog_add_logger(KNLOGGER logger)
+{
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	int i;
 
-inline int klog_ver();
+	for (i = 0; i < MAX_NLOGGER; i++)
+		if (cc->nloggers[i] == logger)
+			return 0;
+
+	if (cc->nlogger_cnt >= MAX_NLOGGER) {
+		wlogf("klog_add_logger: Only up to %d logger supported.\n", MAX_NLOGGER);
+		return -1;
+	}
+
+	cc->nloggers[cc->nlogger_cnt++] = logger;
+	return 0;
+}
+
+int klog_del_logger(KNLOGGER logger)
+{
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	int i;
+
+	for (i = 0; i < cc->nlogger_cnt; i++)
+		if (cc->nloggers[i] == logger) {
+			cc->nlogger_cnt--;
+			cc->nloggers[i] = cc->nloggers[cc->nlogger_cnt];
+			cc->nloggers[cc->nlogger_cnt] = NULL;
+			return 0;
+		}
+
+	return -1;
+}
+
+int klog_add_rlogger(KRLOGGER logger)
+{
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	int i;
+
+	for (i = 0; i < MAX_RLOGGER; i++)
+		if (cc->rloggers[i] == logger)
+			return 0;
+
+	if (cc->rlogger_cnt >= MAX_RLOGGER) {
+		wlogf("klog_add_logger: Only up to %d logger supported.\n", MAX_RLOGGER);
+		return -1;
+	}
+
+	cc->rloggers[cc->rlogger_cnt++] = logger;
+	return 0;
+}
+
+int klog_del_rlogger(KRLOGGER logger)
+{
+	klogcc_t *cc = (klogcc_t*)klog_cc();
+	int i;
+
+	for (i = 0; i < cc->rlogger_cnt; i++)
+		if (cc->rloggers[i] == logger) {
+			cc->rlogger_cnt--;
+			cc->rloggers[i] = cc->rloggers[cc->rlogger_cnt];
+			cc->rloggers[cc->rlogger_cnt] = NULL;
+			return 0;
+		}
+
+	return -1;
+}
+
+
+/*-----------------------------------------------------------------------
+ * implementation
+ */
 static void klog_parse_mask(const char *mask, unsigned int *set, unsigned int *clr);
 
 /**
@@ -221,16 +299,15 @@ void *klog_init(unsigned int mask, int argc, char **argv)
 	return (void*)__g_klogcc;
 }
 
-int rlogf(unsigned char type, unsigned int mask,
+int rvlogf(unsigned char type, unsigned int mask,
 		const char *prog, const char *modu,
 		const char *file, const char *func, int ln,
-		const char *fmt, ...)
+		const char *fmt, va_list ap)
 {
 	klogcc_t *cc = (klogcc_t*)klog_cc();
 
-	va_list ap;
 	char buffer[2048], *bufptr = buffer;
-	int ret, ofs, bufsize = sizeof(buffer);
+	int i, ret, ofs, bufsize = sizeof(buffer);
 
 	char tmbuf[128];
 	time_t t;
@@ -238,13 +315,9 @@ int rlogf(unsigned char type, unsigned int mask,
 
 	unsigned long tick;
 
-	va_start(ap, fmt);
-
-#if 0
 	for (i = 0; i < cc->rlogger_cnt; i++)
 		if (cc->rloggers[i])
 			cc->rloggers[i](type, mask, prog, modu, file, func, ln, fmt, ap);
-#endif
 
 	if (mask & (KLOG_RTM | KLOG_ATM))
 		tick = spl_get_ticks();
@@ -336,18 +409,31 @@ int rlogf(unsigned char type, unsigned int mask,
 
 		ret = vsnprintf(bufptr + ofs, bufsize - ofs, fmt, ap);
 	}
-	va_end(ap);
 
 	ret += ofs;
-#if 0
+
 	for (i = 0; i < cc->nlogger_cnt; i++)
 		if (cc->nloggers[i])
 			cc->nloggers[i](bufptr, ret);
-#endif
-	printf("%s", bufptr);
 
 	if (bufptr != buffer)
 		kmem_free(bufptr);
+	return ret;
+
+}
+
+int rlogf(unsigned char type, unsigned int mask,
+		const char *prog, const char *modu,
+		const char *file, const char *func, int ln,
+		const char *fmt, ...)
+{
+	va_list ap;
+	int ret;
+
+	va_start(ap, fmt);
+	ret = rvlogf(type, mask, prog, modu, file, func, ln, fmt, ap);
+	va_end(ap);
+
 	return ret;
 
 }
