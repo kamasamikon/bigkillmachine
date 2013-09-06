@@ -174,15 +174,15 @@ static void ignore_pipe()
 	sigaction(SIGPIPE, &sa, 0);
 }
 
-static int logger_wlogf(const char *content, int len)
+static void logger_wlogf(const char *content, int len)
 {
-	return fwrite(content, sizeof(char), len, stdout);
+	fwrite(content, sizeof(char), len, stdout);
 }
 
 int main(int argc, char *argv[])
 {
 	kushort port;
-	kuint mask = LOG_TYPE_ALL | LOG_RTM | LOG_LINE | LOG_FILE | LOG_MODU;
+	kuint mask = KLOG_DFT;
 
 	klog_init(mask, argc, argv);
 	klog_add_logger(logger_wlogf);

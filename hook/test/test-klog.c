@@ -13,7 +13,7 @@
 #include <kflg.h>
 #include <xtcool.h>
 
-#include "xlog.h"
+#include <klog.h>
 
 void show_help()
 {
@@ -63,7 +63,7 @@ int main(int argc, char *argv[])
 
 	show_help();
 
-	klog_add_logger(mylogger);
+	// klog_add_logger(mylogger);
 
 	count = strtoul(argv[1], NULL, 10);
 	tick = spl_get_ticks();
@@ -73,6 +73,7 @@ int main(int argc, char *argv[])
 
 	for (i = 0; i < count; i++) {
 		klog("remote klog test. puppy FANG is a bad egg. done<%d>\n", i);
+		// spl_sleep(1000);
 	}
 
 	cost = spl_get_ticks() - tick;

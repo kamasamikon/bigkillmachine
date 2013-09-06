@@ -12,9 +12,9 @@ HILDA_FLAGS += -lhilda
 
 all: klog 
 
-klog_SRCS = klog.c main.c
+klog_SRCS = test-klog.c
 klog: $(klog_SRCS)
-	gcc -o $@ $(klog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -DMODU_NAME=\"XLOG_MODU\"
+	gcc -o $@ $(klog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -DMODU_NAME=\"NHT_KLOG\"
 
 clean:
 	rm klog 
