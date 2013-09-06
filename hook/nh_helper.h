@@ -12,8 +12,6 @@ extern "C" {
 
 #include <dlfcn.h>
 
-int klogf(const char *fmt, ...);
-
 #ifdef __cplusplus
 }
 #endif

@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include <klog.h>
+
 #define NH_IOCTL
 
 /*-----------------------------------------------------------------------
@@ -110,7 +112,7 @@ int ioctl(int d, unsigned long int r, ...)
 	int ret = realfunc(d, r, argp);
 	if (__g_ioctl_klog) {
 		unsigned int dir = _IOC_DIR(r), type = _IOC_TYPE(r);
-		klogf("ioctl: d:%d, r:%08x, dir:%s, dev:%s, nr:%02x, size:%d, argp:%08x\n",
+		klog("ioctl: d:%d, r:%08x, dir:%s, dev:%s, nr:%02x, size:%d, argp:%08x\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 	}
 

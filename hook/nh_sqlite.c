@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include <klog.h>
+
 #define NH_SQLITE
 
 /*-----------------------------------------------------------------------
@@ -22,7 +24,7 @@ static int __g_sqlite_klog = 0;
 static void sqliteTrace(void *arg, const char *query)
 {
 	if (__g_sqlite_klog)
-		klogf("SQL: <%s>\n", query);
+		klog("SQL: <%s>\n", query);
 }
 
 int sqlite3_open(const char *filename, sqlite3 **ppDb)
@@ -36,7 +38,7 @@ int sqlite3_open(const char *filename, sqlite3 **ppDb)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
 
 	if (__g_sqlite_klog)
-		klogf("NEMOHOOK: sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
+		klog("NEMOHOOK: sqlite3_open: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }
@@ -50,7 +52,7 @@ int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
 	if (__g_sqlite_klog)
-		klogf("NEMOHOOK: sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
+		klog("NEMOHOOK: sqlite3_open16: file:\"%s\", ret:%d\n", (char*)filename, ret);
 
 	return ret;
 }
@@ -64,7 +66,7 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
 	if (__g_sqlite_klog)
-		klogf("NEMOHOOK: sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
+		klog("NEMOHOOK: sqlite3_open_v2: file:\"%s\", ret:%d\n", filename, ret);
 
 	return ret;
 }

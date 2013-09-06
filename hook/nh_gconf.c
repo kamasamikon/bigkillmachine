@@ -10,6 +10,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include <klog.h>
+
 #define NH_GCONF
 
 /*-----------------------------------------------------------------------
@@ -70,7 +72,7 @@ void gconf_client_set(GConfClient* client, const gchar* key,
 
 	vstr = entry_value(val, buf, sizeof(buf));
 	if (__g_gconf_klog)
-		klogf("NEMOHOOK: gconf_sources_query_value: key: <%s>, vstr:<%s>\n", key, vstr);
+		klog("NEMOHOOK: gconf_sources_query_value: key: <%s>, vstr:<%s>\n", key, vstr);
 	if (vstr != buf)
 		free(vstr);
 }
@@ -87,7 +89,7 @@ GConfValue* gconf_client_get(GConfClient* client, const gchar* key, GError** err
 
 	val = entry_value(ret, buf, sizeof(buf));
 	if (__g_gconf_klog)
-		klogf("NEMOHOOK: gconf_client_get: key: <%s>, val:<%s>\n", key, val);
+		klog("NEMOHOOK: gconf_client_get: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 

@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include <time.h>
 
+#include <klog.h>
+
 #define NH_DBUS
 
 /*-----------------------------------------------------------------------
@@ -33,7 +35,7 @@ void dbus_connection_dispatch_hook(DBusMessage *message)
 
 	realfunc(message);
 	if (__g_dbus_klog)
-		klogf("NEMOHOOK: dbus_connection_dispatch_hook\n");
+		klog("NEMOHOOK: dbus_connection_dispatch_hook\n");
 }
 #endif
 

@@ -14,7 +14,7 @@ all: libnemohook.so
 
 nemohook_SRCS = dbus-print-message.c nh_dbus.c nh_gconf.c nh_helper.c nh_ioctl.c nh_sqlite.c nh_klog.c
 libnemohook.so: $(nemohook_SRCS)
-	gcc -shared -ldl -fPIC $(CFLAGS) $(LDFLAGS) $(nemohook_SRCS) $(HILDA_FLAGS) -o libnemohook.so
+	gcc -shared -ldl -fPIC $(CFLAGS) $(LDFLAGS) $(nemohook_SRCS) $(HILDA_FLAGS) -o libnemohook.so 
 
 clean:
 	rm libnemohook.so
