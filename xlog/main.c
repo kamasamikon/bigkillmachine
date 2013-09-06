@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 	klog("Shit\n");
 
 	for (i = 0; i < count; i++) {
-		klog("remote rlog test. puppy FANG is a bad egg. done<%d>\n", i);
+		klog("remote klog test. puppy FANG is a bad egg. done<%d>\n", i);
 	}
 
 	cost = spl_get_ticks() - tick;

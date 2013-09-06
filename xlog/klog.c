@@ -14,7 +14,7 @@
 #include <xtcool.h>
 #include <karg.h>
 
-#include "xlog.h"
+#include "klog.h"
 
 /*-----------------------------------------------------------------------
  * Local definition:
