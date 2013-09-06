@@ -191,6 +191,8 @@ int main(int argc, char *argv[])
 
 	port = (kushort)atoi(argv[1]);
 	__g_fp_out = fopen(argv[2], "wt+");
+	if (!__g_fp_out)
+		klogs("open '%s' failed, error: '%s'\n", argv[2], strerror(errno));
 
 	worker_thread_or_server((void*)(int)port);
 
