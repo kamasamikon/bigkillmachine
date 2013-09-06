@@ -147,6 +147,18 @@ typedef void (*KRLOGGER)(unsigned char type, unsigned int mask, const char *prog
 		klogf('F', mask, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); \
 } while (0)
 
+#define kassert(_x_) do { \
+	if (!(_x_)) { \
+		KLOG_INNER_VAR_DEF(); \
+		if (ver_get > ver_sav) { \
+			ver_sav = ver_get; \
+			KLOG_SETUP_NAME_AND_ID(); \
+		} \
+		klogf('A', KLOG_ALL, __prog_name, MODU_NAME, __file_name, __FUNCTION__, __LINE__, \
+				"\n\T ASSERT NG: \"%s\"\n\n", #_x_); \
+	} \
+} while (0)
+
 
 /*-----------------------------------------------------------------------
  * Functions:
