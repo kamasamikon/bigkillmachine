@@ -20,31 +20,29 @@
 #ifdef NH_IOCTL
 #include <sys/ioctl.h>
 
-static int __g_ioctl_klog = 0;
-
 typedef enum
 {
-    NH_DEV_ID_AUDDEC,
-    NH_DEV_ID_CRYPTO,
-    NH_DEV_ID_DMX,
-    NH_DEV_ID_FPCHAR,
-    NH_DEV_ID_HDMI,
-    NH_DEV_ID_INJECT,
-    NH_DEV_ID_LED,
-    NH_DEV_ID_LINKER,
-    NH_DEV_ID_NOCS,
-    NH_DEV_ID_PD_WRITER,
-    NH_DEV_ID_RFMOD,
-    NH_DEV_ID_SCART,
-    NH_DEV_ID_SMARTCARD,
-    NH_DEV_ID_STB,
-    NH_DEV_ID_TUNER,
-    NH_DEV_ID_VIDDEC,
-    NH_DEV_ID_VIDENC,
-    NH_DEV_ID_SOC,
-    NH_DEV_ID_AUDOUT,
-    NH_DEV_ID_FAN,
-    NH_DEV_ID_TRANSCODE
+	NH_DEV_ID_AUDDEC,
+	NH_DEV_ID_CRYPTO,
+	NH_DEV_ID_DMX,
+	NH_DEV_ID_FPCHAR,
+	NH_DEV_ID_HDMI,
+	NH_DEV_ID_INJECT,
+	NH_DEV_ID_LED,
+	NH_DEV_ID_LINKER,
+	NH_DEV_ID_NOCS,
+	NH_DEV_ID_PD_WRITER,
+	NH_DEV_ID_RFMOD,
+	NH_DEV_ID_SCART,
+	NH_DEV_ID_SMARTCARD,
+	NH_DEV_ID_STB,
+	NH_DEV_ID_TUNER,
+	NH_DEV_ID_VIDDEC,
+	NH_DEV_ID_VIDENC,
+	NH_DEV_ID_SOC,
+	NH_DEV_ID_AUDOUT,
+	NH_DEV_ID_FAN,
+	NH_DEV_ID_TRANSCODE
 } nh_dev_id_t;
 
 struct dev_name_map {
@@ -111,11 +109,10 @@ int ioctl(int d, unsigned long int r, ...)
 	va_end(args);
 
 	int ret = realfunc(d, r, argp);
-	if (__g_ioctl_klog) {
-		unsigned int dir = _IOC_DIR(r), type = _IOC_TYPE(r);
-		klog("ioctl: d:%d, r:%08x, dir:%s, dev:%s, nr:%02x, size:%d, argp:%08x\n",
-				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
-	}
+
+	unsigned int dir = _IOC_DIR(r), type = _IOC_TYPE(r);
+	klog("ioctl: d:%d, r:%08x, dir:%s, dev:%s, nr:%02x, size:%d, argp:%08x\n",
+			d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 
 	return ret;
 }
