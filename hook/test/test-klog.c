@@ -56,7 +56,7 @@ static void mylogger(const char *content, int len)
 	printf("%s", content);
 }
 
-int main(int argc, char *argv[])
+int main_klog(int argc, char *argv[])
 {
 	unsigned long i, tick, cost;
 	unsigned int count;

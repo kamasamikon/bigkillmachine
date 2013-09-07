@@ -11,17 +11,14 @@ HILDA_FLAGS += -I `echo $$HILDA_INC`
 HILDA_FLAGS += -L `echo $$HILDA_LIB`
 HILDA_FLAGS += -lhilda
 
-ALL += klog sqlite
+ALL += test
 
+.PHONY: all
 all: $(ALL)
 
-klog_SRCS = test-klog.c 
-klog: $(klog_SRCS)
-	gcc -o $@ $(klog_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -DMODU_NAME=\"NHT_KLOG\"
-
-sqlite_SRCS = test-sqlite.c 
-sqlite: $(sqlite_SRCS)
-	gcc -o $@ $(sqlite_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -DMODU_NAME=\"NHT_SQL\"
+test_SRCS = test-main.c test-klog.c test-sqlite.c
+test: $(test_SRCS)
+	gcc -o $@ $(test_SRCS) $(CFLAGS) $(LDFLAGS) $(HILDA_FLAGS) -DMODU_NAME=\"NHT_test\"
 
 clean:
 	rm $(ALL)
