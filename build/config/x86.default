@@ -9,13 +9,13 @@ GCC_PATH +=
 INCDIR += -I /usr/include
 INCDIR += -I `echo $$HILDA_INC`
 
-LIBS += -L /usr/lib -lpthread -lrt -ldl -lexpat 
-LIBS += -L `echo $$HILDA_LIB` -lhilda
- 
+LIBS += -L /usr/lib -lpthread -lrt -ldl
+LIBS += -L `echo $$HILDA_LIB/x86` -lhilda
+
 # DEFINES += -DAAA -DBBB
 DEFINES += -D_REENTRANT -D_LARGEFILE64_SOURCE
 
-CFLAGS += -fno-strict-aliasing 
+CFLAGS += -fno-strict-aliasing
 
 CFLAGS += `pkg-config --cflags --libs glib-2.0`
 CFLAGS += `pkg-config --cflags --libs gtk+-2.0`
@@ -25,7 +25,7 @@ CFLAGS += `pkg-config --cflags --libs dbus-1`
 
 LDFLAGS +=
 
-CROSS_COMPILE := 
+CROSS_COMPILE :=
 CC := $(CROSS_COMPILE)gcc
 AR := $(CROSS_COMPILE)ar
 LD := $(CROSS_COMPILE)ld
