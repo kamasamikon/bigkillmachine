@@ -24,7 +24,9 @@
 
 #include <stdlib.h>
 
-int klog(const char *fmt, ...);
+#include <klog.h>
+#include <strbuf.h>
+
 static const char*
 type_to_name (int message_type)
 {
@@ -46,20 +48,20 @@ type_to_name (int message_type)
 #define INDENT 3
 
 static void
-indent (int depth)
+indent (struct strbuf *sb, int depth)
 {
   while (depth-- > 0)
-    klog ("   "); /* INDENT spaces. */
+    strbuf_addf (sb, "   "); /* INDENT spaces. */
 }
 
 static void
-print_hex (unsigned char *bytes, unsigned int len, int depth)
+print_hex (struct strbuf *sb, unsigned char *bytes, unsigned int len, int depth)
 {
   unsigned int i, columns;
 
-  klog ("array of bytes [\n");
+  strbuf_addf (sb, "array of bytes [\n");
 
-  indent (depth + 1);
+  indent (sb, depth + 1);
 
   /* Each byte takes 3 cells (two hexits, and a space), except the last one. */
   columns = (80 - ((depth + 1) * INDENT)) / 3;
@@ -71,32 +73,32 @@ print_hex (unsigned char *bytes, unsigned int len, int depth)
 
   while (i < len)
     {
-      klog ("%02x", bytes[i]);
+      strbuf_addf (sb, "%02x", bytes[i]);
       i++;
 
       if (i != len)
         {
           if (i % columns == 0)
             {
-              klog ("\n");
-              indent (depth + 1);
+              strbuf_addf (sb, "\n");
+              indent (sb, depth + 1);
             }
           else
             {
-              klog (" ");
+              strbuf_addf (sb, " ");
             }
         }
     }
 
-  klog ("\n");
-  indent (depth);
-  klog ("]\n");
+  strbuf_addf (sb, "\n");
+  indent (sb, depth);
+  strbuf_addf (sb, "]\n");
 }
 
 #define DEFAULT_SIZE 100
 
 static void
-print_ay (DBusMessageIter *iter, int depth)
+print_ay (struct strbuf *sb, DBusMessageIter *iter, int depth)
 {
   /* Not using DBusString because it's not public API. It's 2009, and I'm
    * manually growing a string chunk by chunk.
@@ -131,18 +133,18 @@ print_ay (DBusMessageIter *iter, int depth)
   if (all_ascii)
     {
       bytes[len] = '\0';
-      klog ("array of bytes \"%s\"\n", bytes);
+      strbuf_addf (sb, "array of bytes \"%s\"\n", bytes);
     }
   else
     {
-      print_hex (bytes, len, depth);
+      print_hex (sb, bytes, len, depth);
     }
 
   free (bytes);
 }
 
 static void
-print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
+print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t literal, int depth)
 {
   do
     {
@@ -151,7 +153,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
       if (type == DBUS_TYPE_INVALID)
 	break;
 
-      indent(depth);
+      indent(sb, depth);
 
       switch (type)
 	{
@@ -160,10 +162,10 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      klog ("string \"");
-	    klog ("%s", val);
+	      strbuf_addf (sb, "string \"");
+	    strbuf_addf (sb, "%s", val);
 	    if (!literal)
-	      klog ("\"\n");
+	      strbuf_addf (sb, "\"\n");
 	    break;
 	  }
 
@@ -172,10 +174,10 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      klog ("signature \"");
-	    klog ("%s", val);
+	      strbuf_addf (sb, "signature \"");
+	    strbuf_addf (sb, "%s", val);
 	    if (!literal)
-	      klog ("\"\n");
+	      strbuf_addf (sb, "\"\n");
 	    break;
 	  }
 
@@ -184,10 +186,10 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      klog ("object path \"");
-	    klog ("%s", val);
+	      strbuf_addf (sb, "object path \"");
+	    strbuf_addf (sb, "%s", val);
 	    if (!literal)
-	      klog ("\"\n");
+	      strbuf_addf (sb, "\"\n");
 	    break;
 	  }
 
@@ -195,7 +197,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_int16_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    klog ("int16 %d\n", val);
+	    strbuf_addf (sb, "int16 %d\n", val);
 	    break;
 	  }
 
@@ -203,7 +205,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_uint16_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    klog ("uint16 %u\n", val);
+	    strbuf_addf (sb, "uint16 %u\n", val);
 	    break;
 	  }
 
@@ -211,7 +213,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_int32_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    klog ("int32 %d\n", val);
+	    strbuf_addf (sb, "int32 %d\n", val);
 	    break;
 	  }
 
@@ -219,7 +221,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_uint32_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    klog ("uint32 %u\n", val);
+	    strbuf_addf (sb, "uint32 %u\n", val);
 	    break;
 	  }
 
@@ -228,9 +230,9 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    dbus_int64_t val;
 	    dbus_message_iter_get_basic (iter, &val);
 #ifdef DBUS_INT64_PRINTF_MODIFIER
-        klog ("int64 %" DBUS_INT64_PRINTF_MODIFIER "d\n", val);
+        strbuf_addf (sb, "int64 %" DBUS_INT64_PRINTF_MODIFIER "d\n", val);
 #else
-        klog ("int64 (omitted)\n");
+        strbuf_addf (sb, "int64 (omitted)\n");
 #endif
 	    break;
 	  }
@@ -240,9 +242,9 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	    dbus_uint64_t val;
 	    dbus_message_iter_get_basic (iter, &val);
 #ifdef DBUS_INT64_PRINTF_MODIFIER
-        klog ("uint64 %" DBUS_INT64_PRINTF_MODIFIER "u\n", val);
+        strbuf_addf (sb, "uint64 %" DBUS_INT64_PRINTF_MODIFIER "u\n", val);
 #else
-        klog ("uint64 (omitted)\n");
+        strbuf_addf (sb, "uint64 (omitted)\n");
 #endif
 	    break;
 	  }
@@ -251,7 +253,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    double val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    klog ("double %g\n", val);
+	    strbuf_addf (sb, "double %g\n", val);
 	    break;
 	  }
 
@@ -259,7 +261,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    unsigned char val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    klog ("byte %d\n", val);
+	    strbuf_addf (sb, "byte %d\n", val);
 	    break;
 	  }
 
@@ -267,7 +269,7 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 	  {
 	    dbus_bool_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    klog ("boolean %s\n", val ? "true" : "false");
+	    strbuf_addf (sb, "boolean %s\n", val ? "true" : "false");
 	    break;
 	  }
 
@@ -277,8 +279,8 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    klog ("variant ");
-	    print_iter (&subiter, literal, depth+1);
+	    strbuf_addf (sb, "variant ");
+	    print_iter (sb, &subiter, literal, depth+1);
 	    break;
 	  }
 	case DBUS_TYPE_ARRAY:
@@ -292,23 +294,23 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 
 	    if (current_type == DBUS_TYPE_BYTE)
 	      {
-		print_ay (&subiter, depth);
+		print_ay (sb, &subiter, depth);
 		break;
 	      }
 
-	    klog("array [\n");
+	    strbuf_addf(sb, "array [\n");
 	    while (current_type != DBUS_TYPE_INVALID)
 	      {
-		print_iter (&subiter, literal, depth+1);
+		print_iter (sb, &subiter, literal, depth+1);
 
 		dbus_message_iter_next (&subiter);
 		current_type = dbus_message_iter_get_arg_type (&subiter);
 
 		if (current_type != DBUS_TYPE_INVALID)
-		  klog (",");
+		  strbuf_addf (sb, ",");
 	      }
-	    indent(depth);
-	    klog("]\n");
+	    indent(sb, depth);
+	    strbuf_addf(sb, "]\n");
 	    break;
 	  }
 	case DBUS_TYPE_DICT_ENTRY:
@@ -317,12 +319,12 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    klog("dict entry(\n");
-	    print_iter (&subiter, literal, depth+1);
+	    strbuf_addf(sb, "dict entry(\n");
+	    print_iter (sb, &subiter, literal, depth+1);
 	    dbus_message_iter_next (&subiter);
-	    print_iter (&subiter, literal, depth+1);
-	    indent(depth);
-	    klog(")\n");
+	    print_iter (sb, &subiter, literal, depth+1);
+	    indent(sb, depth);
+	    strbuf_addf(sb, ")\n");
 	    break;
 	  }
 
@@ -333,21 +335,21 @@ print_iter (DBusMessageIter *iter, dbus_bool_t literal, int depth)
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    klog("struct {\n");
+	    strbuf_addf(sb, "struct {\n");
 	    while ((current_type = dbus_message_iter_get_arg_type (&subiter)) != DBUS_TYPE_INVALID)
 	      {
-		print_iter (&subiter, literal, depth+1);
+		print_iter (sb, &subiter, literal, depth+1);
 		dbus_message_iter_next (&subiter);
 		if (dbus_message_iter_get_arg_type (&subiter) != DBUS_TYPE_INVALID)
-		  klog (",");
+		  strbuf_addf (sb, ",");
 	      }
-	    indent(depth);
-	    klog("}\n");
+	    indent(sb, depth);
+	    strbuf_addf(sb, "}\n");
 	    break;
 	  }
 
 	default:
-	  klog (" (dbus-monitor too dumb to decipher arg type '%c')\n", type);
+	  strbuf_addf (sb, " (dbus-monitor too dumb to decipher arg type '%c')\n", type);
 	  break;
 	}
     } while (dbus_message_iter_next (iter));
@@ -361,13 +363,17 @@ print_message (DBusMessage *message, dbus_bool_t literal)
   const char *destination;
   int message_type;
 
+  struct strbuf sb;
+
   message_type = dbus_message_get_type (message);
   sender = dbus_message_get_sender (message);
   destination = dbus_message_get_destination (message);
 
+  strbuf_init(&sb, 0);
+
   if (!literal)
     {
-      klog ("%s sender=%s -> dest=%s",
+      strbuf_addf (&sb, "%s sender=%s -> dest=%s",
 	      type_to_name (message_type),
 	      sender ? sender : "(null sender)",
 	      destination ? destination : "(null destination)");
@@ -376,7 +382,7 @@ print_message (DBusMessage *message, dbus_bool_t literal)
 	{
 	case DBUS_MESSAGE_TYPE_METHOD_CALL:
 	case DBUS_MESSAGE_TYPE_SIGNAL:
-	  klog (" serial=%u path=%s; interface=%s; member=%s\n",
+	  strbuf_addf (&sb, " serial=%u path=%s; interface=%s; member=%s\n",
                   dbus_message_get_serial (message),
 		  dbus_message_get_path (message),
 		  dbus_message_get_interface (message),
@@ -384,25 +390,26 @@ print_message (DBusMessage *message, dbus_bool_t literal)
 	  break;
 
 	case DBUS_MESSAGE_TYPE_METHOD_RETURN:
-	  klog (" reply_serial=%u\n",
+	  strbuf_addf (&sb, " reply_serial=%u\n",
           dbus_message_get_reply_serial (message));
 	  break;
 
 	case DBUS_MESSAGE_TYPE_ERROR:
-	  klog (" error_name=%s reply_serial=%u\n",
+	  strbuf_addf (&sb, " error_name=%s reply_serial=%u\n",
 		  dbus_message_get_error_name (message),
           dbus_message_get_reply_serial (message));
 	  break;
 
 	default:
-	  klog ("\n");
+	  strbuf_addf (&sb, "\n");
 	  break;
 	}
     }
 
   dbus_message_iter_init (message, &iter);
-  print_iter (&iter, literal, 1);
-  fflush (stdout);
+  print_iter (&sb, &iter, literal, 1);
 
+  klog(sb.buf);
+  strbuf_release(&sb);
 }
 
