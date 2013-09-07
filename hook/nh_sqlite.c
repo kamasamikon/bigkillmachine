@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <time.h>
 
+#define KMODU_NAME "NHSQLITE"
 #include <klog.h>
 
 #define NH_SQLITE

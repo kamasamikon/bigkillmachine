@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <time.h>
 
+#define KMODU_NAME "NHDBUS"
 #include <klog.h>
 
 #define NH_DBUS

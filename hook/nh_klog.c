@@ -16,9 +16,6 @@
 #include <signal.h>
 #include <sys/socket.h>
 
-// #include <kstr.h>
-
-
 #define NH_KLOG
 
 /*-----------------------------------------------------------------------
