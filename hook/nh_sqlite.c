@@ -19,7 +19,7 @@
 #ifdef NH_SQLITE
 #include <sqlite3.h>
 
-static int __g_sqlite_klog = 0;
+static int __g_sqlite_klog = 1;
 
 static void sqliteTrace(void *arg, const char *query)
 {
