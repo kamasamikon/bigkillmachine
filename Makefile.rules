@@ -1,0 +1,30 @@
+$(LOCAL_OUT_ELF): $(LOCAL_OUT_OBJS) $(LOCAL_LINK_OBJS) $(LOCAL_LIBS)
+	echo $(CC) $(CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_OUT_OBJS) $(LOCAL_LINK_OBJS) $(LOCAL_LIBS) -o $@ $(LDFLAGS) 
+	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_OUT_OBJS) $(LOCAL_LINK_OBJS) $(LOCAL_LIBS) -o $@ $(LDFLAGS) 
+
+$(LOCAL_OUT_LIB): $(LOCAL_OUT_OBJS) $(LOCAL_LIBS)
+	echo $(AR) crus $@ $(LOCAL_OUT_OBJS)
+	$(AR) crus $@ $(LOCAL_OUT_OBJS)
+
+$(LOCAL_SHARE_LIB): $(LOCAL_OUT_OBJS) $(LOCAL_LIBS)
+	echo $(CC) -shared -fPIC $^ -o $@ $(LDFLAGS)
+	$(CC) -shared -fPIC $^ -o $@ $(LDFLAGS)
+
+%.o: %.c
+	echo $(CC) $(CFLAGS) $(LOCAL_CFLAGS) -fPIC $(LOCAL_INCDIRS) -c $< -o $@
+	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) -fPIC $(LOCAL_INCDIRS) -c $< -o $@
+
+BUILD_SUB_DIRS: 
+	@$(foreach dir, $(MAKEDIRS),                         \
+	$(MAKE) -C $(dir) all;                               \
+	if [ "$$?" -ne "0" ]; then                           \
+	  echo "ERROR - BUILD $(dir) STOPPED!";                     \
+	  echo "BUILD $(dir) FAILED - Please fix above error!!";    \
+	  exit 1;                                            \
+	fi; )
+	@-echo "Build $(MAKEDIRS) Passed."
+
+clean: 
+	$(RM) -rf *.o $(LOCAL_LINK_OBJS) $(LOCAL_OUT_ELF) $(LOCAL_OUT_LIB) $(LOCAL_OUT_OBJS) $(LOCAL_SHARE_LIB)
+	$(foreach dir, $(MAKEDIRS), $(MAKE) -C $(dir) $@;)
+	
