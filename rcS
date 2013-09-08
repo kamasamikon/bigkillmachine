@@ -134,11 +134,12 @@ cd /root
 ###
 ## ######################################################################
 # Nemo: Load klog thing
+# klog_cfgurl=172.22.6.219:9000
 echo
 echo
-KLOG_CFG_URL=`grep "klog_cfg_url=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
-if [ "$KLOG_CFG_URL" != "" ]; then
-	echo "Nemo: should get klog configure file from ${KLOG_CFG_URL}"
+KLOG_CFGURL=`grep "klog_cfgurl=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$KLOG_CFGURL" != "" ]; then
+	echo "Nemo: should get klog configure file from ${KLOG_CFGURL}"
 	wget ${CFG_SRC_URL} -O /tmp/klog.cfg
 else
 	echo "Nemo: No klog configure from /proc/cmdline, create empty one"
@@ -146,11 +147,11 @@ else
 fi
 echo
 echo
-# TODO: How to feed the klog.cfg to klog module?
 
 ###
 ## ######################################################################
 # Nemo: PCD output 
+# pcdout=/dev/null or pcdout=/tmp/pcd.out
 echo
 echo
 PCDOUT=`grep "pcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
@@ -166,6 +167,7 @@ echo
 ###
 ## ######################################################################
 # Nemo: HOOK
+# preload=PRELOAD=/usr/local/lib/libneomohook.so
 echo
 echo
 PRELOAD=`grep "preload=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
@@ -177,10 +179,9 @@ else
 fi
 echo
 echo
+
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
-    echo "Call pcd +++++++++++++++++++++"
 	${PRELOAD} /usr/sbin/pcd -v -f /etc/rules.pcd &> ${PCDOUT} &
-    echo "Call pcd ---------------------"
 else
 	chmod 644 /dev/shm/fusion.*
 	if [ ! -e /home/ntvroot/epg/epg.db ]; then
