@@ -13,6 +13,7 @@
 #include <kflg.h>
 #include <xtcool.h>
 
+#define KMODU_NAME "NHKLOG"
 #include <klog.h>
 
 void show_help()
@@ -73,7 +74,9 @@ int main_klog(int argc, char *argv[])
 
 	for (i = 0; i < count; i++) {
 		klog("remote klog test. puppy FANG is a bad egg. done<%d>\n", i);
-		// spl_sleep(1000);
+		shit();
+		kerror("This is an error\n");
+		spl_sleep(1000);
 	}
 
 	cost = spl_get_ticks() - tick;

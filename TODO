@@ -7,4 +7,5 @@
 7) watch gstreamer Snapshot or pipeline
 
 8) New format of klog_cfg
+    1) pid=32421,modu=w45252,mask=4325
 

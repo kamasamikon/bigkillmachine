@@ -27,3 +27,6 @@ echo cp libnemohook.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/usr/local
 echo "Apply dbus buildroot patch"
 echo cp hook/dbus/dbus_dbus_connection_dispatch_hook.patch ${BR_DIR}/package/dbus
 
+
+echo "Process ntvlog.h"
+

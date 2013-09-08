@@ -148,7 +148,13 @@ static void init_log_monitor()
 
 	/* os_rlog_rule to update the klog rule */
 	opt_init(argc, argv);
+
 	opt_add_s("s:/rlog/rule", OA_DFT, os_rlog_rule, NULL);
+	opt_add_s("b:/sys/admin/nemo/enable", OA_GET, NULL, NULL);
+	opt_add_s("s:/sys/usr/nemo/passwd", OA_GET, NULL, NULL);
+
+	opt_setint("b:/sys/admin/nemo/enable", 1);
+	opt_setstr("s:/sys/usr/nemo/passwd", "nemo");
 
 	klog_add_logger(logger_remote);
 
