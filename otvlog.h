@@ -32,12 +32,13 @@ void o_log_assert_trap( void );
 #define O_DEBUG_ASSERT          kassert
 #define WARN                    kerror
 
-#define O_FATAL                 kfatal
-#define O_ERROR                 kerror
-#define O_WARNING               klog
-#define O_MAINSTATUS            klog
-#define O_DEBUG                 klog
-#define O_TRACE                 ktrace
+#define O_FATAL                 0
+#define O_ERROR                 3
+#define O_WARNING               4
+#define O_MAINSTATUS            6
+#define O_DEBUG                 7
+#define O_TRACE                 8
+
 
 #define O_LOG_FATAL             kfatal
 
