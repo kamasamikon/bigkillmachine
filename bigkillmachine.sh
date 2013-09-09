@@ -36,7 +36,7 @@ echo
 echo
 echo "Apply dbus buildroot patch"
 BR_DIR=${DIR_PROJ}/../../buildroot
-cp -v hook/dbus/dbus_dbus_connection_dispatch_hook.patch ${BR_DIR}/package/dbus
+cp -v hook/dbus/*.patch ${BR_DIR}/package/dbus
 
 echo
 echo
