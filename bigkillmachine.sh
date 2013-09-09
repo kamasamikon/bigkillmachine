@@ -50,4 +50,14 @@ cp -v ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
 
 echo
 echo
+echo "Process buildroot makefile"
+if [ -f ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nh.bak ]; then
+    echo "buildroot makefile already backuped, skip"
+else
+    mv -v ${DIR_PROJ}/../../nemotv/src/utils/XXXXntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nh.bak
+fi
+cp -v XXXXntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/XXXXntvlog.h
+
+echo
+echo
 echo "DONE"
