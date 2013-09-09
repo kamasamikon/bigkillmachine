@@ -1,20 +1,23 @@
 #!/bin/sh
 
 echo "Usage: bigkillmachine.sh DIR CONFIG BUILD"
-echo "eg.: bigkillmachine.sh /home/auv/Perforce/nemotv/NTV_OS/NemoTV5/MAIN/ntvtgt/sam7231_uclibc_bc sh_hdi bld"
+echo "eg.: bigkillmachine.sh /home/auv/Perforce/nemotv/NTV_OS/NemoTV5/MAIN/ntvtgt/sam7231_uclibc_bc sh_hdi bld 7231"
 
 DIR_PROJ=$1
 TYPE_CONFIG=$2
 TYPE_BUILD=$3
+TYPE_PLATFORM=$4
+DIR_BR=${DIR_PROJ}/../../buildroot
 
-echo -e Hit return to continue.
+echo -e "Hit return to continue."
 read
 
 echo
 echo
 echo "Apply the rcS patch"
+echo
 RCS_PATH=${DIR_PROJ}/fs/skeleton/etc/init.d/rcS
-if [ -f ${RCS_PATH}.nh.bak ]; then
+if [ -f ${RCS_PATH}.nhbak ]; then
     echo "rcS already backuped, skip"
 fi
 
@@ -22,42 +25,46 @@ RCS_HASH=`md5sum ${RCS_PATH} | cut -d " " -f1 `
 if [ "dcbfed08fb0852617beedb68561f37fd" != ${RCS_PATH} ]; then
     sudo meld rcS ${RCS_PATH}
 fi
-cp -v ${RCS_PATH} ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
+cp -vf ${RCS_PATH} ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
 
 echo
 echo
 echo "Copy libnemohook.so"
-cp -v ./build/target/7231/libnemohook.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/lib
-cp -v ./build/target/7231/libnemohook.so ${DIR_PROJ}/fs/skeleton/lib
-cp -v ./build/target/7231/libhilda.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/lib
-cp -v ./build/target/7231/libhilda.so ${DIR_PROJ}/fs/skeleton/lib
+echo
+cp -vf ./build/target/${TYPE_PLATFORM}/libnemohook.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/lib
+cp -vf ./build/target/${TYPE_PLATFORM}/libnemohook.so ${DIR_PROJ}/fs/skeleton/lib
+cp -vf ./build/target/${TYPE_PLATFORM}/libhilda.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/lib
+cp -vf ./build/target/${TYPE_PLATFORM}/libhilda.so ${DIR_PROJ}/fs/skeleton/lib
 
 echo
 echo
 echo "Apply dbus buildroot patch"
-BR_DIR=${DIR_PROJ}/../../buildroot
-cp -v hook/dbus/*.patch ${BR_DIR}/package/dbus
+echo
+cp -vf hook/dbus/*.patch ${DIR_BR}/package/dbus
 
 echo
 echo
 echo "Process ntvlog.h"
-if [ -f ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nh.bak ]; then
+echo
+if [ -f ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak ]; then
     echo "ntvlog.h already backuped, skip"
 else
-    mv -v ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nh.bak
+    mv -v ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak
 fi
-cp -v ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
+cp -vf ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
 
 echo
 echo
-echo "Process buildroot makefile"
-if [ -f ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nh.bak ]; then
-    echo "buildroot makefile already backuped, skip"
+echo "Process buildroot package Makefile.in"
+echo
+if [ -f ${DIR_BR}/package/Makefile.in.nhbak ]; then
+    echo "buildroot package Makefile.in already backuped, skip"
 else
-    mv -v ${DIR_PROJ}/../../nemotv/src/utils/XXXXntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nh.bak
+    mv -v ${DIR_BR}/package/Makefile.in ${DIR_BR}/package/Makefile.in.nhbak
 fi
-cp -v XXXXntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/XXXXntvlog.h
+cp -vf br-package-Makefile.in ${DIR_BR}/package/Makefile.in
 
 echo
 echo
 echo "DONE"
+echo
