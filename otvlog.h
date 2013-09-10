@@ -24,6 +24,8 @@ extern "C" {
 #include <string.h>
 #include <glib/gstdio.h>
 
+#define STMT(stuff) do { stuff } while(0)
+
 void o_log_assert_trap( void );
 
 #define O_ASSERT                kassert

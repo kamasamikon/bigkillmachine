@@ -22,9 +22,7 @@ if [ -f ${RCS_PATH}.nhbak ]; then
 fi
 
 RCS_HASH=`md5sum ${RCS_PATH} | cut -d " " -f1 `
-if [ "dcbfed08fb0852617beedb68561f37fd" != ${RCS_PATH} ]; then
-    sudo meld rcS ${RCS_PATH}
-fi
+sudo meld rcS ${RCS_PATH}
 cp -vf ${RCS_PATH} ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
 
 echo
@@ -62,7 +60,7 @@ if [ -f ${DIR_BR}/package/Makefile.in.nhbak ]; then
 else
     mv -v ${DIR_BR}/package/Makefile.in ${DIR_BR}/package/Makefile.in.nhbak
 fi
-cp -vf br-package-Makefile.in ${DIR_BR}/package/Makefile.in
+sudo meld br-package-Makefile.in ${DIR_BR}/package/Makefile.in
 
 echo
 echo
