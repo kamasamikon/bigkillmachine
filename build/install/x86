@@ -10,4 +10,4 @@ cp -frvL build/platform/linux/libnemohook.so ${TARGETDIR}
 cp -frvL build/platform/linux/nemohook.a ${TARGETDIR}
 
 cp -frvL ${HILDA_LIB}/x86/libhilda.so ${TARGETDIR}
-cp -frvL ${HILDA_LIB}/x86/hilda.a ${TARGETDIR}
+cp -frvL ${HILDA_LIB}/x86/libhilda.a ${TARGETDIR}
