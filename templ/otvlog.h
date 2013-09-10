@@ -12,7 +12,7 @@ extern "C" {
 #elif (defined(PACKAGE_NAME))
 #define KMODU_NAME  PACKAGE_NAME
 #else
-#define KMODU_NAME  "?"
+#define KMODU_NAME  "NONAME"
 #endif
 
 #include <klog.h>
@@ -41,6 +41,11 @@ void o_log_assert_trap( void );
 #define O_DEBUG                 7
 #define O_TRACE                 8
 
+/* Reset the O_LOG_LEVEL */
+#ifdef O_LOG_LEVEL
+#undef O_LOG_LEVEL
+#define O_LOG_LEVEL O_TRACE
+#endif
 
 #define O_LOG_FATAL             kfatal
 

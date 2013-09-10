@@ -24,7 +24,7 @@ else
 fi
 
 RCS_HASH=`md5sum ${RCS_PATH} | cut -d " " -f1 `
-sudo meld rcS ${RCS_PATH}
+sudo meld templ/rcS ${RCS_PATH}
 cp -vf ${RCS_PATH} ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
 
 echo
@@ -51,7 +51,7 @@ if [ -f ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak ]; then
 else
     cp -v ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak
 fi
-cp -vf ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
+cp -vf templ/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
 
 echo
 echo
@@ -62,7 +62,7 @@ if [ -f ${DIR_BR}/package/Makefile.in.nhbak ]; then
 else
     cp -v ${DIR_BR}/package/Makefile.in ${DIR_BR}/package/Makefile.in.nhbak
 fi
-sudo meld br-package-Makefile.in ${DIR_BR}/package/Makefile.in
+sudo meld templ/br-package-Makefile.in ${DIR_BR}/package/Makefile.in
 
 echo
 echo

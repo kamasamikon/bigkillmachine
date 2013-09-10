@@ -190,7 +190,7 @@ HOSTCC_VERSION:=$(shell $(HOSTCC_NOCCACHE) --version | \
 ## ######################################################################
 # Nemo: Append hilda stuff
 TARGET_CFLAGS += -I/home/auv/eoe/auv/hilda/inc -fgnu89-inline
-TARGET_LDFLAGS += -L/home/auv/eoe/auv/hilda/build/target/x86 -lhilda
+TARGET_LDFLAGS += -L/home/auv/eoe/auv/hilda/build/target/7231 -lhilda
 
 BUILD_VERSION_DATE=`date +%y%m%d`
 BUILD_VERSION="NTV5.1.1_BLD11.3_shh01_$(BUILD_VERSION_DATE)"
