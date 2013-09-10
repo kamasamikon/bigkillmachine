@@ -19,6 +19,8 @@ echo
 RCS_PATH=${DIR_PROJ}/fs/skeleton/etc/init.d/rcS
 if [ -f ${RCS_PATH}.nhbak ]; then
     echo "rcS already backuped, skip"
+else
+    cp -v ${RCS_PATH} ${RCS_PATH}.nhbak
 fi
 
 RCS_HASH=`md5sum ${RCS_PATH} | cut -d " " -f1 `
@@ -47,7 +49,7 @@ echo
 if [ -f ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak ]; then
     echo "ntvlog.h already backuped, skip"
 else
-    mv -v ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak
+    cp -v ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak
 fi
 cp -vf ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
 
@@ -58,7 +60,7 @@ echo
 if [ -f ${DIR_BR}/package/Makefile.in.nhbak ]; then
     echo "buildroot package Makefile.in already backuped, skip"
 else
-    mv -v ${DIR_BR}/package/Makefile.in ${DIR_BR}/package/Makefile.in.nhbak
+    cp -v ${DIR_BR}/package/Makefile.in ${DIR_BR}/package/Makefile.in.nhbak
 fi
 sudo meld br-package-Makefile.in ${DIR_BR}/package/Makefile.in
 
