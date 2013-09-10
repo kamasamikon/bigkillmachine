@@ -35,7 +35,6 @@ TARGET_DEBUGGING=-g3
 endif
 
 TARGET_CFLAGS=$(TARGET_OPTIMIZATION) $(TARGET_DEBUGGING)
-TARGET_CFLAGS+=-I/home/auv/eoe/auv/hilda/inc  -fgnu89-inline
 
 CC_TARGET_TUNE_:=$(call qstrip,$(BR2_GCC_TARGET_TUNE))
 CC_TARGET_ARCH_:=$(call qstrip,$(BR2_GCC_TARGET_ARCH))
@@ -83,9 +82,6 @@ TARGET_CFLAGS+=-I$(STAGING_DIR)/usr/include -I$(STAGING_DIR)/include
 endif
 
 TARGET_LDFLAGS+=-L$(STAGING_DIR)/lib -L$(STAGING_DIR)/usr/lib
-
-TARGET_LDFLAGS += -L/home/auv/eoe/auv/hilda/build/target/x86 -lhilda
-
 TARGET_CXXFLAGS=$(TARGET_CFLAGS)
 TARGET_SYSROOT_OPT=--sysroot=$(STAGING_DIR)
 
@@ -189,6 +185,12 @@ HOST_PATH=$(HOST_DIR)/bin:$(HOST_DIR)/usr/bin:$(PATH)
 # hostcc version as an integer - E.G. 4.3.2 => 432
 HOSTCC_VERSION:=$(shell $(HOSTCC_NOCCACHE) --version | \
 	sed -n 's/^.* \([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)[ ]*.*$$/\1\2\3/p')
+
+###
+## ######################################################################
+# Nemo: Append hilda stuff
+TARGET_CFLAGS += -I/home/auv/eoe/auv/hilda/inc -fgnu89-inline
+TARGET_LDFLAGS += -L/home/auv/eoe/auv/hilda/build/target/x86 -lhilda
 
 BUILD_VERSION_DATE=`date +%y%m%d`
 BUILD_VERSION="NTV5.1.1_BLD11.3_shh01_$(BUILD_VERSION_DATE)"

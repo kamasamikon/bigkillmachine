@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 export PATH=/bin:/sbin:/usr/bin:/usr/sbin:.
 
@@ -172,8 +172,9 @@ echo
 echo
 PRELOAD=`grep "preload=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
 if [ "$PRELOAD" != "" ]; then
-	echo "Nemo: PCD output to file ${PRELOAD}"
+	echo "Nemo: Preload parameter ${PRELOAD}"
     PRELOAD=LD_${PRELOAD}
+    export ${PRELOAD}
 else
 	echo "Nemo: PRELOAD not set, use default path ${PRELOAD}"
 fi
