@@ -27,14 +27,14 @@
 
 #include <klog.h>
 #include <karg.h>
-#include <opt.h>
-#include <opt-rpc-server.h>
+#include <kopt.h>
+#include <kopt-rpc-server.h>
 
 static int __g_rlog_serv_skt = -1;
 
 static int os_rlog_rule(int ses, void *opt, void *pa, void *pb)
 {
-	klog_rule_add(opt_get_new_str(opt));
+	klog_rule_add(kopt_get_new_str(opt));
 	return 0;
 }
 
@@ -147,20 +147,20 @@ static void init_log_monitor()
 	load_boot_args(&argc, &argv);
 
 	/* os_rlog_rule to update the klog rule */
-	opt_init(argc, argv);
+	kopt_init(argc, argv);
 
-	opt_add_s("s:/rlog/rule", OA_DFT, os_rlog_rule, NULL);
-	opt_add_s("b:/sys/admin/nemo/enable", OA_GET, NULL, NULL);
-	opt_add_s("s:/sys/usr/nemo/passwd", OA_GET, NULL, NULL);
+	kopt_add_s("s:/rlog/rule", OA_DFT, os_rlog_rule, NULL);
+	kopt_add_s("b:/sys/admin/nemo/enable", OA_GET, NULL, NULL);
+	kopt_add_s("s:/sys/usr/nemo/passwd", OA_GET, NULL, NULL);
 
-	opt_setint("b:/sys/admin/nemo/enable", 1);
-	opt_setstr("s:/sys/usr/nemo/passwd", "nemo");
+	kopt_setint("b:/sys/admin/nemo/enable", 1);
+	kopt_setstr("s:/sys/usr/nemo/passwd", "nemo");
 
 	klog_add_logger(logger_remote);
 
 	setup_rlog(argc, argv);
 
-	opt_rpc_server_init(9000 + getpid(), argc, argv);
+	kopt_rpc_server_init(9000 + getpid(), argc, argv);
 	klogs("NH_KLOG: OptServer established, port: %d\n", 9000 + getpid());
 }
 
