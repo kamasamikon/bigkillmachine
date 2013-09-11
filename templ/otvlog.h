@@ -29,10 +29,10 @@ extern "C" {
 void o_log_assert_trap( void );
 
 #define O_ASSERT                kassert
-#define O_WARN                  kerror
+#define O_WARN                  kassert
 #define ASSERT                  kassert
 #define O_DEBUG_ASSERT          kassert
-#define WARN                    kerror
+#define WARN                    kassert
 
 #define O_FATAL                 0
 #define O_ERROR                 3

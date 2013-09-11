@@ -716,6 +716,22 @@ external-deps:
 show-targets:
 	@echo $(TARGETS)
 
+otvall:
+	@echo "NTV_SRC:"
+	@echo $(NTV_SRC)
+	@echo 
+	@echo "NTV_EXTERNAL:"
+	@echo $(NTV_EXTERNAL)
+	@echo 
+	@echo "NTV_TEST:"
+	@echo $(NTV_TEST)
+	@echo 
+	@echo "NETCFG_DATA:"
+	@echo $(NETCFG_DATA)
+	@echo 
+	@echo "Everything:"
+	@echo $(NTV_SRC) $(NTV_EXTERNAL) $(NTV_TEST) $(NETCFG_DATA) 
+
 else 
 # BR2_HAVE_DOT_CONFIG is not defined
 
