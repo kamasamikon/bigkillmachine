@@ -66,5 +66,16 @@ sudo meld templ/br-package-Makefile.in ${DIR_BR}/package/Makefile.in
 
 echo
 echo
+echo "Process buildroot package Makefiles"
+echo
+if [ -f ${DIR_BR}/Makefile.nhbak ]; then
+    echo "buildroot Makefile already backuped, skip"
+else
+    cp -v ${DIR_BR}/Makefile ${DIR_BR}/Makefile.nhbak
+fi
+sudo meld templ/br-Makefile ${DIR_BR}/Makefile
+
+echo
+echo
 echo "DONE"
 echo
