@@ -77,5 +77,23 @@ sudo meld templ/br-Makefile ${DIR_BR}/Makefile
 
 echo
 echo
+echo "Process EKIOH Makefile"
+echo
+EKIOH_MAKEFILE=${DIR_PROJ}/../../nemotv/external/ekioh_bld/build/Makefile
+if [ -f ${EKIOH_MAKEFILE}.nhbak ]; then
+    echo "EKIOH Makefile already backuped, skip"
+else
+    cp -v ${EKIOH_MAKEFILE} ${EKIOH_MAKEFILE}.nhbak
+fi
+sudo meld templ/ekioh_bld-Makefile ${EKIOH_MAKEFILE}
+
+echo
+echo
+echo "Fixing translater configure.ac, change 'CFLAGS = xxx' => 'CFLAGS += xxx'"
+echo
+vim ${DIR_PROJ}/../../nemotv/src/translator/configure.ac -c :66
+
+echo
+echo
 echo "DONE"
 echo

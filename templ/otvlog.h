@@ -22,6 +22,7 @@ extern "C" {
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <syslog.h>
 #include <glib/gstdio.h>
 
 #define STMT(stuff) do { stuff } while(0)
@@ -64,8 +65,8 @@ void o_log_assert_trap( void );
 #define O_LOG_TRACE             ktrace
 #define O_LOG_TRACE_SIMPLE      ktrace
 
-#define O_LOG_ENTER             ktrace
-#define O_LOG_EXIT              ktrace
+#define O_LOG_ENTER(fmt, ...)   ktrace("Enter:" fmt, ##__VA_ARGS__)
+#define O_LOG_EXIT(fmt, ...)    ktrace("Exit:" fmt, ##__VA_ARGS__)
 
 #define REQUIRE(pre)                ((void)0)
 #define ENSURE(post)                ((void)0)
