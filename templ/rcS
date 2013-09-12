@@ -136,16 +136,24 @@ cd /root
 # Nemo: Load klog thing
 # klog_cfgurl=172.22.6.219:9000
 echo
+echo "DUMP /proc/cmdline"
+echo ">>>>>"
+cat /proc/cmdline
+echo "<<<<<"
+echo
+
 echo
 KLOG_CFGURL=`grep "klog_cfgurl=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
 if [ "$KLOG_CFGURL" != "" ]; then
 	echo "Nemo: should get klog configure file from ${KLOG_CFGURL}"
-	wget ${CFG_SRC_URL} -O /tmp/klog.cfg
+	echo wget "${KLOG_CFGURL}" -O /tmp/klog.cfg
+	wget "${KLOG_CFGURL}" -O /tmp/klog.cfg
+	cat /tmp/klog.cfg
 else
 	echo "Nemo: No klog configure from /proc/cmdline, create empty one"
 	echo "" > /tmp/klog.cfg
 fi
-echo
+export KLOG_CFGFILE=/tmp/klog.cfg
 echo
 
 ###
@@ -153,36 +161,43 @@ echo
 # Nemo: PCD output 
 # pcdout=/dev/null or pcdout=/tmp/pcd.out
 echo
-echo
 PCDOUT=`grep "pcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+PCDOPT=""
 if [ "$PCDOUT" != "" ]; then
 	echo "Nemo: PCD output to file ${PCDOUT}"
+    PCDOPT= -v &> ${PCDOUT}
 else
-    PCDOUT=/dev/null
-	echo "Nemo: PCDOUT not set, use default path ${PCDOUT}"
+	echo "Nemo: PCDOUT not set, close pcd verbose output."
+    PCDOPT=
 fi
 echo
-echo
+
 
 ###
 ## ######################################################################
 # Nemo: HOOK
-# preload=PRELOAD=/usr/local/lib/libneomohook.so
-echo
+# preload=/lib/libneomohook.so
 echo
 PRELOAD=`grep "preload=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
 if [ "$PRELOAD" != "" ]; then
 	echo "Nemo: Preload parameter ${PRELOAD}"
-    PRELOAD=LD_${PRELOAD}
+    PRELOAD=LD_PRELOAD=${PRELOAD}
     export ${PRELOAD}
 else
 	echo "Nemo: PRELOAD not set, use default path ${PRELOAD}"
 fi
 echo
+
+echo
+echo
+echo "NEMO Part finished"
+echo "NEMO Part finished"
+echo
+echo "${PRELOAD} /usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} &"
 echo
 
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
-	${PRELOAD} /usr/sbin/pcd -v -f /etc/rules.pcd &> ${PCDOUT} &
+	${PRELOAD} /usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} &
 else
 	chmod 644 /dev/shm/fusion.*
 	if [ ! -e /home/ntvroot/epg/epg.db ]; then
@@ -251,7 +266,7 @@ else
 	fi
 	chmod 777 /var	
 	chmod 777 /root		
-	${PRELOAD} /usr/sbin/pcd -v -f /etc/rules_release.pcd &> ${PCDOUT} &
+	${PRELOAD} /usr/sbin/pcd -f /etc/rules_release.pcd ${PCDOPT} &
 fi
 
 #/usr/sbin/pcd -f /etc/rules.pcd &

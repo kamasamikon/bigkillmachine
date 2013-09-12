@@ -1,13 +1,10 @@
 $(LOCAL_OUT_ELF): $(LOCAL_OUT_OBJS) $(LOCAL_LINK_OBJS) $(LOCAL_LIBS)
-	echo $(CC) $(CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_OUT_OBJS) $(LOCAL_LINK_OBJS) $(LOCAL_LIBS) -o $@ $(LDFLAGS) 
 	$(CC) $(CFLAGS) $(LOCAL_CFLAGS) $(LOCAL_OUT_OBJS) $(LOCAL_LINK_OBJS) $(LOCAL_LIBS) -o $@ $(LDFLAGS) 
 
 $(LOCAL_OUT_LIB): $(LOCAL_OUT_OBJS) $(LOCAL_LIBS)
-	echo $(AR) crus $@ $(LOCAL_OUT_OBJS)
 	$(AR) crus $@ $(LOCAL_OUT_OBJS)
 
 $(LOCAL_SHARE_LIB): $(LOCAL_OUT_OBJS) $(LOCAL_LIBS)
-	echo $(CC) -shared -fPIC $^ -o $@ $(LDFLAGS)
 	$(CC) -shared -fPIC $^ -o $@ $(LDFLAGS)
 
 %.o: %.c

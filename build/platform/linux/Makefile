@@ -10,7 +10,6 @@ SUB_OBJS_hook = \
 				 $(HI_PRJ_ROOT)/hook/nh_klog.o \
 				 $(HI_PRJ_ROOT)/hook/nh_sqlite.o
 
-LOCAL_INCDIRS = -I $(HI_PRJ_ROOT)/inc
 LOCAL_OUT_OBJS = $(SUB_OBJS_hook)
 LOCAL_OUT_LIB = nemohook.a
 LOCAL_SHARE_LIB = libnemohook.so

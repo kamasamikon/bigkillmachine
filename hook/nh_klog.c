@@ -93,10 +93,16 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	struct hostent *he;
 	struct sockaddr_in their_addr;
 
-	if ((he = gethostbyname(server)) == NULL)
+	printf("<%d> connect_rlog_serv: server:'%s', port:%d\n", getpid(), server, port);
+
+	if ((he = gethostbyname(server)) == NULL) {
+		printf("<%d> connect_rlog_serv: gethostbyname error: %s.\n", getpid(), strerror(errno));
 		return -1;
-	if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1)
+	}
+	if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
+		printf("<%d> connect_rlog_serv: socket error: %s.\n", getpid(), strerror(errno));
 		return -1;
+	}
 
 	their_addr.sin_family = AF_INET;
 	their_addr.sin_port = htons(port);
@@ -104,7 +110,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 	if (connect(sockfd, (struct sockaddr *)&their_addr,
 				sizeof their_addr) == -1) {
-		kerror("c:%s, e:%s\n", "connect", strerror(errno));
+		printf("<%d> connect_rlog_serv: connect error: %s.\n", getpid(), strerror(errno));
 		close(sockfd);
 		return -1;
 	}
@@ -112,6 +118,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	config_socket(sockfd);
 
 	*retfd = sockfd;
+	printf("<%d> connect_rlog_serv: retfd: %d\n", getpid(), sockfd);
 	return 0;
 }
 
@@ -121,16 +128,13 @@ static void setup_rlog(int argc, char *argv[])
 	unsigned short port;
 
 	rlog_serv_from_kernel_cmdline(argc, argv, serv, &port);
-	printf("serv:%s\n", serv);
-	printf("port:%u\n", port);
-
 	connect_rlog_serv(serv, port, &__g_rlog_serv_skt);
 }
 
 static void logger_remote(const char *content, int len)
 {
 	if (len != send(__g_rlog_serv_skt, content, len, 0))
-		printf("logger_wlogf: send error: %s, %d\n", strerror(errno), __g_rlog_serv_skt);
+		printf("<%d> logger_wlogf: send error: %s, %d\n", getpid(), strerror(errno), __g_rlog_serv_skt);
 }
 
 static void init_log_monitor()
@@ -161,7 +165,8 @@ static void init_log_monitor()
 	setup_rlog(argc, argv);
 
 	kopt_rpc_server_init(9000 + getpid(), argc, argv);
-	klogs("NH_KLOG: OptServer established, port: %d\n", 9000 + getpid());
+	printf("<%d> NH_KLOG: OptServer established, port: %d\n", getpid(), 9000 + getpid());
+	klogs("<%d> NH_KLOG: OptServer established, port: %d\n", getpid(), 9000 + getpid());
 }
 
 int klog_vf(unsigned char type, unsigned int mask, const char *prog,
