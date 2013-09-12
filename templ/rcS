@@ -189,15 +189,14 @@ fi
 echo
 
 echo
-echo
-echo "NEMO Part finished"
 echo "NEMO Part finished"
 echo
-echo "${PRELOAD} /usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} &"
+echo "PRELOAD = [[[ ${PRELOAD} ]]]"
+echo "COMMAND = [[[ /usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} & ]]]"
 echo
 
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
-	${PRELOAD} /usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} &
+	/usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} &
 else
 	chmod 644 /dev/shm/fusion.*
 	if [ ! -e /home/ntvroot/epg/epg.db ]; then
@@ -266,7 +265,7 @@ else
 	fi
 	chmod 777 /var	
 	chmod 777 /root		
-	${PRELOAD} /usr/sbin/pcd -f /etc/rules_release.pcd ${PCDOPT} &
+	/usr/sbin/pcd -f /etc/rules_release.pcd ${PCDOPT} &
 fi
 
 #/usr/sbin/pcd -f /etc/rules.pcd &
