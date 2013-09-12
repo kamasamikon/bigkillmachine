@@ -1,5 +1,5 @@
-export NH_PRJ_ROOT = ..
--include $(NH_PRJ_ROOT)/Makefile.defs
+export HI_PRJ_ROOT = ..
+-include $(HI_PRJ_ROOT)/Makefile.defs
 
 LOCAL_OUT_ELF = klagent
 LOCAL_OUT_OBJS = klog-agent.o
@@ -8,4 +8,5 @@ LOCAL_OUT_OBJS = klog-agent.o
 
 all: $(LOCAL_OUT_ELF) $(LOCAL_OUT_OBJS) 
 
--include $(NH_PRJ_ROOT)/Makefile.rules
+-include $(HI_PRJ_ROOT)/Makefile.rules
+

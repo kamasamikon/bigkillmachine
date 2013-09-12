@@ -16,16 +16,17 @@ echo
 echo
 echo "Apply the rcS patch"
 echo
-RCS_PATH=${DIR_PROJ}/fs/skeleton/etc/init.d/rcS
-if [ -f ${RCS_PATH}.nhbak ]; then
+DIR_RCS=${DIR_PROJ}/fs/skeleton/etc/init.d
+if [ -f ${DIR_RCS}/rcS.nhbak ]; then
     echo "rcS already backuped, skip"
 else
-    cp -v ${RCS_PATH} ${RCS_PATH}.nhbak
+    cp -v ${DIR_RCS}/rcS ${DIR_RCS}/rcS.nhbak
 fi
 
-RCS_HASH=`md5sum ${RCS_PATH} | cut -d " " -f1 `
-sudo meld templ/rcS ${RCS_PATH}
-cp -vf ${RCS_PATH} ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
+RCS_HASH=`md5sum ${DIR_RCS}/rcS | cut -d " " -f1 `
+cp -vf templ/nemo.sh ${DIR_RCS}
+sudo meld templ/rcS ${DIR_RCS}/rcS
+cp -vf ${DIR_RCS}/rcS ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
 
 echo
 echo

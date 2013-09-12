@@ -1,21 +1,21 @@
-CFLAGS += -g -Wall
+export HI_PRJ_ROOT = ..
+-include $(HI_PRJ_ROOT)/Makefile.defs
 
-CFLAGS += `pkg-config --cflags --libs glib-2.0`
-CFLAGS += `pkg-config --cflags --libs gtk+-2.0`
-CFLAGS += `pkg-config --cflags --libs gconf-2.0`
-CFLAGS += `pkg-config --cflags --libs dbus-glib-1`
-CFLAGS += `pkg-config --cflags --libs dbus-1`
+SUB_OBJS_hook = \
+				 $(HI_PRJ_ROOT)/hook/nh_dbus.o \
+				 $(HI_PRJ_ROOT)/hook/dbus-print-message.o \
+				 $(HI_PRJ_ROOT)/hook/nh_gconf.o \
+				 $(HI_PRJ_ROOT)/hook/nh_helper.o \
+				 $(HI_PRJ_ROOT)/hook/nh_ioctl.o \
+				 $(HI_PRJ_ROOT)/hook/nh_klog.o \
+				 $(HI_PRJ_ROOT)/hook/nh_sqlite.o
 
-HILDA_FLAGS += -I `echo $$HILDA_INC`
-HILDA_FLAGS += -L `echo $$HILDA_LIB/x86`
-HILDA_FLAGS += -lhilda
+LOCAL_OUT_OBJS = $(SUB_OBJS_hook)
+LOCAL_OUT_LIB = nemohook.a
+LOCAL_SHARE_LIB = libnemohook.so
 
-all: libnemohook.so
+.PHONY: all clean
 
-nemohook_SRCS = dbus-print-message.c nh_dbus.c nh_gconf.c nh_helper.c nh_ioctl.c nh_sqlite.c nh_klog.c
-libnemohook.so: $(nemohook_SRCS)
-	gcc -shared -ldl -fPIC $(CFLAGS) $(LDFLAGS) $(nemohook_SRCS) $(HILDA_FLAGS) -o libnemohook.so
+all: $(LOCAL_OUT_LIB) $(LOCAL_SHARE_LIB)
 
-clean:
-	rm libnemohook.so
-
+-include $(HI_PRJ_ROOT)/Makefile.rules

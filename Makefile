@@ -53,11 +53,11 @@ debug.no: clean
 #
 .PHONY: hook
 hook: amust
-	make -C $(HI_PRJ_ROOT)/build/platform/linux
+	make -C $(HI_PRJ_ROOT)/hook
 
 .PHONY: hook.clean
 hook.clean: amust
-	make -C $(HI_PRJ_ROOT)/build/platform/linux clean
+	make -C $(HI_PRJ_ROOT)/hook clean
 
 #########################################################################
 # $(HI_PRJ_ROOT)/klog-sewer
