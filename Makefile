@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: hook sewer
-clean: hook.clean sewer.clean
+all: hook sewer agent
+clean: hook.clean sewer.clean agent.clean
 
 -include Makefile.defs
 
@@ -69,6 +69,17 @@ sewer: amust
 .PHONY: sewer.clean
 sewer.clean: amust
 	make -C $(HI_PRJ_ROOT)/klog-sewer clean
+
+#########################################################################
+# $(HI_PRJ_ROOT)/klog-agent
+#
+.PHONY: agent
+agent: amust
+	make -C $(HI_PRJ_ROOT)/klog-agent
+
+.PHONY: agent.clean
+agent.clean: amust
+	make -C $(HI_PRJ_ROOT)/klog-agent clean
 
 
 #########################################################################
