@@ -134,66 +134,8 @@ cd /root
 ###
 ## ######################################################################
 # Nemo: Load klog thing
-# klog_cfgurl=172.22.6.219:9000
-echo
-echo "DUMP /proc/cmdline"
-echo ">>>>>"
-cat /proc/cmdline
-echo "<<<<<"
-echo
-
-echo
-KLOG_CFGURL=`grep "klog_cfgurl=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
-if [ "$KLOG_CFGURL" != "" ]; then
-	echo "Nemo: should get klog configure file from ${KLOG_CFGURL}"
-	echo wget "${KLOG_CFGURL}" -O /tmp/klog.cfg
-	wget "${KLOG_CFGURL}" -O /tmp/klog.cfg
-	cat /tmp/klog.cfg
-else
-	echo "Nemo: No klog configure from /proc/cmdline, create empty one"
-	echo "" > /tmp/klog.cfg
-fi
-export KLOG_CFGFILE=/tmp/klog.cfg
-echo
-
-###
-## ######################################################################
-# Nemo: PCD output 
-# pcdout=/dev/null or pcdout=/tmp/pcd.out
-echo
-PCDOUT=`grep "pcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
-PCDOPT=""
-if [ "$PCDOUT" != "" ]; then
-	echo "Nemo: PCD output to file ${PCDOUT}"
-    PCDOPT= -v &> ${PCDOUT}
-else
-	echo "Nemo: PCDOUT not set, close pcd verbose output."
-    PCDOPT=
-fi
-echo
-
-
-###
-## ######################################################################
-# Nemo: HOOK
-# preload=/lib/libneomohook.so
-echo
-PRELOAD=`grep "preload=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
-if [ "$PRELOAD" != "" ]; then
-	echo "Nemo: Preload parameter ${PRELOAD}"
-    PRELOAD=LD_PRELOAD=${PRELOAD}
-    export ${PRELOAD}
-else
-	echo "Nemo: PRELOAD not set, use default path ${PRELOAD}"
-fi
-echo
-
-echo
-echo "NEMO Part finished"
-echo
-echo "PRELOAD = [[[ ${PRELOAD} ]]]"
-echo "COMMAND = [[[ /usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} & ]]]"
-echo
+# klog_remote=172.22.6.219:9000
+source ./nemo.sh
 
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
 	/usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} &

@@ -9,12 +9,14 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <time.h>
-
 #include <unistd.h>
+#include <sys/inotify.h>
+
 #include <errno.h>
 #include <netdb.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <syslog.h>
 
 #define NH_KLOG
 
@@ -28,14 +30,70 @@
 #include <klog.h>
 #include <karg.h>
 #include <kopt.h>
-#include <kopt-rpc-server.h>
+
+#define EVENT_MASK (IN_MODIFY)
 
 static int __g_rlog_serv_skt = -1;
 
-static int os_rlog_rule(int ses, void *opt, void *pa, void *pb)
+static char __g_klog_serv[128];
+static unsigned short __g_klog_serv_port;
+
+static void load_cfg_file(const char *path)
 {
-	klog_rule_add(kopt_get_new_str(opt));
-	return 0;
+	char buf[8092];
+	FILE *fp;
+
+	fp = fopen(path, "rt");
+	if (!fp)
+		return;
+
+	while (fgets(buf, sizeof(buf), fp))
+		klog_rule_add(buf);
+
+	fclose(fp);
+}
+
+static void* thread_monitor_cfgfile(const char *path)
+{
+    int fd, wd, i, len, tmp_len;
+    char buffer[4096], *offset = NULL;
+    struct inotify_event *event;
+
+    fd = inotify_init();
+    if (fd < 0) {
+        printf("<%d> thread_monitor_cfgfile: inotify_init failed.\n", getpid());
+        exit(-1);
+    }
+
+    if (!path)
+	    path = "/tmp/klog.cfg";
+
+    wd = inotify_add_watch(fd, path, EVENT_MASK);
+    if (wd < 0) {
+        printf("<%d> thread_monitor_cfgfile: inotify_add_watch failed.\n", getpid());
+        return NULL;
+    }
+
+    while (len = read(fd, buffer, sizeof(buffer))) {
+        offset = buffer;
+        event = (struct inotify_event*)buffer;
+
+        while (((char*)event - buffer) < len) {
+            if (event->wd == wd) {
+                if (!(EVENT_MASK& event->mask)) {
+                    printf("<%d> thread_monitor_cfgfile: Opt: Configure changed\n", getpid());
+		    klog_rule_clr();
+		    load_cfg_file(path);
+                }
+                break;
+            }
+
+            tmp_len = sizeof(struct inotify_event) + event->len;
+            event = (struct inotify_event*)(offset + tmp_len);
+            offset += tmp_len;
+        }
+    }
+    return NULL;
 }
 
 static int load_boot_args(int *argc, char ***argv)
@@ -58,18 +116,16 @@ static int load_boot_args(int *argc, char ***argv)
 	return -1;
 }
 
-
-static void rlog_serv_from_kernel_cmdline(int argc, char **argv, char *serv, unsigned short *port)
+static void rlog_serv_from_kernel_cmdline(char *serv, unsigned short *port)
 {
 	int i, j;
+	char *url = getenv("KLOG_SEWER_URL");
 
-	/* rlog-server=172.22.7.144:2123 */
-	i = arg_find(argc, argv, "rlog-server=", 0);
-	if (i >= 0) {
-		for (j = 0; argv[i][j + 12] != ':'; j++)
-			serv[j] = argv[i][j + 12];
-		serv[j] = '\0';
-		*port = atoi((const char*)&argv[i][j + 1 + 12]);
+	if (url && strchr(url, ':')) {
+		for (i = 0; url[i] != ':'; i++)
+			serv[i] = url[i];
+		serv[i] = '\0';
+		*port = atoi((const char*)&url[i + 1]);
 	} else {
 		strcpy(serv, "127.0.0.1");
 		*port = 9000;
@@ -122,19 +178,25 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	return 0;
 }
 
-static void setup_rlog(int argc, char *argv[])
-{
-	char serv[128];
-	unsigned short port;
-
-	rlog_serv_from_kernel_cmdline(argc, argv, serv, &port);
-	connect_rlog_serv(serv, port, &__g_rlog_serv_skt);
-}
-
 static void logger_remote(const char *content, int len)
 {
-	if (len != send(__g_rlog_serv_skt, content, len, 0))
+	if (__g_rlog_serv_skt == -1)
+		connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
+
+	if (len != send(__g_rlog_serv_skt, content, len, 0)) {
 		printf("<%d> logger_wlogf: send error: %s, %d\n", getpid(), strerror(errno), __g_rlog_serv_skt);
+		if (__g_rlog_serv_skt != -1)
+			close(__g_rlog_serv_skt);
+		__g_rlog_serv_skt = -1;
+	}
+}
+static void logger_printf(const char *content, int len)
+{
+	printf("%s", content);
+}
+static void logger_syslog(const char *content, int len)
+{
+	syslog(LOG_INFO, "%s", content);
 }
 
 static void init_log_monitor()
@@ -150,23 +212,23 @@ static void init_log_monitor()
 
 	load_boot_args(&argc, &argv);
 
-	/* os_rlog_rule to update the klog rule */
-	kopt_init(argc, argv);
+	if (getenv("KLOG_TO_REMOTE")) {
+		printf("<%d> KLog: KLOG_TO_REMOTE opened\n", getpid());
+		klog_add_logger(logger_remote);
+	}
+	if (getenv("KLOG_TO_PRINTF")) {
+		printf("<%d> KLog: KLOG_TO_PRINTF opened\n", getpid());
+		klog_add_logger(logger_printf);
+	}
+	if (getenv("KLOG_TO_SYSLOG")) {
+		printf("<%d> KLog: KLOG_TO_SYSLOG opened\n", getpid());
+		klog_add_logger(logger_syslog);
+	}
 
-	kopt_add_s("s:/rlog/rule", OA_DFT, os_rlog_rule, NULL);
-	kopt_add_s("b:/sys/admin/nemo/enable", OA_GET, NULL, NULL);
-	kopt_add_s("s:/sys/usr/nemo/passwd", OA_GET, NULL, NULL);
+	rlog_serv_from_kernel_cmdline(__g_klog_serv, &__g_klog_serv_port);
+	connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
 
-	kopt_setint("b:/sys/admin/nemo/enable", 1);
-	kopt_setstr("s:/sys/usr/nemo/passwd", "nemo");
-
-	klog_add_logger(logger_remote);
-
-	setup_rlog(argc, argv);
-
-	kopt_rpc_server_init(9000 + getpid(), argc, argv);
-	printf("<%d> NH_KLOG: OptServer established, port: %d\n", getpid(), 9000 + getpid());
-	klogs("<%d> NH_KLOG: OptServer established, port: %d\n", getpid(), 9000 + getpid());
+	spl_thread_create(thread_monitor_cfgfile, (void*)getenv("KLOG_RTCFG"), 0);
 }
 
 int klog_vf(unsigned char type, unsigned int mask, const char *prog,
