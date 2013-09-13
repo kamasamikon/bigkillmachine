@@ -15,8 +15,6 @@ LOCAL_OUT_OBJS = $(SUB_OBJS_hook)
 LOCAL_OUT_LIB = nemohook.a
 LOCAL_SHARE_LIB = libnemohook.so
 
-CFLAGS += -save-temps
-
 .PHONY: all clean
 
 all: $(LOCAL_OUT_LIB) $(LOCAL_SHARE_LIB)

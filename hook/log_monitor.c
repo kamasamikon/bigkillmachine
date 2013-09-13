@@ -49,7 +49,7 @@ static void load_cfg_file(const char *path)
 		if (line++ < lines_done)
 			continue;
 
-		printf("<%d> load_cfg_file: '%s'\n", getpid(), buf);
+		printf("<%d> load_cfg_file: %s", getpid(), buf);
 		klog_rule_add(buf);
 		lines_done++;
 	}
@@ -65,32 +65,28 @@ static void* thread_monitor_cfgfile(const char *path)
 
 	fd = inotify_init();
 	if (fd < 0) {
-		printf("<%d> thread_monitor_cfgfile: inotify_init failed: %s.\n", getpid(), strerror(errno));
+		printf("<%d> monitor_cfgfile: inotify_init failed: %s.\n", getpid(), strerror(errno));
 		exit(-1);
 	}
 
 	if (!path)
 		path = "/tmp/klog.rt.cfg";
 
-	printf("thread_monitor_cfgfile: path: '%s'\n", path);
+	printf("monitor_cfgfile: path: '%s'\n", path);
 	wd = inotify_add_watch(fd, path, EVENT_MASK);
 	if (wd < 0) {
-		printf("<%d> thread_monitor_cfgfile: inotify_add_watch failed: %s.\n", getpid(), strerror(errno));
+		printf("<%d> monitor_cfgfile: inotify_add_watch failed: %s.\n", getpid(), strerror(errno));
 		return NULL;
 	}
 
-	printf("thread_monitor_cfgfile: wd:%d, fd:%d\n", wd, fd);
 	while (len = read(fd, buffer, sizeof(buffer))) {
 		offset = buffer;
 		event = (struct inotify_event*)buffer;
 
-		printf("thread_monitor_cfgfile: len:%d\n", len);
 		while (((char*)event - buffer) < len) {
-			printf("thread_monitor_cfgfile: wd:%d\n", event->wd);
 			if (event->wd == wd) {
-				printf("thread_monitor_cfgfile: wd:%d\n", event->wd);
 				if (EVENT_MASK & event->mask) {
-					printf("<%d> thread_monitor_cfgfile: Opt: Configure changed\n", getpid());
+					printf("<%d> monitor_cfgfile: Opt: Configure changed\n", getpid());
 					load_cfg_file(path);
 				}
 				break;
@@ -101,7 +97,7 @@ static void* thread_monitor_cfgfile(const char *path)
 			offset += tmp_len;
 		}
 	}
-	printf("thread_monitor_cfgfile: bye\n");
+	printf("monitor_cfgfile: bye\n");
 	return NULL;
 }
 
