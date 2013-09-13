@@ -135,10 +135,10 @@ cd /root
 ## ######################################################################
 # Nemo: Load klog thing
 # klog_remote=172.22.6.219:9000
-source ./nemo.sh
+source /etc/init.d/nemo.sh
 
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
-	/usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} &
+	/usr/sbin/pcd -f /etc/rules.pcd -v &> ${PCDOUT} &
 else
 	chmod 644 /dev/shm/fusion.*
 	if [ ! -e /home/ntvroot/epg/epg.db ]; then
@@ -207,7 +207,7 @@ else
 	fi
 	chmod 777 /var	
 	chmod 777 /root		
-	/usr/sbin/pcd -f /etc/rules_release.pcd ${PCDOPT} &
+	/usr/sbin/pcd -f /etc/rules_release.pcd -v &> ${PCDOUT} &
 fi
 
 #/usr/sbin/pcd -f /etc/rules.pcd &

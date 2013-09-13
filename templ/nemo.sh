@@ -8,19 +8,18 @@ echo "DUMP /proc/cmdline"
 echo ">>>>>"
 cat /proc/cmdline
 echo "<<<<<"
-echo
 
-grep "kl2printf" -w -o
+grep "kl2printf" -w -o /proc/cmdline
 if [ "$?" == "0" ]; then
     export KLOG_TO_PRINTF=YES
 fi
 
-grep "kl2syslog" -w -o
+grep "kl2syslog" -w -o /proc/cmdline
 if [ "$?" == "0" ]; then
     export KLOG_TO_SYSLOG=YES
 fi
 
-grep "kl2remote" -w -o
+grep "kl2remote" -w -o /proc/cmdline
 if [ "$?" == "0" ]; then
     export KLOG_TO_REMOTE=YES
 fi
@@ -49,14 +48,14 @@ fi
 export KLOG_RTCFG=/tmp/klog.rt.cfg
 
 # KLOG Agent is a opt-rpc-server
-/usr/local/bin/klagent ${KLOG_RTCFG}
+/usr/local/bin/klagent.sh ${KLOG_RTCFG} &
 
 # Nemo: PCD output 
 PCDOUT=`grep "pcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
 if [ "$PCDOUT" != "" ]; then
-    export PCDOPT= -v &> ${PCDOUT}
+    export PCDOUT
 else
-    export PCDOPT=
+    export PCDOUT=/dev/null
 fi
 
 
@@ -69,8 +68,6 @@ if [ "$PRELOAD" != "" ]; then
 fi
 
 echo
-echo "NEMO Part finished"
-echo
 echo "KLOG_TO_PRINTF = [[[ ${KLOG_TO_PRINTF} ]]]"
 echo "KLOG_TO_SYSLOG = [[[ ${KLOG_TO_SYSLOG} ]]]"
 echo "KLOG_TO_REMOTE = [[[ ${KLOG_TO_REMOTE} ]]]"
@@ -78,9 +75,9 @@ echo
 echo "KLOG_RMCFG = [[[ ${KLOG_RMCFG} ]]]"
 echo "KLOG_SEWER_URL = [[[ ${KLOG_SEWER_URL} ]]]"
 echo
-echo "PCDOPT = [[[ ${PCDOPT} ]]]"
+echo "PCDOUT = [[[ ${PCDOUT} ]]]"
 echo
 echo "PRELOAD = [[[ ${PRELOAD} ]]]"
-echo "COMMAND = [[[ /usr/sbin/pcd -f /etc/rules.pcd ${PCDOPT} & ]]]"
+echo "COMMAND = [[[ /usr/sbin/pcd -f /etc/rules.pcd -v &> ${PCDOUT} & ]]]"
 echo
 

@@ -55,45 +55,51 @@ static void load_cfg_file(const char *path)
 
 static void* thread_monitor_cfgfile(const char *path)
 {
-    int fd, wd, i, len, tmp_len;
-    char buffer[4096], *offset = NULL;
-    struct inotify_event *event;
+	int fd, wd, i, len, tmp_len;
+	char buffer[4096], *offset = NULL;
+	struct inotify_event *event;
 
-    fd = inotify_init();
-    if (fd < 0) {
-        printf("<%d> thread_monitor_cfgfile: inotify_init failed.\n", getpid());
-        exit(-1);
-    }
+	fd = inotify_init();
+	if (fd < 0) {
+		printf("<%d> thread_monitor_cfgfile: inotify_init failed: %s.\n", getpid(), strerror(errno));
+		exit(-1);
+	}
 
-    if (!path)
-	    path = "/tmp/klog.cfg";
+	if (!path)
+		path = "/tmp/klog.rt.cfg";
 
-    wd = inotify_add_watch(fd, path, EVENT_MASK);
-    if (wd < 0) {
-        printf("<%d> thread_monitor_cfgfile: inotify_add_watch failed.\n", getpid());
-        return NULL;
-    }
+	printf("thread_monitor_cfgfile: path: '%s'\n", path);
+	wd = inotify_add_watch(fd, path, EVENT_MASK);
+	if (wd < 0) {
+		printf("<%d> thread_monitor_cfgfile: inotify_add_watch failed: %s.\n", getpid(), strerror(errno));
+		return NULL;
+	}
 
-    while (len = read(fd, buffer, sizeof(buffer))) {
-        offset = buffer;
-        event = (struct inotify_event*)buffer;
+	printf("thread_monitor_cfgfile: wd:%d, fd:%d\n", wd, fd);
+	while (len = read(fd, buffer, sizeof(buffer))) {
+		offset = buffer;
+		event = (struct inotify_event*)buffer;
 
-        while (((char*)event - buffer) < len) {
-            if (event->wd == wd) {
-                if (!(EVENT_MASK& event->mask)) {
-                    printf("<%d> thread_monitor_cfgfile: Opt: Configure changed\n", getpid());
-		    klog_rule_clr();
-		    load_cfg_file(path);
-                }
-                break;
-            }
+		printf("thread_monitor_cfgfile: len:%d\n", len);
+		while (((char*)event - buffer) < len) {
+			printf("thread_monitor_cfgfile: wd:%d\n", event->wd);
+			if (event->wd == wd) {
+				printf("thread_monitor_cfgfile: wd:%d\n", event->wd);
+				if (EVENT_MASK & event->mask) {
+					printf("<%d> thread_monitor_cfgfile: Opt: Configure changed\n", getpid());
+					klog_rule_clr();
+					load_cfg_file(path);
+				}
+				break;
+			}
 
-            tmp_len = sizeof(struct inotify_event) + event->len;
-            event = (struct inotify_event*)(offset + tmp_len);
-            offset += tmp_len;
-        }
-    }
-    return NULL;
+			tmp_len = sizeof(struct inotify_event) + event->len;
+			event = (struct inotify_event*)(offset + tmp_len);
+			offset += tmp_len;
+		}
+	}
+	printf("thread_monitor_cfgfile: bye\n");
+	return NULL;
 }
 
 static int load_boot_args(int *argc, char ***argv)
