@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 
+#define KMODU_NAME "NHDBUS"
 #include <klog.h>
 #include <strbuf.h>
 

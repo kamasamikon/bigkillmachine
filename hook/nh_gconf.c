@@ -67,6 +67,7 @@ void gconf_client_set(GConfClient* client, const gchar* key,
 	if (!realfunc)
 		realfunc = dlsym(RTLD_NEXT, "gconf_client_set");
 
+	klogmon_init();
 	realfunc(client, key, val, err);
 
 	vstr = entry_value(val, buf, sizeof(buf));
@@ -83,6 +84,7 @@ GConfValue* gconf_client_get(GConfClient* client, const gchar* key, GError** err
 	if (!realfunc)
 		realfunc = dlsym(RTLD_NEXT, "gconf_client_get");
 
+	klogmon_init();
 	GConfValue *ret = realfunc(client, key, err);
 
 	val = entry_value(ret, buf, sizeof(buf));

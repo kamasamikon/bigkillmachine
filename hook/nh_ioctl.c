@@ -108,6 +108,7 @@ int ioctl(int d, unsigned long int r, ...)
 	argp = va_arg(args, void *);
 	va_end(args);
 
+	klogmon_init();
 	int ret = realfunc(d, r, argp);
 
 	unsigned int dir = _IOC_DIR(r), type = _IOC_TYPE(r);

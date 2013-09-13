@@ -2,6 +2,7 @@ export HI_PRJ_ROOT = ..
 -include $(HI_PRJ_ROOT)/Makefile.defs
 
 SUB_OBJS_hook = \
+				 $(HI_PRJ_ROOT)/hook/log_monitor.o \
 				 $(HI_PRJ_ROOT)/hook/nh_dbus.o \
 				 $(HI_PRJ_ROOT)/hook/dbus-print-message.o \
 				 $(HI_PRJ_ROOT)/hook/nh_gconf.o \
@@ -13,6 +14,8 @@ SUB_OBJS_hook = \
 LOCAL_OUT_OBJS = $(SUB_OBJS_hook)
 LOCAL_OUT_LIB = nemohook.a
 LOCAL_SHARE_LIB = libnemohook.so
+
+CFLAGS += -save-temps
 
 .PHONY: all clean
 

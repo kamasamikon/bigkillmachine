@@ -28,7 +28,8 @@
 void dbus_connection_dispatch_hook(DBusMessage *message);
 void dbus_connection_dispatch_hook(DBusMessage *message)
 {
-	print_message(message, 1);
+	klogmon_init();
+	print_message(message, 0);
 }
 #endif
 

@@ -31,6 +31,7 @@ int sqlite3_open(const char *filename, sqlite3 **ppDb)
 	if (!realfunc)
 		realfunc = dlsym(RTLD_NEXT, "sqlite3_open");
 
+	klogmon_init();
 	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
@@ -45,6 +46,7 @@ int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 	if (!realfunc)
 		realfunc = dlsym(RTLD_NEXT, "sqlite3_open16");
 
+	klogmon_init();
 	int ret = realfunc(filename, ppDb);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
@@ -58,6 +60,7 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 	if (!realfunc)
 		realfunc = dlsym(RTLD_NEXT, "sqlite3_open_v2");
 
+	klogmon_init();
 	int ret = realfunc(filename, ppDb, flags, zVfs);
 	if (ret == SQLITE_OK)
 		sqlite3_trace(*ppDb, sqliteTrace, NULL);
