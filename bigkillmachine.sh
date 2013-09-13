@@ -24,18 +24,24 @@ else
 fi
 
 RCS_HASH=`md5sum ${DIR_RCS}/rcS | cut -d " " -f1 `
-cp -vf templ/nemo.sh ${DIR_RCS}
 sudo meld templ/rcS ${DIR_RCS}/rcS
+
 cp -vf ${DIR_RCS}/rcS ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
 
-echo
-echo
-echo "Copy libnemohook.so"
-echo
 cp -vf ./build/target/${TYPE_PLATFORM}/libnemohook.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/lib
 cp -vf ./build/target/${TYPE_PLATFORM}/libnemohook.so ${DIR_PROJ}/fs/skeleton/lib
+
 cp -vf ./build/target/${TYPE_PLATFORM}/libhilda.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/lib
 cp -vf ./build/target/${TYPE_PLATFORM}/libhilda.so ${DIR_PROJ}/fs/skeleton/lib
+
+cp -vf ./build/target/${TYPE_PLATFORM}/klagent ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/bin
+cp -vf ./build/target/${TYPE_PLATFORM}/klagent ${DIR_PROJ}/fs/skeleton/bin
+
+cp -vf ./templ/nemo.sh ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/bin
+cp -vf ./templ/nemo.sh ${DIR_PROJ}/fs/skeleton/bin
+
+cp -vf ./templ/klagent.sh ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/bin
+cp -vf ./templ/klagent.sh ${DIR_PROJ}/fs/skeleton/bin
 
 echo
 echo

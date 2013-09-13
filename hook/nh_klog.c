@@ -40,6 +40,8 @@ static unsigned short __g_klog_serv_port;
 
 static void load_cfg_file(const char *path)
 {
+	static int lines_done = 0;
+	int line = 0;
 	char buf[8092];
 	FILE *fp;
 
@@ -47,8 +49,14 @@ static void load_cfg_file(const char *path)
 	if (!fp)
 		return;
 
-	while (fgets(buf, sizeof(buf), fp))
+	while (fgets(buf, sizeof(buf), fp)) {
+		if (line++ < lines_done)
+			continue;
+
+		printf("<%d> load_cfg_file: '%s'\n", getpid(), buf);
 		klog_rule_add(buf);
+		lines_done++;
+	}
 
 	fclose(fp);
 }
@@ -87,7 +95,6 @@ static void* thread_monitor_cfgfile(const char *path)
 				printf("thread_monitor_cfgfile: wd:%d\n", event->wd);
 				if (EVENT_MASK & event->mask) {
 					printf("<%d> thread_monitor_cfgfile: Opt: Configure changed\n", getpid());
-					klog_rule_clr();
 					load_cfg_file(path);
 				}
 				break;

@@ -135,7 +135,7 @@ cd /root
 ## ######################################################################
 # Nemo: Load klog thing
 # klog_remote=172.22.6.219:9000
-source /etc/init.d/nemo.sh
+source /bin/nemo.sh
 
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
 	/usr/sbin/pcd -f /etc/rules.pcd -v &> ${PCDOUT} &

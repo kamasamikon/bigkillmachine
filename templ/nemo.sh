@@ -48,7 +48,7 @@ fi
 export KLOG_RTCFG=/tmp/klog.rt.cfg
 
 # KLOG Agent is a opt-rpc-server
-/usr/local/bin/klagent.sh ${KLOG_RTCFG} &
+/bin/klagent.sh ${KLOG_RTCFG} &
 
 # Nemo: PCD output 
 PCDOUT=`grep "pcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
