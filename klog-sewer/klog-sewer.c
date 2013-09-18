@@ -60,7 +60,7 @@ static void close_connect(int s)
 
 static void *worker_thread_or_server(void *userdata)
 {
-	int ready, i, n, bufsize = 128 * 1024;
+	int ready, i, n, bufsize = 64 * 1024;
 	void *buf;
 	struct epoll_event ev, *e;
 

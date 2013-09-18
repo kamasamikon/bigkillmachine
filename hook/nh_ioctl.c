@@ -75,15 +75,19 @@ struct dev_name_map {
 static const char* dev_name(int id)
 {
 	int i;
+	static char name[8];
 
 	for (i = 0; i < sizeof(__g_devs) / sizeof(__g_devs[0]); i++)
 		if (__g_devs[i].id == id)
 			return __g_devs[i].name;
-	return "PIDEV_NOTFOUND";
+	sprintf(name, "?%x?", id);
+	return name;
 }
 
 static const char *dir_name(unsigned int dir)
 {
+	static char name[8];
+
 	if (dir == _IOC_NONE)
 		return "N";
 	else if (dir == (_IOC_WRITE | _IOC_READ))
@@ -92,7 +96,9 @@ static const char *dir_name(unsigned int dir)
 		return "W";
 	else if (dir == _IOC_READ)
 		return "R";
-	return "?";
+
+	sprintf(name, "?%x?", dir);
+	return name;
 }
 
 int ioctl(int d, unsigned long int r, ...)

@@ -25,7 +25,6 @@
  */
 #include <klog.h>
 #include <karg.h>
-#include <kopt.h>
 
 #include "log_monitor.h"
 
@@ -57,8 +56,9 @@ static void load_cfg_file(const char *path)
 	fclose(fp);
 }
 
-static void* thread_monitor_cfgfile(const char *path)
+static void* thread_monitor_cfgfile(void *user_data)
 {
+	const char *path = (const char*)user_data;
 	int fd, wd, i, len, tmp_len;
 	char buffer[4096], *offset = NULL;
 	struct inotify_event *event;
