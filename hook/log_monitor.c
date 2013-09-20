@@ -33,6 +33,24 @@ static int __g_rlog_serv_skt = -1;
 static char __g_klog_serv[128];
 static unsigned short __g_klog_serv_port;
 
+static int _output(const char *fmt, ...)
+{
+	va_list arg;
+	int done;
+	char buf[2048], cmd[2048];
+
+	va_start(arg, fmt);
+	done = vsnprintf(buf, sizeof(buf), fmt, arg);
+	va_end(arg);
+
+	fprintf(stderr, "%s", buf);
+
+	sprintf(cmd, "echo '%s' >> '%s'", buf, "/tmp/lm.out");
+	system(cmd);
+
+	return done;
+}
+
 static void load_cfg_file(const char *path)
 {
 	static int lines_done = 0;
@@ -48,7 +66,7 @@ static void load_cfg_file(const char *path)
 		if (line++ < lines_done)
 			continue;
 
-		printf("<%d> load_cfg_file: %s", getpid(), buf);
+		_output("<%d> load_cfg_file: %s", getpid(), buf);
 		klog_rule_add(buf);
 		lines_done++;
 	}
@@ -65,17 +83,17 @@ static void* thread_monitor_cfgfile(void *user_data)
 
 	fd = inotify_init();
 	if (fd < 0) {
-		printf("<%d> monitor_cfgfile: inotify_init failed: %s.\n", getpid(), strerror(errno));
+		_output("<%d> monitor_cfgfile: inotify_init failed: %s.\n", getpid(), strerror(errno));
 		exit(-1);
 	}
 
 	if (!path)
 		path = "/tmp/klog.rt.cfg";
 
-	printf("monitor_cfgfile: path: '%s'\n", path);
+	_output("monitor_cfgfile: path: <%s>\n", path);
 	wd = inotify_add_watch(fd, path, EVENT_MASK);
 	if (wd < 0) {
-		printf("<%d> monitor_cfgfile: inotify_add_watch failed: %s.\n", getpid(), strerror(errno));
+		_output("<%d> monitor_cfgfile: inotify_add_watch failed: %s.\n", getpid(), strerror(errno));
 		return NULL;
 	}
 
@@ -86,7 +104,7 @@ static void* thread_monitor_cfgfile(void *user_data)
 		while (((char*)event - buffer) < len) {
 			if (event->wd == wd) {
 				if (EVENT_MASK & event->mask) {
-					printf("<%d> monitor_cfgfile: Opt: Configure changed\n", getpid());
+					_output("<%d> monitor_cfgfile: Opt: Configure changed\n", getpid());
 					load_cfg_file(path);
 				}
 				break;
@@ -97,7 +115,7 @@ static void* thread_monitor_cfgfile(void *user_data)
 			offset += tmp_len;
 		}
 	}
-	printf("monitor_cfgfile: bye\n");
+	_output("monitor_cfgfile: bye\n");
 	return NULL;
 }
 
@@ -154,14 +172,14 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	struct hostent *he;
 	struct sockaddr_in their_addr;
 
-	printf("<%d> connect_rlog_serv: server:'%s', port:%d\n", getpid(), server, port);
+	_output("<%d> connect_rlog_serv: server:<%s>, port:%d\n", getpid(), server, port);
 
 	if ((he = gethostbyname(server)) == NULL) {
-		printf("<%d> connect_rlog_serv: gethostbyname error: %s.\n", getpid(), strerror(errno));
+		_output("<%d> connect_rlog_serv: gethostbyname error: %s.\n", getpid(), strerror(errno));
 		return -1;
 	}
 	if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-		printf("<%d> connect_rlog_serv: socket error: %s.\n", getpid(), strerror(errno));
+		_output("<%d> connect_rlog_serv: socket error: %s.\n", getpid(), strerror(errno));
 		return -1;
 	}
 
@@ -171,7 +189,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 	if (connect(sockfd, (struct sockaddr *)&their_addr,
 				sizeof their_addr) == -1) {
-		printf("<%d> connect_rlog_serv: connect error: %s.\n", getpid(), strerror(errno));
+		_output("<%d> connect_rlog_serv: connect error: %s.\n", getpid(), strerror(errno));
 		close(sockfd);
 		return -1;
 	}
@@ -179,7 +197,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	config_socket(sockfd);
 
 	*retfd = sockfd;
-	printf("<%d> connect_rlog_serv: retfd: %d\n", getpid(), sockfd);
+	_output("<%d> connect_rlog_serv: retfd: %d\n", getpid(), sockfd);
 	return 0;
 }
 
@@ -189,7 +207,7 @@ static void logger_remote(const char *content, int len)
 		connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
 
 	if (len != send(__g_rlog_serv_skt, content, len, 0)) {
-		printf("<%d> logger_wlogf: send error: %s, %d\n", getpid(), strerror(errno), __g_rlog_serv_skt);
+		_output("<%d> logger_wlogf: send error: %s, %d\n", getpid(), strerror(errno), __g_rlog_serv_skt);
 		if (__g_rlog_serv_skt != -1)
 			close(__g_rlog_serv_skt);
 		__g_rlog_serv_skt = -1;
@@ -218,15 +236,15 @@ void klogmon_init()
 	load_boot_args(&argc, &argv);
 
 	if (getenv("KLOG_TO_REMOTE")) {
-		printf("<%d> KLog: KLOG_TO_REMOTE opened\n", getpid());
+		_output("<%d> KLog: KLOG_TO_REMOTE opened\n", getpid());
 		klog_add_logger(logger_remote);
 	}
 	if (getenv("KLOG_TO_PRINTF")) {
-		printf("<%d> KLog: KLOG_TO_PRINTF opened\n", getpid());
+		_output("<%d> KLog: KLOG_TO_PRINTF opened\n", getpid());
 		klog_add_logger(logger_printf);
 	}
 	if (getenv("KLOG_TO_SYSLOG")) {
-		printf("<%d> KLog: KLOG_TO_SYSLOG opened\n", getpid());
+		_output("<%d> KLog: KLOG_TO_SYSLOG opened\n", getpid());
 		klog_add_logger(logger_syslog);
 	}
 

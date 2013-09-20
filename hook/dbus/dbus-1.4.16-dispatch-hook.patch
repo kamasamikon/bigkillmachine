@@ -1,8 +1,16 @@
 diff --git a/dbus/dbus-connection.c b/dbus/dbus-connection.c
-index ac50bd1..6ba75e0 100644
+index 8b8310d..497fb45 100644
 --- a/dbus/dbus-connection.c
 +++ b/dbus/dbus-connection.c
-@@ -4464,6 +4464,11 @@ _dbus_connection_run_builtin_filters_unlocked_no_update (DBusConnection *connect
+@@ -2083,6 +2083,7 @@ _dbus_connection_send_and_unlock (DBusConnection *connection,
+       return FALSE;
+     }
+ 
++  dbus_connection_dispatch_hook(message);
+   _dbus_connection_send_preallocated_and_unlock (connection,
+ 						 preallocated,
+ 						 message,
+@@ -4430,6 +4431,10 @@ _dbus_connection_run_builtin_filters_unlocked_no_update (DBusConnection *connect
    return _dbus_connection_peer_filter_unlocked_no_update (connection, message);
  }
  
@@ -10,21 +18,19 @@ index ac50bd1..6ba75e0 100644
 +{
 +    /* Do nothing, Only as stub function */
 +}
-+
  /**
   * Processes any incoming data.
   *
-@@ -4557,6 +4562,8 @@ dbus_connection_dispatch (DBusConnection *connection)
+@@ -4523,6 +4528,7 @@ dbus_connection_dispatch (DBusConnection *connection)
  
    message = message_link->data;
  
 +  dbus_connection_dispatch_hook(message);
-+
    _dbus_verbose (" dispatching message %p (%s %s %s '%s')\n",
                   message,
                   dbus_message_type_to_string (dbus_message_get_type (message)),
 diff --git a/dbus/dbus-connection.h b/dbus/dbus-connection.h
-index 114bd4a..ea59be6 100644
+index 3e2a7d8..6ed6585 100644
 --- a/dbus/dbus-connection.h
 +++ b/dbus/dbus-connection.h
 @@ -218,6 +218,8 @@ DBusDispatchStatus dbus_connection_get_dispatch_status          (DBusConnection
