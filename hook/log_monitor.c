@@ -77,7 +77,7 @@ static void load_cfg_file(const char *path)
 static void* thread_monitor_cfgfile(void *user_data)
 {
 	const char *path = (const char*)user_data;
-	int fd, wd, i, len, tmp_len;
+	int fd, wd, len, tmp_len;
 	char buffer[4096], *offset = NULL;
 	struct inotify_event *event;
 
@@ -141,7 +141,7 @@ static int load_boot_args(int *argc, char ***argv)
 
 static void rlog_serv_from_kernel_cmdline(char *serv, unsigned short *port)
 {
-	int i, j;
+	int i;
 	char *url = getenv("KLOG_SEWER_URL");
 
 	if (url && strchr(url, ':')) {

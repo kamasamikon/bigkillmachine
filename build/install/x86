@@ -6,8 +6,10 @@ TARGETDIR=${CURDIR}/build/target/x86
 rm -fr ${TARGETDIR}
 mkdir -p ${TARGETDIR}
 
-cp -frvL build/platform/linux/libnemohook.so ${TARGETDIR}
-cp -frvL build/platform/linux/nemohook.a ${TARGETDIR}
+cp -frvL hook/libnemohook.so ${TARGETDIR}
+cp -frvL hook/nemohook.a ${TARGETDIR}
+
+cp -frvL klog-agent/klagent ${TARGETDIR}
 
 cp -frvL ${HILDA_LIB}/x86/libhilda.so ${TARGETDIR}
 cp -frvL ${HILDA_LIB}/x86/libhilda.a ${TARGETDIR}

@@ -94,7 +94,6 @@ echo "Starting network services"
 portmap &
 telnetd
 
-
 #if [ -f /root/rc.user ]; then
 #	echo "Starting user services"
 #	/bin/sh /root/rc.user

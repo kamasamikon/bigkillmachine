@@ -124,6 +124,7 @@ static void *worker_thread_or_server(void *userdata)
 						new_fd);
 
 				struct epoll_event ev;
+				memset(&ev, 0, sizeof(ev));
 				ev.data.fd = new_fd;
 				ev.events = EPOLLIN;
 				epoll_ctl(__g_epoll_fd, EPOLL_CTL_ADD, new_fd, &ev);
