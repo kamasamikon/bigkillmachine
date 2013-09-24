@@ -9,6 +9,7 @@ SUB_OBJS_hook = \
 				 $(HI_PRJ_ROOT)/hook/nh_helper.o \
 				 $(HI_PRJ_ROOT)/hook/nh_ioctl.o \
 				 $(HI_PRJ_ROOT)/hook/nh_klog.o \
+				 $(HI_PRJ_ROOT)/hook/nh_syslog.o \
 				 $(HI_PRJ_ROOT)/hook/nh_sqlite.o
 
 LOCAL_OUT_OBJS = $(SUB_OBJS_hook)

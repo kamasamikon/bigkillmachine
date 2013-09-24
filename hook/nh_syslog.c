@@ -54,9 +54,9 @@ void vsyslog (int __pri, __const char *__fmt, __gnuc_va_list __ap)
 
 	if (call_realfunc == 0) {
 		if (getenv("NH_SYSLOG_NOREAL"))
-			call_realfunc = 'y';
-		else
 			call_realfunc = 'n';
+		else
+			call_realfunc = 'y';
 	}
 
 	klogmon_init();
