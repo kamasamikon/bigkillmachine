@@ -28,8 +28,17 @@
 void dbus_connection_dispatch_hook(DBusMessage *message);
 void dbus_connection_dispatch_hook(DBusMessage *message)
 {
+	static int print_body = -1;
+
+	if (print_body == -1) {
+		if (getenv("NH_DBUS_SKIPBODY"))
+			print_body = 1;
+		else
+			print_body = 0;
+	}
+
 	klogmon_init();
-	print_message(message, 0);
+	print_message(message, 0, print_body);
 }
 #endif
 

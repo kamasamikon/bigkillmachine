@@ -28,8 +28,9 @@
 #include <klog.h>
 #include <strbuf.h>
 
-static const char*
-type_to_name (int message_type)
+#define DBUS_INT64_PRINTF_MODIFIER "ll"
+
+static const char* type_to_name (int message_type)
 {
   switch (message_type)
     {
@@ -48,15 +49,13 @@ type_to_name (int message_type)
 
 #define INDENT 3
 
-static void
-indent (struct strbuf *sb, int depth)
+static void indent (struct strbuf *sb, int depth)
 {
   while (depth-- > 0)
     strbuf_addf (sb, "   "); /* INDENT spaces. */
 }
 
-static void
-print_hex (struct strbuf *sb, unsigned char *bytes, unsigned int len, int depth)
+static void print_hex (struct strbuf *sb, unsigned char *bytes, unsigned int len, int depth)
 {
   unsigned int i, columns;
 
@@ -98,8 +97,7 @@ print_hex (struct strbuf *sb, unsigned char *bytes, unsigned int len, int depth)
 
 #define DEFAULT_SIZE 100
 
-static void
-print_ay (struct strbuf *sb, DBusMessageIter *iter, int depth)
+static void print_ay (struct strbuf *sb, DBusMessageIter *iter, int depth)
 {
   /* Not using DBusString because it's not public API. It's 2009, and I'm
    * manually growing a string chunk by chunk.
@@ -144,8 +142,7 @@ print_ay (struct strbuf *sb, DBusMessageIter *iter, int depth)
   free (bytes);
 }
 
-static void
-print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t literal, int depth)
+static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t literal, int depth)
 {
   do
     {
@@ -356,8 +353,7 @@ print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t literal, int d
     } while (dbus_message_iter_next (iter));
 }
 
-void
-print_message (DBusMessage *message, dbus_bool_t literal)
+void print_message (DBusMessage *message, dbus_bool_t literal, int print_body)
 {
   DBusMessageIter iter;
   const char *sender;
@@ -407,8 +403,10 @@ print_message (DBusMessage *message, dbus_bool_t literal)
 	}
     }
 
-  dbus_message_iter_init (message, &iter);
-  print_iter (&sb, &iter, literal, 1);
+  if (print_body) {
+      dbus_message_iter_init (message, &iter);
+      print_iter (&sb, &iter, literal, 1);
+  }
 
   klog(sb.buf);
   strbuf_release(&sb);
