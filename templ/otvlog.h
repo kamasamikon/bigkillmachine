@@ -61,11 +61,11 @@ void o_log_assert_trap( void );
 #define O_LOG_ERROR                     kerror
 #define O_LOG_ERROR_SIMPLE              kerror
 
-#define O_LOG_WARNING                   klog
-#define O_LOG_WARNING_SIMPLE            klog
+#define O_LOG_WARNING                   kwarning
+#define O_LOG_WARNING_SIMPLE            kwarning
 
-#define O_LOG_MAINSTATUS                ktrace
-#define O_LOG_MAINSTATUS_SIMPLE         ktrace
+#define O_LOG_MAINSTATUS                knotice
+#define O_LOG_MAINSTATUS_SIMPLE         knotice
 
 #define O_LOG_DEBUG                     klog
 #define O_LOG_DEBUG_SIMPLE              klog

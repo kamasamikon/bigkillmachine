@@ -137,7 +137,7 @@ cd /root
 source /bin/nemo.sh
 
 if getcap /usr/local/bin/timemgr 2>&1 | grep "Operation not supported"; then
-	/usr/sbin/pcd -f /etc/rules.pcd -v &> ${PCDOUT} &
+	/usr/sbin/pcd -f /etc/rules.pcd -v &> ${PCDOUT} 
 else
 	chmod 644 /dev/shm/fusion.*
 	if [ ! -e /home/ntvroot/epg/epg.db ]; then
@@ -206,7 +206,7 @@ else
 	fi
 	chmod 777 /var	
 	chmod 777 /root		
-	/usr/sbin/pcd -f /etc/rules_release.pcd -v &> ${PCDOUT} &
+	/usr/sbin/pcd -f /etc/rules_release.pcd -v &> ${PCDOUT} 
 fi
 
 #/usr/sbin/pcd -f /etc/rules.pcd &
