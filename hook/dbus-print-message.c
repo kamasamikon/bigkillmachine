@@ -25,8 +25,8 @@
 #include <stdlib.h>
 
 #define KMODU_NAME "NHDBUS"
-#include <klog.h>
-#include <strbuf.h>
+#include <hilda/klog.h>
+#include <hilda/strbuf.h>
 
 #define DBUS_INT64_PRINTF_MODIFIER "ll"
 

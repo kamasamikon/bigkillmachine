@@ -8,13 +8,13 @@
 #include <unistd.h>
 #include <time.h>
 
-#include <helper.h>
-#include <kmem.h>
-#include <kflg.h>
-#include <xtcool.h>
+#include <hilda/helper.h>
+#include <hilda/kmem.h>
+#include <hilda/kflg.h>
+#include <hilda/xtcool.h>
 
 #define KMODU_NAME "NHKLOG"
-#include <klog.h>
+#include <hilda/klog.h>
 
 void show_help()
 {

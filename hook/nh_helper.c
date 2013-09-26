@@ -8,7 +8,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-#include <klog.h>
+#include <hilda/klog.h>
 
 /*-----------------------------------------------------------------------
  * helper

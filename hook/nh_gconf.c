@@ -11,7 +11,7 @@
 #include <time.h>
 
 #define KMODU_NAME "NHGCONF"
-#include <klog.h>
+#include <hilda/klog.h>
 
 #define NH_GCONF
 

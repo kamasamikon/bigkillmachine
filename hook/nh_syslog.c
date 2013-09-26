@@ -19,7 +19,7 @@
 #include <syslog.h>
 
 #define KMODU_NAME "NHSYSLOG"
-#include <klog.h>
+#include <hilda/klog.h>
 
 #define NH_SYSLOG
 

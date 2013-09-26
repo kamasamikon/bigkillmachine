@@ -10,7 +10,7 @@
 #include <time.h>
 
 #define KMODU_NAME "NHDBUS"
-#include <klog.h>
+#include <hilda/klog.h>
 
 #define NH_DBUS
 

@@ -8,10 +8,10 @@
 #include <stdint.h>
 #include <time.h>
 
-#include <klog.h>
-#include <karg.h>
-#include <kopt.h>
-#include <kopt-rpc-server.h>
+#include <hilda/klog.h>
+#include <hilda/karg.h>
+#include <hilda/kopt.h>
+#include <hilda/kopt-rpc-server.h>
 
 static int os_rlog_rule(int ses, void *opt, void *pa, void *pb)
 {

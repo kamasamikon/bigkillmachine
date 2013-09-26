@@ -23,8 +23,8 @@
  *
  * Direct to server
  */
-#include <klog.h>
-#include <karg.h>
+#include <hilda/klog.h>
+#include <hilda/karg.h>
 
 #include "log_monitor.h"
 

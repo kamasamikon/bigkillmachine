@@ -18,19 +18,15 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#include <ktypes.h>
-
-#include <karg.h>
-#include <klog.h>
-#include <kmem.h>
-#include <kstr.h>
-
-#include <helper.h>
-
-#include <xtcool.h>
-
-#include <kopt-rpc-common.h>
-#include <kopt-rpc-server.h>
+#include <hilda/ktypes.h>
+#include <hilda/karg.h>
+#include <hilda/klog.h>
+#include <hilda/kmem.h>
+#include <hilda/kstr.h>
+#include <hilda/helper.h>
+#include <hilda/xtcool.h>
+#include <hilda/kopt-rpc-common.h>
+#include <hilda/kopt-rpc-server.h>
 
 #define BACKLOG 50
 #define __g_epoll_max 50
