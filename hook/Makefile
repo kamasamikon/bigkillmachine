@@ -5,11 +5,9 @@ SUB_OBJS_hook = \
 				 $(HI_PRJ_ROOT)/hook/log_monitor.o \
 				 $(HI_PRJ_ROOT)/hook/nh_dbus.o \
 				 $(HI_PRJ_ROOT)/hook/dbus-print-message.o \
-				 $(HI_PRJ_ROOT)/hook/nh_gconf.o \
 				 $(HI_PRJ_ROOT)/hook/nh_helper.o \
 				 $(HI_PRJ_ROOT)/hook/nh_ioctl.o \
 				 $(HI_PRJ_ROOT)/hook/nh_klog.o \
-				 $(HI_PRJ_ROOT)/hook/nh_syslog.o \
 				 $(HI_PRJ_ROOT)/hook/nh_sqlite.o
 
 LOCAL_OUT_OBJS = $(SUB_OBJS_hook)
@@ -19,7 +17,6 @@ LOCAL_SHARE_LIB = libnemohook.so
 CFLAGS += -I$(SYSROOT_DIR)/usr/include
 CFLAGS += -I$(SYSROOT_DIR)/usr/include/glib-2.0
 CFLAGS += -I$(SYSROOT_DIR)/usr/include/dbus-1.0
-CFLAGS += -I$(SYSROOT_DIR)/usr/include/gconf/2
 CFLAGS += -I$(SYSROOT_DIR)/usr/local/include
 CFLAGS += -I$(SYSROOT_DIR)/usr/lib/glib-2.0/include
 CFLAGS += -I$(SYSROOT_DIR)/usr/lib/dbus-1.0/include
