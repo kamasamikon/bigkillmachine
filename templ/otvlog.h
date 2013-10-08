@@ -15,7 +15,7 @@ extern "C" {
 #define KMODU_NAME  "NONAME"
 #endif
 
-#include <klog.h>
+#include <hilda/klog.h>
 
 /**** Includes ***************************************************************/
 #include <assert.h>

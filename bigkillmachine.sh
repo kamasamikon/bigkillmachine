@@ -1,5 +1,16 @@
 #!/bin/sh
 
+#
+# /etc/init.d/rcS
+#
+# /bin/nemo.sh
+# /bin/klagent
+# /bin/klagent.sh
+#
+# /lib/libhilda.so
+# /lib/libnemohook.so
+#
+
 echo "Usage: bigkillmachine.sh DIR CONFIG BUILD"
 echo "eg.: bigkillmachine.sh /home/auv/Perforce/nemotv/NTV_OS/NemoTV5/MAIN/ntvtgt/sam7231_uclibc_bc sh_hdi bld 7231"
 
@@ -43,6 +54,10 @@ cp -vf ./templ/nemo.sh ${DIR_PROJ}/fs/skeleton/bin
 cp -vf ./templ/klagent.sh ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/bin
 cp -vf ./templ/klagent.sh ${DIR_PROJ}/fs/skeleton/bin
 
+# Use for make
+cp -vf ./build/target/${TYPE_PLATFORM}/libhilda.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/staging/lib
+ln -s ${HILDA_INC}/hilda ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/staging/usr/include
+
 echo
 echo
 echo "Apply dbus buildroot patch"
@@ -60,16 +75,16 @@ else
 fi
 cp -vf templ/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
 
-echo
-echo
-echo "Process buildroot package Makefile.in"
-echo
-if [ -f ${DIR_BR}/package/Makefile.in.nhbak ]; then
-    echo "buildroot package Makefile.in already backuped, skip"
-else
-    cp -v ${DIR_BR}/package/Makefile.in ${DIR_BR}/package/Makefile.in.nhbak
-fi
-sudo meld templ/br-package-Makefile.in ${DIR_BR}/package/Makefile.in
+# echo
+# echo
+# echo "Process buildroot package Makefile.in"
+# echo
+# if [ -f ${DIR_BR}/package/Makefile.in.nhbak ]; then
+    # echo "buildroot package Makefile.in already backuped, skip"
+# else
+    # cp -v ${DIR_BR}/package/Makefile.in ${DIR_BR}/package/Makefile.in.nhbak
+# fi
+# sudo meld templ/br-package-Makefile.in ${DIR_BR}/package/Makefile.in
 
 echo
 echo
@@ -82,17 +97,17 @@ else
 fi
 sudo meld templ/br-Makefile ${DIR_BR}/Makefile
 
-echo
-echo
-echo "Process EKIOH Makefile"
-echo
-EKIOH_MAKEFILE=${DIR_PROJ}/../../nemotv/external/ekioh_bld/build/Makefile
-if [ -f ${EKIOH_MAKEFILE}.nhbak ]; then
-    echo "EKIOH Makefile already backuped, skip"
-else
-    cp -v ${EKIOH_MAKEFILE} ${EKIOH_MAKEFILE}.nhbak
-fi
-sudo meld templ/ekioh_bld-Makefile ${EKIOH_MAKEFILE}
+# echo
+# echo
+# echo "Process EKIOH Makefile"
+# echo
+# EKIOH_MAKEFILE=${DIR_PROJ}/../../nemotv/external/ekioh_bld/build/Makefile
+# if [ -f ${EKIOH_MAKEFILE}.nhbak ]; then
+    # echo "EKIOH Makefile already backuped, skip"
+# else
+    # cp -v ${EKIOH_MAKEFILE} ${EKIOH_MAKEFILE}.nhbak
+# fi
+# sudo meld templ/ekioh_bld-Makefile ${EKIOH_MAKEFILE}
 
 echo
 echo
