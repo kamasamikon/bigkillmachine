@@ -503,14 +503,12 @@ endif
 
 include fs/common.mk
 
-O_DEBUG_CFLAGS:="CFLAGS= $(TARGET_CFLAGS) $(O_BUILD_CFLAGS)"
-
 ###
 ## ######################################################################
 # Nemo: Append hilda stuff, Will overwrite O_DEBUG_CFLAGS
-HILDA_CFLAGS := -I/home/auv/eoe/auv/hilda/inc
-HILDA_LDFLAGS := -L/home/auv/eoe/auv/hilda/build/target/7231 -lhilda
-O_DEBUG_CFLAGS := "CFLAGS= $(TARGET_CFLAGS) $(O_BUILD_CFLAGS) $(HILDA_CFLAGS)" "LDFLAGS= $(TARGET_LDFLAGS) $(HILDA_LDFLAGS)"
+O_BUILD_CFLAGS += -lhilda
+
+O_DEBUG_CFLAGS:="CFLAGS= $(TARGET_CFLAGS) $(O_BUILD_CFLAGS)"
 
 TARGETS+=erase-fakeroots
 
