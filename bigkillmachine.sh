@@ -1,5 +1,6 @@
 #!/bin/sh
 
+# hilda_INC, hilda_LIB 
 #
 # /etc/init.d/rcS
 #
@@ -20,24 +21,38 @@ TYPE_BUILD=$3
 TYPE_PLATFORM=$4
 DIR_BR=${DIR_PROJ}/../../buildroot
 
+title ()  {
+    echo
+    echo
+    echo $1
+    echo
+}
+
 echo -e "Hit return to continue."
 read
 
-echo
-echo
-echo "Apply the rcS patch"
-echo
-DIR_RCS=${DIR_PROJ}/fs/skeleton/etc/init.d
-if [ -f ${DIR_RCS}/rcS.nhbak ]; then
+#########################################################################
+title "Copy hilda stuff"
+
+rm -fr ${DIR_PROJ}/../../toolchains/stbgcc-4.5.3-2.4/mipsel-linux-uclibc/sys-root/usr/include/hilda
+ln -vs ${HILDA_INC}/hilda ${DIR_PROJ}/../../toolchains/stbgcc-4.5.3-2.4/mipsel-linux-uclibc/sys-root/usr/include
+
+rm -fr ${DIR_PROJ}/../../toolchains/stbgcc-4.5.3-2.4/mipsel-linux-uclibc/sys-root/lib/libhilda.so
+ln -vs ./build/target/${TYPE_PLATFORM}/libhilda.so ${DIR_PROJ}/../../toolchains/stbgcc-4.5.3-2.4/mipsel-linux-uclibc/sys-root/lib
+
+#########################################################################
+title "Apply the rcS patch"
+DIR=${DIR_PROJ}/fs/skeleton/etc/init.d
+if [ -f ${DIR}/rcS.nhbak ]; then
     echo "rcS already backuped, skip"
 else
-    cp -v ${DIR_RCS}/rcS ${DIR_RCS}/rcS.nhbak
+    cp -v ${DIR}/rcS ${DIR}/rcS.nhbak
 fi
 
-RCS_HASH=`md5sum ${DIR_RCS}/rcS | cut -d " " -f1 `
-sudo meld templ/rcS ${DIR_RCS}/rcS
+sudo meld templ/rcS ${DIR}/rcS
 
-cp -vf ${DIR_RCS}/rcS ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
+#########################################################################
+cp -vf ${DIR}/rcS ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/etc/init.d/
 
 cp -vf ./build/target/${TYPE_PLATFORM}/libnemohook.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/target/lib
 cp -vf ./build/target/${TYPE_PLATFORM}/libnemohook.so ${DIR_PROJ}/fs/skeleton/lib
@@ -56,18 +71,14 @@ cp -vf ./templ/klagent.sh ${DIR_PROJ}/fs/skeleton/bin
 
 # Use for make
 cp -vf ./build/target/${TYPE_PLATFORM}/libhilda.so ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/staging/lib
-ln -s ${HILDA_INC}/hilda ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/staging/usr/include
+ln -ns ${HILDA_INC}/hilda ${DIR_PROJ}/${TYPE_BUILD}_${TYPE_CONFIG}/staging/usr/include
 
-echo
-echo
-echo "Apply dbus buildroot patch"
-echo
+#########################################################################
+title "Apply dbus buildroot patch"
 cp -vf hook/dbus/*.patch ${DIR_BR}/package/dbus
 
-echo
-echo
-echo "Process ntvlog.h"
-echo
+#########################################################################
+title "Process ntvlog.h"
 if [ -f ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h.nhbak ]; then
     echo "ntvlog.h already backuped, skip"
 else
@@ -75,10 +86,8 @@ else
 fi
 cp -vf templ/ntvlog.h ${DIR_PROJ}/../../nemotv/src/utils/ntvlog.h
 
-echo
-echo
-echo "Process buildroot package nemotv_build.mak"
-echo
+#########################################################################
+title "Process buildroot package nemotv_build.mak"
 if [ -f ${DIR_BR}/nemotv_build.mak ]; then
     echo "buildroot nemotv_build.mak already backuped, skip"
 else
@@ -86,13 +95,8 @@ else
 fi
 sudo meld templ/br-nemotv_build.mak ${DIR_BR}/nemotv_build.mak
 
-echo
-echo
-echo "Fixing translater configure.ac, change 'CFLAGS = xxx' => 'CFLAGS += xxx'"
-echo
-vim ${DIR_PROJ}/../../nemotv/src/translator/configure.ac -c :66
+#########################################################################
+# title "Fixing translater configure.ac, change 'CFLAGS = xxx' => 'CFLAGS += xxx'"
+# vim ${DIR_PROJ}/../../nemotv/src/translator/configure.ac -c :66
 
-echo
-echo
 echo "DONE"
-echo
