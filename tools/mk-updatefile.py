@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 
-import os, sys, urllib.request
-import time
-import hashlib
+# 1) Please run this use python3.
+# 2) Auto eject usb drive not supported, please eject it by hand.
+
+import os, urllib.request, hashlib
 
 url = "http://nemoPC:8000/ntv_loader_kernel_squashfs.bin"
 blDir = "C:\\Users\\neyu\\Desktop\\StarHub_GX-SH530CF_Bootloader_18092013"
 upanDir = "D:\\"
 
 def httpGet(url, saveas):
+    print("Get squashfs.bin from %s" % url)
+
     fp = urllib.request.urlopen(url)
     of = open(saveas, "wb")
     m = hashlib.md5()
@@ -20,9 +23,11 @@ def httpGet(url, saveas):
         of.write(data)
         m.update(data)
     of.close()
-    print("Checksum: %s" % m.hexdigest())
+    print("Checksum for ntv_loader_kernel_squashfs is %s" % m.hexdigest())
 
 def update_update_version():
+    print("Update version number in config3.txt and cfg.txt")
+
     config3_path = os.path.join(blDir, "Tools", "USBHeader_starhub", "config3.txt")
     cfg_path = os.path.join(blDir, "Tools", "SHB_Stream_Gen", "cfg.txt")
 
@@ -70,15 +75,19 @@ if __name__ == "__main__":
     ### Get IMAGE file
     saveas = os.path.join(blDir, "Tools", "ntv_loader_kernel_squashfs.bin")
     httpGet(url, saveas)
+    os.system("pause")
 
     ### Update the version number
     update_update_version()
+    os.system("pause")
 
     ### Call BAT file
+    print("Call download_file_generater.bat")
     os.chdir(os.path.join(blDir, "Tools"))
     os.system("download_file_generater.bat")
 
     ### Copy output file to USB Drive
+    print("Copy the GX-SH530CF-usb.bin to USB Drive")
     outputfile = os.path.join(blDir, "Tools", "output", "GX-SH530CF-usb.bin")
     os.system("copy %s %s" % (outputfile, upanDir))
 
