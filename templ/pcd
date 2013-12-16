@@ -50,14 +50,15 @@ if [ "$?" == "0" ]; then
     pushenv KLOG_TO_SYSLOG=YES
 fi
 
+# KLOG_RTCFG will used by nh_klog
+pushenv KLOG_RTCFG=/tmp/klog.rt.cfg
+pushenv KLOG_DFCFG=/tmp/klog.df.cfg
+
 # Remote Default klog configure
 KLOG_RMCFG=`grep "\bklcfg=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
 if [ "$KLOG_RMCFG" != "" ]; then
     wget "${KLOG_RMCFG}" -O /tmp/klog.df.cfg
     cat /tmp/klog.df.cfg
-
-    # KLOG_DFCFG will internal used by klog_init
-    pushenv KLOG_DFCFG=/tmp/klog.df.cfg
 fi
 
 # KLOG Save to remote
@@ -71,9 +72,6 @@ KLOG_TO_LOCAL=`grep "\bkl2local=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= 
 if [ "$KLOG_TO_LOCAL" != "" ]; then
     pushenv KLOG_TO_LOCAL=${KLOG_TO_LOCAL}
 fi
-
-# KLOG_RTCFG will used by nh_klog
-pushenv KLOG_RTCFG=/tmp/klog.rt.cfg
 
 # PCD output 
 PCDOUT=`grep "\bpcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
