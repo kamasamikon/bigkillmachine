@@ -133,7 +133,7 @@ static int load_boot_args(int *argc, char ***argv)
 			return -1;
 
 		buffer[bytes] = '\0';
-		build_argv(buffer, argc, argv);
+		karg_build(buffer, argc, argv);
 		return 0;
 	}
 	return -1;
