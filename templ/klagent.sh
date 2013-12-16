@@ -1,5 +1,8 @@
 #!/bin/sh
 
+alias echo='busybox echo'
+alias touch='busybox touch'
+
 while [ 1 ]; do
     echo "klagent will monitor the ORCmd for KL"
     touch $1
