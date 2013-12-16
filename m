@@ -275,7 +275,7 @@ def set_dirs():
 def replace_pcd():
     if os.system("diff '%s' '%s' &> /dev/null" % (bkm_7231dir + "/pcd", otv_targetdir + "/target/usr/sbin/pcd")):
         copy(bkm_7231dir + "/pcd", otv_targetdir + "/target/usr/sbin/")
-    copy(otv_builddir + "/pcd-1.1.3/bin/target/usr/sbin/pcd", otv_targetdir + "/target/local/bin/pcd.real")
+    copy(otv_builddir + "/pcd-1.1.3/bin/target/usr/sbin/pcd", otv_targetdir + "/target/usr/sbin/pcd.real")
 
 class EventHandler(pyinotify.ProcessEvent):
     def __init__(self, daemon, wm):
@@ -285,11 +285,9 @@ class EventHandler(pyinotify.ProcessEvent):
     def process_IN_CREATE(self, event):
         # Replace PCD to pcd.real
         replace_pcd()
-        print "process_IN_CREATE: %s" % event.pathname
 
     def process_IN_MODIFY(self, event):
         replace_pcd()
-        print "process_IN_MODIFY: %s" % event.pathname
 
 class WatchThread(threading.Thread):
     def __init__(self, name, daemon):
