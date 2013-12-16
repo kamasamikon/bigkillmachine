@@ -19,6 +19,17 @@ initenv() {
     echo '# LD_PRELOAD="Path for preload nemohook.so etc"' >> ${NMENV}
     echo '# NH_SYSLOG_NOREAL=YES|NO' >> ${NMENV}
     echo '# PCDOUT="Local file to save PCD log"' >> ${NMENV}
+    echo '' >> ${NMENV}
+    echo '# export KLOG_DFCFG=/tmp/klog.df.cfg' >> ${NMENV}
+    echo '# export KLOG_RTCFG=/tmp/klog.rt.cfg' >> ${NMENV}
+    echo '# export KLOG_SEWER_LOCAL=/tmp/klog.log' >> ${NMENV}
+    echo '# export KLOG_SEWER_REMOTE="XXX"' >> ${NMENV}
+    echo '# export KLOG_TO_SYSLOG=YES' >> ${NMENV}
+    echo '# export LD_PRELOAD=/usr/lib/libnemohook.so' >> ${NMENV}
+    echo '# export NH_SYSLOG_NOREAL=YES' >> ${NMENV}
+    echo '# export PCDOUT=/dev/null' >> ${NMENV}
+    echo '' >> ${NMENV}
+    echo '' >> ${NMENV}
 }
 
 pushenv () {
@@ -103,7 +114,7 @@ fi
 source ${NMENV}
 
 # KLOG Agent is a opt-rpc-server
-/bin/klagent.sh ${KLOG_RTCFG} &
+/usr/bin/klagent.sh ${KLOG_RTCFG} &
 
 echo
 echo "Will call REAL pcd"

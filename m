@@ -240,6 +240,7 @@ def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/libhilda.so", otv_targetdir + "/target/usr/lib/")
     copy(bkm_7231dir + "/libnemohook.so", otv_targetdir + "/target/usr/lib/")
     copy(bkm_7231dir + "/klagent", otv_targetdir + "/target/usr/bin/")
+    copy(bkm_7231dir + "/klagent.sh", otv_targetdir + "/target/usr/bin/")
 
 def copy_bkm_files():
     copy_bkm_build_files()
@@ -275,19 +276,24 @@ def set_dirs():
 def replace_pcd():
     if os.system("diff '%s' '%s' &> /dev/null" % (bkm_7231dir + "/pcd", otv_targetdir + "/target/usr/sbin/pcd")):
         copy(bkm_7231dir + "/pcd", otv_targetdir + "/target/usr/sbin/")
+
     copy(otv_builddir + "/pcd-1.1.3/bin/target/usr/sbin/pcd", otv_targetdir + "/target/usr/sbin/pcd.real")
 
 class EventHandler(pyinotify.ProcessEvent):
     def __init__(self, daemon, wm):
         self.daemon = daemon;
         self.wm = wm
+        self.pcd_path = otv_targetdir + "/target/usr/sbin/pcd"
 
     def process_IN_CREATE(self, event):
-        # Replace PCD to pcd.real
-        replace_pcd()
+        if event.pathname == self.pcd_path:
+            print "process_IN_CREATE:" + event.pathname
+            replace_pcd()
 
     def process_IN_MODIFY(self, event):
-        replace_pcd()
+        if event.pathname == self.pcd_path:
+            print "process_IN_MODIFY:" + event.pathname
+            replace_pcd()
 
 class WatchThread(threading.Thread):
     def __init__(self, name, daemon):
@@ -380,6 +386,7 @@ if __name__ == "__main__":
     if up:
         do_update()
 
+    replace_pcd()
     wt = WatchThread("WatchThread", True)
     wt.start()
 
