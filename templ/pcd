@@ -1,0 +1,112 @@
+#!/bin/sh
+
+alias echo='busybox echo'
+alias grep='busybox grep'
+alias cat='busybox cat'
+alias awk='busybox awk'
+alias cut='busybox cut'
+
+NMENV=/tmp/nm.env
+
+# Create the Env file
+initenv() {
+    echo -n "" > ${NMENV}
+    echo '# KLOG_DFCFG="Default configure file"' >> ${NMENV}
+    echo '# KLOG_RTCFG="Runtime configure file"' >> ${NMENV}
+    echo '# KLOG_SEWER_LOCAL="Local file for klog"' >> ${NMENV}
+    echo '# KLOG_SEWER_REMOTE="Remote URL for klog"' >> ${NMENV}
+    echo '# KLOG_TO_SYSLOG=YES|NO' >> ${NMENV}
+    echo '# LD_PRELOAD="Path for preload nemohook.so etc"' >> ${NMENV}
+    echo '# NH_SYSLOG_NOREAL=YES|NO' >> ${NMENV}
+    echo '# PCDOUT="Local file to save PCD log"' >> ${NMENV}
+}
+
+pushenv () {
+    echo "export $1" >> ${NMENV}
+}
+
+initenv
+
+# Dump boot command line
+echo
+echo "++++++++++++ /proc/cmdline ++++++++++++"
+cat /proc/cmdline
+echo "------------ /proc/cmdline ------------"
+echo
+
+grep "\bkl2syslog\b" -w -o /proc/cmdline
+if [ "$?" == "0" ]; then
+    pushenv KLOG_TO_SYSLOG=YES
+fi
+
+# Remote Default klog configure
+KLOG_RMCFG=`grep "\bklcfg=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$KLOG_RMCFG" != "" ]; then
+    wget "${KLOG_RMCFG}" -O /tmp/klog.df.cfg
+    cat /tmp/klog.df.cfg
+
+    # KLOG_DFCFG will internal used by klog_init
+    pushenv KLOG_DFCFG=/tmp/klog.df.cfg
+fi
+
+# KLOG Save to remote
+KLOG_SEWER_REMOTE=`grep "\bkl2remote=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$KLOG_SEWER_REMOTE" != "" ]; then
+    pushenv KLOG_SEWER_REMOTE=${KLOG_SEWER_REMOTE}
+fi
+
+# KLOG Save to file
+KLOG_SEWER_LOCAL=`grep "\bkl2local=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$KLOG_SEWER_LOCAL" != "" ]; then
+    pushenv KLOG_SEWER_LOCAL=${KLOG_SEWER_LOCAL}
+fi
+
+# KLOG_RTCFG will used by nh_klog
+pushenv KLOG_RTCFG=/tmp/klog.rt.cfg
+
+# PCD output 
+PCDOUT=`grep "\bpcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$PCDOUT" != "" ]; then
+    pushenv PCDOUT=${PCDOUT}
+else
+    pushenv PCDOUT=/dev/null
+fi
+
+# HOOK
+# preload=/lib/libnemohook.so
+PRELOAD=`grep "\bpreload=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$PRELOAD" != "" ]; then
+    pushenv LD_PRELOAD=${PRELOAD}
+fi
+
+# used by hook syslog, if NO, it will call REAL syslog and also print to klog
+pushenv NH_SYSLOG_NOREAL=YES
+
+echo
+echo "++++++++++++ ${NMENV} ++++++++++++"
+cat ${NMENV}
+echo "------------ ${NMENV} ------------"
+echo
+
+grep "\bklnoshell\b" -w -o /proc/cmdline
+if [ "$?" == "0" ]; then
+    echo "Skip kl shell"
+else
+    # Give user a chance to edit klog configure files
+    echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    echo "Into new shell to edit ${NMENV}, Ctrl-D to quit and continue"
+    echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+    echo
+    PS1="klog@(${NMENV})$ " sh
+fi
+
+source ${NMENV}
+
+# KLOG Agent is a opt-rpc-server
+/bin/klagent.sh ${KLOG_RTCFG} &
+
+echo
+echo "Will call REAL pcd"
+echo
+/usr/sbin/pcd.real $@ -v &> ${PCDOUT} 
+

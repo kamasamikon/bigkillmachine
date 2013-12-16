@@ -53,7 +53,12 @@ void o_log_assert_trap( void );
 /* Reset the O_LOG_LEVEL */
 #ifdef O_LOG_LEVEL
 #undef O_LOG_LEVEL
-#define O_LOG_LEVEL O_TRACE
+#define O_LOG_LEVEL                     O_TRACE
+#endif
+
+/* Set the LOG_LEVEL */
+#ifndef LOG_LEVEL
+#define LOG_LEVEL                       O_FATAL
 #endif
 
 #define O_LOG_FATAL                     kfatal

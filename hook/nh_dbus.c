@@ -32,9 +32,9 @@ void dbus_connection_dispatch_hook(DBusMessage *message)
 
 	if (print_body == -1) {
 		if (getenv("NH_DBUS_SKIPBODY"))
-			print_body = 1;
-		else
 			print_body = 0;
+		else
+			print_body = 1;
 	}
 
 	klogmon_init();

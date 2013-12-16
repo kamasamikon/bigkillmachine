@@ -45,10 +45,11 @@
 		klog_f('L', __kl_mask, __kl_prog_name_, KMODU_NAME, __kl_file_name_, __FUNCTION__, __LINE__, fmt, ap); \
 } while (0)
 
-void vsyslog (int __pri, __const char *__fmt, __gnuc_va_list __ap)
+void vsyslog(int __pri, __const char *__fmt, __gnuc_va_list __ap)
 {
 	static int call_realfunc = 0;
 	static int (*realfunc)(int, __const char*, __gnuc_va_list) = NULL;
+
 	if (!realfunc)
 		realfunc = dlsym(RTLD_NEXT, "vsyslog");
 
