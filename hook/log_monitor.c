@@ -142,7 +142,7 @@ static int load_boot_args(int *argc, char ***argv)
 static void rlog_serv_from_kernel_cmdline(char *serv, unsigned short *port)
 {
 	int i;
-	char *url = getenv("KLOG_SEWER_REMOTE");
+	char *url = getenv("KLOG_TO_REMOTE");
 
 	if (url && strchr(url, ':')) {
 		for (i = 0; url[i] != ':'; i++)
@@ -218,7 +218,7 @@ static void logger_file(const char *content, int len)
 	static FILE *fp = NULL;
 
 	if (!fp)
-		fp = fopen(getenv("KLOG_SEWER_LOCAL"), "a+");
+		fp = fopen(getenv("KLOG_TO_LOCAL"), "a+");
 
 	if (fp) {
 		fprintf(fp, "%s", content);
@@ -243,12 +243,12 @@ void klogmon_init()
 
 	load_boot_args(&argc, &argv);
 
-	if (getenv("KLOG_SEWER_REMOTE")) {
-		_output("<%d> KLog: KLOG_SEWER_REMOTE opened\n", getpid());
+	if (getenv("KLOG_TO_REMOTE")) {
+		_output("<%d> KLog: KLOG_TO_REMOTE opened\n", getpid());
 		klog_add_logger(logger_remote);
 	}
-	if (getenv("KLOG_SEWER_LOCAL")) {
-		_output("<%d> KLog: KLOG_SEWER_LOCAL opened\n", getpid());
+	if (getenv("KLOG_TO_LOCAL")) {
+		_output("<%d> KLog: KLOG_TO_LOCAL opened\n", getpid());
 		klog_add_logger(logger_file);
 	}
 	if (getenv("KLOG_TO_SYSLOG")) {
