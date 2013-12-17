@@ -400,29 +400,6 @@ if __name__ == "__main__":
         copy_bkm_files()
         do_make()
 
-# After install, the header files and lib will be installed to staging/usr/local/include|lib
-
-#
-# Prepare - Environment
-#   - Build
-#       - Add -lhilda to Makefile
-#       - Patch dbus
-#       - Change ntvlog.h to new one
-#       - Copy libhilda.so
-#       - Copy inc/hilda
-#   - Runtime
-#       - libnemohook.so
-#       - PCD
-#           - mv pcd pcd.real
-#           - cp bkm_pcd pcd
-#
-# Prepare - CheckUpdate
-#   - rsync to build directory
-#   - mark rebuild or reconfigure
-#
-# Make
-# 
-
 # name:cpfrdir:cptodir:belongto:dependby
 # name = ID/name of a *DIRECTORY*
 # cpfrdir = Copy/Sync from directory name
