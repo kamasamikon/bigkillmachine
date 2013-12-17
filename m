@@ -201,13 +201,16 @@ def copy(src, dst):
     os.system("cp -frv '%s' '%s'" % (src, dst))
 
 def patch_dbus(bkm_7231dir):
-    if os.path.exists(os.path.join(otv_rootdir, "buildroot/package/dbus/dbus-1.4.16-dispatch-hook.patch")):
+    bkm_dbus_patch_path = bkm_7231dir + "/dbus-1.4.16-dispatch-hook.patch"
+    br_dbus_patch_path = otv_rootdir + "/buildroot/package/dbus/dbus-1.4.16-dispatch-hook.patch"
+
+    if not os.system("diff '%s' '%s' &> /dev/null" % (bkm_dbus_patch_path, br_dbus_patch_path)):
         print "patch_dbus: already done, skip"
         return 
 
     # When patch dbus, the old one MUST be rebuilt
     os.system("rm -fr '%s'" % otv_builddir + "/dbus-1.4.16")
-    copy(bkm_7231dir + "/dbus-1.4.16-dispatch-hook.patch", otv_rootdir + "/buildroot/package/dbus/")
+    copy(bkm_dbus_patch_path, br_dbus_patch_path)
 
 def patch_ntvlog():
     ntvlog_path = otv_rootdir + "/nemotv/src/utils/ntvlog.h"
