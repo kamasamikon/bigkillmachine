@@ -37,9 +37,9 @@ static const char* type_to_name (int message_type)
     case DBUS_MESSAGE_TYPE_SIGNAL:
       return "signal";
     case DBUS_MESSAGE_TYPE_METHOD_CALL:
-      return "method call";
+      return "m-call";
     case DBUS_MESSAGE_TYPE_METHOD_RETURN:
-      return "method return";
+      return "m-return";
     case DBUS_MESSAGE_TYPE_ERROR:
       return "error";
     default:
@@ -160,7 +160,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      strbuf_addf (sb, "string \"");
+	      strbuf_addf (sb, "str \"");
 	    strbuf_addf (sb, "%s", val);
 	    if (!literal)
 	      strbuf_addf (sb, "\"\n");
@@ -267,7 +267,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    dbus_bool_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "boolean %s\n", val ? "true" : "false");
+	    strbuf_addf (sb, "bool %s\n", val ? "true" : "false");
 	    break;
 	  }
 
@@ -277,7 +277,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    strbuf_addf (sb, "variant ");
+	    strbuf_addf (sb, "var ");
 	    print_iter (sb, &subiter, literal, depth+1);
 	    break;
 	  }
@@ -372,14 +372,14 @@ void print_message (DBusMessage *message, dbus_bool_t literal, int print_body)
     {
       strbuf_addf (&sb, "%s sender=%s -> dest=%s",
 	      type_to_name (message_type),
-	      sender ? sender : "(null sender)",
-	      destination ? destination : "(null destination)");
+	      sender ? sender : "(null)",
+	      destination ? destination : "(null)");
 
       switch (message_type)
 	{
 	case DBUS_MESSAGE_TYPE_METHOD_CALL:
 	case DBUS_MESSAGE_TYPE_SIGNAL:
-	  strbuf_addf (&sb, " serial=%u path=%s; interface=%s; member=%s\n",
+	  strbuf_addf (&sb, " serial=%u path=%s; if=%s; member=%s\n",
                   dbus_message_get_serial (message),
 		  dbus_message_get_path (message),
 		  dbus_message_get_interface (message),
@@ -392,7 +392,7 @@ void print_message (DBusMessage *message, dbus_bool_t literal, int print_body)
 	  break;
 
 	case DBUS_MESSAGE_TYPE_ERROR:
-	  strbuf_addf (&sb, " error_name=%s reply_serial=%u\n",
+	  strbuf_addf (&sb, " error=%s reply_serial=%u\n",
 		  dbus_message_get_error_name (message),
           dbus_message_get_reply_serial (message));
 	  break;

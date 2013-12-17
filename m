@@ -201,13 +201,16 @@ def copy(src, dst):
     os.system("cp -frv '%s' '%s'" % (src, dst))
 
 def patch_dbus(bkm_7231dir):
-    if os.path.exists(os.path.join(otv_rootdir, "buildroot/package/dbus/dbus-1.4.16-dispatch-hook.patch")):
+    bkm_dbus_patch_path = bkm_7231dir + "/dbus-1.4.16-dispatch-hook.patch"
+    br_dbus_patch_path = otv_rootdir + "/buildroot/package/dbus/dbus-1.4.16-dispatch-hook.patch"
+
+    if not os.system("diff '%s' '%s' &> /dev/null" % (bkm_dbus_patch_path, br_dbus_patch_path)):
         print "patch_dbus: already done, skip"
         return 
 
     # When patch dbus, the old one MUST be rebuilt
     os.system("rm -fr '%s'" % otv_builddir + "/dbus-1.4.16")
-    copy(bkm_7231dir + "/dbus-1.4.16-dispatch-hook.patch", otv_rootdir + "/buildroot/package/dbus/")
+    copy(bkm_dbus_patch_path, br_dbus_patch_path)
 
 def patch_ntvlog():
     ntvlog_path = otv_rootdir + "/nemotv/src/utils/ntvlog.h"
@@ -396,29 +399,6 @@ if __name__ == "__main__":
     if argc == 1 or go:
         copy_bkm_files()
         do_make()
-
-# After install, the header files and lib will be installed to staging/usr/local/include|lib
-
-#
-# Prepare - Environment
-#   - Build
-#       - Add -lhilda to Makefile
-#       - Patch dbus
-#       - Change ntvlog.h to new one
-#       - Copy libhilda.so
-#       - Copy inc/hilda
-#   - Runtime
-#       - libnemohook.so
-#       - PCD
-#           - mv pcd pcd.real
-#           - cp bkm_pcd pcd
-#
-# Prepare - CheckUpdate
-#   - rsync to build directory
-#   - mark rebuild or reconfigure
-#
-# Make
-# 
 
 # name:cpfrdir:cptodir:belongto:dependby
 # name = ID/name of a *DIRECTORY*
