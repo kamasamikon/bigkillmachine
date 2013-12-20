@@ -139,20 +139,18 @@ static int load_boot_args(int *argc, char ***argv)
 	return -1;
 }
 
-static void rlog_serv_from_kernel_cmdline(char *serv, unsigned short *port)
+static int rlog_serv_from_kernel_cmdline(const char *url, char *serv, unsigned short *port)
 {
 	int i;
-	char *url = getenv("KLOG_TO_REMOTE");
 
 	if (url && strchr(url, ':')) {
 		for (i = 0; url[i] != ':'; i++)
 			serv[i] = url[i];
 		serv[i] = '\0';
 		*port = atoi((const char*)&url[i + 1]);
-	} else {
-		strcpy(serv, "127.0.0.1");
-		*port = 9000;
+		return 0;
 	}
+	return -1;
 }
 
 static void config_socket(int s)
@@ -234,30 +232,34 @@ void klogmon_init()
 {
 	static int inited = 0;
 	int argc;
-	char **argv;
+	char **argv, *env;
 
 	if (inited)
 		return;
 
 	inited = 1;
+	_output("klogmon_init: pid=%d\n", getpid());
 
 	load_boot_args(&argc, &argv);
 
-	if (getenv("KLOG_TO_REMOTE")) {
-		_output("<%d> KLog: KLOG_TO_REMOTE opened\n", getpid());
-		klog_add_logger(logger_remote);
-	}
-	if (getenv("KLOG_TO_LOCAL")) {
-		_output("<%d> KLog: KLOG_TO_LOCAL opened\n", getpid());
+	env = getenv("KLOG_TO_LOCAL");
+	if (env) {
+		_output("<%d> KLog: KLOG_TO_LOCAL opened, <%s>\n", getpid(), env);
 		klog_add_logger(logger_file);
 	}
-	if (getenv("KLOG_TO_SYSLOG")) {
-		_output("<%d> KLog: KLOG_TO_SYSLOG opened\n", getpid());
+	env = getenv("KLOG_TO_SYSLOG");
+	if (env) {
+		_output("<%d> KLog: KLOG_TO_SYSLOG opened, <%s>\n", getpid(), env);
 		klog_add_logger(logger_syslog);
 	}
+	env = getenv("KLOG_TO_REMOTE");
+	if (env) {
+		_output("<%d> KLog: KLOG_TO_REMOTE opened, <%s>\n", getpid(), env);
+		klog_add_logger(logger_remote);
 
-	rlog_serv_from_kernel_cmdline(__g_klog_serv, &__g_klog_serv_port);
-	connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
+		if (!rlog_serv_from_kernel_cmdline(env, __g_klog_serv, &__g_klog_serv_port))
+			connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
+	}
 
 	spl_thread_create(thread_monitor_cfgfile, (void*)getenv("KLOG_RTCFG"), 0);
 }
