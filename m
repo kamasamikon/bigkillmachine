@@ -148,6 +148,8 @@ def do_update():
     # force re-configure
     force_reconfig = "-frc" in sys.argv
     start = timeit.default_timer()
+    print "omodu:%s" % omodu
+
     # Read list
     for line in open(omodu).readlines():
         # NTV Dir and Build Dir
@@ -228,12 +230,18 @@ def patch_buildroot_makefile(bkm_7231dir):
     if os.system("grep \"^O_BUILD_CFLAGS += -lhilda\" '%s/buildroot/Makefile'" % otv_rootdir):
         os.system("meld '%s' '%s'" % (bkm_7231dir + "/br-Makefile", otv_rootdir + "/buildroot/Makefile"))
 
+def copy_hilda_to_staging():
+    if not os.path.isdir(otv_stagedir) or not os.path.islink(otv_stagedir):
+        print "%s is not exists" % otv_stagedir
+        return
+
+    copy(bkm_7231dir + "/libhilda.so", otv_stagedir + "/usr/lib/")
+    copy(bkm_7231dir + "/hilda", otv_stagedir + "/usr/include/")
+
 def copy_bkm_build_files():
     # Copy to /staging/usr/lib and /staging/usr/include
 
-    # hilda lib and inc
-    copy(bkm_7231dir + "/libhilda.so", otv_stagedir + "/usr/lib/")
-    copy(bkm_7231dir + "/hilda", otv_stagedir + "/usr/include/")
+    copy_hilda_to_staging()
 
     patch_ntvlog()
     patch_dbus(bkm_7231dir)
@@ -292,6 +300,10 @@ class EventHandler(pyinotify.ProcessEvent):
         if event.pathname == self.pcd_path:
             print "process_IN_CREATE:" + event.pathname
             replace_pcd()
+        elif event.pathname == otv_stagedir:
+            print "process_IN_CREATE:" + event.pathname
+            copy_hilda_to_staging()
+            os.exit(1)
 
     def process_IN_MODIFY(self, event):
         if event.pathname == self.pcd_path:
@@ -306,16 +318,23 @@ class WatchThread(threading.Thread):
         self.wm = pyinotify.WatchManager()
         self.notifier = pyinotify.AsyncNotifier(self.wm, EventHandler(daemon, self.wm))
 
-        self.process_pcd_file()
+        self.watch_pcd_file()
+        self.watch_staging_dir()
 
     def run(self):
         asyncore.loop()
 
-    def process_pcd_file(self):
-        mask = pyinotify.IN_CREATE | pyinotify.IN_MODIFY
+    def watch_pcd_file(self):
         sbin_path = otv_targetdir + "/target/usr/sbin"
         os.system("mkdir -p '%s'" % sbin_path)
+
+        mask = pyinotify.IN_CREATE | pyinotify.IN_MODIFY
         self.wm.add_watch(sbin_path, mask, rec=False)
+
+    def watch_staging_dir(self):
+        mask = pyinotify.IN_CREATE | pyinotify.IN_MODIFY
+        print "watch_staging_dir: %s" % otv_targetdir
+        self.wm.add_watch(otv_targetdir, mask, rec=False)
 
 # m --ct ConfigType --bt BuildType -i info -r|--restore 
 if __name__ == "__main__":
