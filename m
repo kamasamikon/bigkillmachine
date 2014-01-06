@@ -303,7 +303,6 @@ class EventHandler(pyinotify.ProcessEvent):
         elif event.pathname == otv_stagedir:
             print "process_IN_CREATE:" + event.pathname
             copy_hilda_to_staging()
-            os.exit(1)
 
     def process_IN_MODIFY(self, event):
         if event.pathname == self.pcd_path:
