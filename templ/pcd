@@ -24,20 +24,22 @@ NMENV=/tmp/nm.env
 # Create the Env file
 initenv() {
     echo -n "" > ${NMENV}
-    echo '# KLOG_DFCFG="Default configure file"' >> ${NMENV}
-    echo '# KLOG_RTCFG="Runtime configure file"' >> ${NMENV}
-    echo '# KLOG_TO_LOCAL="Local file for klog"' >> ${NMENV}
-    echo '# KLOG_TO_REMOTE="Remote URL for klog"' >> ${NMENV}
-    echo '# KLOG_TO_SYSLOG=YES|NO' >> ${NMENV}
-    echo '# LD_PRELOAD="Path for preload nemohook.so etc"' >> ${NMENV}
-    echo '# NH_SYSLOG_NOREAL=YES|NO' >> ${NMENV}
-    echo '# PCDOUT="Local file to save PCD log"' >> ${NMENV}
+    echo '## KLOG_DFCFG="Default configure file"' >> ${NMENV}
+    echo '## KLOG_RTCFG="Runtime configure file"' >> ${NMENV}
+    echo '## KLOG_TO_LOCAL="Local file for klog"' >> ${NMENV}
+    echo '## KLOG_TO_REMOTE="Remote URL for klog"' >> ${NMENV}
+    echo '## KLOG_TO_SYSLOG=YES|NO' >> ${NMENV}
+    echo '## LD_PRELOAD="Path for preload nemohook.so etc"' >> ${NMENV}
+    echo '## NH_SYSLOG_NOREAL=YES|NO' >> ${NMENV}
+    echo '## PCDOUT="Local file to save PCD log"' >> ${NMENV}
     echo '' >> ${NMENV}
     echo '# export KLOG_DFCFG=/tmp/klog.df.cfg' >> ${NMENV}
     echo '# export KLOG_RTCFG=/tmp/klog.rt.cfg' >> ${NMENV}
     echo '' >> ${NMENV}
     echo '# export KLOG_TO_LOCAL=/tmp/klog.log' >> ${NMENV}
+    echo '# export KLOG_TO_LOCAL=/dev/null' >> ${NMENV}
     echo '# export KLOG_TO_LOCAL=/dev/stdout' >> ${NMENV}
+    echo '' >> ${NMENV}
     echo '# export KLOG_TO_REMOTE="XXX"' >> ${NMENV}
     echo '# export KLOG_TO_SYSLOG=YES' >> ${NMENV}
     echo '' >> ${NMENV}
@@ -45,7 +47,6 @@ initenv() {
     echo '' >> ${NMENV}
     echo '# export NH_SYSLOG_NOREAL=YES' >> ${NMENV}
     echo '# export PCDOUT=/dev/null' >> ${NMENV}
-    echo '' >> ${NMENV}
     echo '' >> ${NMENV}
 }
 
@@ -67,15 +68,16 @@ if [ "$?" == "0" ]; then
     pushenv KLOG_TO_SYSLOG=YES
 fi
 
-# KLOG_RTCFG will used by nh_klog
-pushenv KLOG_RTCFG=/tmp/klog.rt.cfg
-pushenv KLOG_DFCFG=/tmp/klog.df.cfg
+KLOG_DFCFG=/tmp/klog.df.cfg
+pushenv KLOG_DFCFG=${KLOG_DFCFG}
+KLOG_RTCFG=/tmp/klog.rt.cfg
+pushenv KLOG_RTCFG=${KLOG_RTCFG}
 
-# Remote Default klog configure
-KLOG_RMCFG=`grep "\bklcfg=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
-if [ "$KLOG_RMCFG" != "" ]; then
-    wget "${KLOG_RMCFG}" -O /tmp/klog.df.cfg
-    cat /tmp/klog.df.cfg
+# Remote Default klog configure, if exists, overwrite the default one
+KLOG_DFCFG_ALT=`grep "\bklcfg=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$KLOG_DFCFG_ALT" != "" ]; then
+    wget "${KLOG_DFCFG_ALT}" -O ${KLOG_DFCFG}
+    cat ${KLOG_DFCFG}
 fi
 
 # KLOG Save to remote
@@ -105,13 +107,6 @@ if [ "$PRELOAD" != "" ]; then
     pushenv LD_PRELOAD=${PRELOAD}
 fi
 
-# used by hook syslog, if NO, it will call REAL syslog and also print to klog
-pushenv NH_SYSLOG_NOREAL=YES
-
-# Make sure the klog cfg file exist
-touch ${KLOG_RTCFG}
-touch ${KLOG_DFCFG}
-
 echo
 echo "++++++++++++ ${NMENV} ++++++++++++"
 cat ${NMENV}
@@ -127,16 +122,30 @@ else
     echo "Into new shell to edit ${NMENV}, Ctrl-D to quit and continue"
     echo "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
     echo
+    touch ${KLOG_DFCFG}
+    touch ${KLOG_RTCFG}
     PS1="klog@(${NMENV})$ " sh
 fi
 
 source ${NMENV}
 
+# Make sure the klog cfg file exist
+touch ${KLOG_DFCFG}
+touch ${KLOG_RTCFG}
+
 # KLOG Agent is a opt-rpc-server
 /usr/bin/klagent.sh ${KLOG_RTCFG} &
 
 echo
-echo "Will call REAL pcd"
+echo "Will call REAL pcd: \"/usr/sbin/pcd.real\""
 echo
-/usr/sbin/pcd.real $@
+if [ -e /tmp/pcd.rules.alt ]; then
+    echo "++++++++++++++++++++++++++++++++++"
+    echo "/tmp/pcd.rules.alt found, will use it"
+    echo "----------------------------------"
+ 
+    /usr/sbin/pcd.real -f /tmp/pcd.rules.alt
+else
+    /usr/sbin/pcd.real $@
+fi
 

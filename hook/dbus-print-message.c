@@ -35,15 +35,15 @@ static const char* type_to_name (int message_type)
   switch (message_type)
     {
     case DBUS_MESSAGE_TYPE_SIGNAL:
-      return "signal";
+      return "SIGNAL";
     case DBUS_MESSAGE_TYPE_METHOD_CALL:
-      return "m-call";
+      return "M-CALL";
     case DBUS_MESSAGE_TYPE_METHOD_RETURN:
-      return "m-return";
+      return "M-RETURN";
     case DBUS_MESSAGE_TYPE_ERROR:
-      return "error";
+      return "ERROR";
     default:
-      return "(unknown message type)";
+      return "(UNKNOWN MESSAGE TYPE)";
     }
 }
 
@@ -59,7 +59,7 @@ static void print_hex (struct strbuf *sb, unsigned char *bytes, unsigned int len
 {
   unsigned int i, columns;
 
-  strbuf_addf (sb, "array of bytes [\n");
+  strbuf_addf (sb, "ARRAY OF BYTES [\n");
 
   indent (sb, depth + 1);
 
@@ -132,7 +132,7 @@ static void print_ay (struct strbuf *sb, DBusMessageIter *iter, int depth)
   if (all_ascii)
     {
       bytes[len] = '\0';
-      strbuf_addf (sb, "array of bytes \"%s\"\n", bytes);
+      strbuf_addf (sb, "ARRAY OF BYTES \"%s\"\n", bytes);
     }
   else
     {
@@ -160,7 +160,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      strbuf_addf (sb, "str \"");
+	      strbuf_addf (sb, "STR \"");
 	    strbuf_addf (sb, "%s", val);
 	    if (!literal)
 	      strbuf_addf (sb, "\"\n");
@@ -172,7 +172,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      strbuf_addf (sb, "signature \"");
+	      strbuf_addf (sb, "SIGNATURE \"");
 	    strbuf_addf (sb, "%s", val);
 	    if (!literal)
 	      strbuf_addf (sb, "\"\n");
@@ -184,7 +184,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	    char *val;
 	    dbus_message_iter_get_basic (iter, &val);
 	    if (!literal)
-	      strbuf_addf (sb, "object path \"");
+	      strbuf_addf (sb, "OBJECT PATH \"");
 	    strbuf_addf (sb, "%s", val);
 	    if (!literal)
 	      strbuf_addf (sb, "\"\n");
@@ -195,7 +195,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    dbus_int16_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "int16 %d\n", val);
+	    strbuf_addf (sb, "INT16 %d\n", val);
 	    break;
 	  }
 
@@ -203,7 +203,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    dbus_uint16_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "uint16 %u\n", val);
+	    strbuf_addf (sb, "UINT16 %u\n", val);
 	    break;
 	  }
 
@@ -211,7 +211,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    dbus_int32_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "int32 %d\n", val);
+	    strbuf_addf (sb, "INT32 %d\n", val);
 	    break;
 	  }
 
@@ -219,7 +219,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    dbus_uint32_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "uint32 %u\n", val);
+	    strbuf_addf (sb, "UINT32 %u\n", val);
 	    break;
 	  }
 
@@ -228,9 +228,9 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	    dbus_int64_t val;
 	    dbus_message_iter_get_basic (iter, &val);
 #ifdef DBUS_INT64_PRINTF_MODIFIER
-        strbuf_addf (sb, "int64 %" DBUS_INT64_PRINTF_MODIFIER "d\n", val);
+        strbuf_addf (sb, "INT64 %" DBUS_INT64_PRINTF_MODIFIER "d\n", val);
 #else
-        strbuf_addf (sb, "int64 (omitted)\n");
+        strbuf_addf (sb, "INT64 (OMITTED)\n");
 #endif
 	    break;
 	  }
@@ -240,9 +240,9 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	    dbus_uint64_t val;
 	    dbus_message_iter_get_basic (iter, &val);
 #ifdef DBUS_INT64_PRINTF_MODIFIER
-        strbuf_addf (sb, "uint64 %" DBUS_INT64_PRINTF_MODIFIER "u\n", val);
+        strbuf_addf (sb, "UINT64 %" DBUS_INT64_PRINTF_MODIFIER "u\n", val);
 #else
-        strbuf_addf (sb, "uint64 (omitted)\n");
+        strbuf_addf (sb, "UINT64 (OMITTED)\n");
 #endif
 	    break;
 	  }
@@ -251,7 +251,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    double val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "double %g\n", val);
+	    strbuf_addf (sb, "DOUBLE %g\n", val);
 	    break;
 	  }
 
@@ -259,7 +259,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    unsigned char val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "byte %d\n", val);
+	    strbuf_addf (sb, "BYTE %d\n", val);
 	    break;
 	  }
 
@@ -267,7 +267,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  {
 	    dbus_bool_t val;
 	    dbus_message_iter_get_basic (iter, &val);
-	    strbuf_addf (sb, "bool %s\n", val ? "true" : "false");
+	    strbuf_addf (sb, "BOOL %s\n", val ? "TRUE" : "FALSE");
 	    break;
 	  }
 
@@ -277,7 +277,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    strbuf_addf (sb, "var ");
+	    strbuf_addf (sb, "VAR ");
 	    print_iter (sb, &subiter, literal, depth+1);
 	    break;
 	  }
@@ -296,7 +296,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 		break;
 	      }
 
-	    strbuf_addf(sb, "array [\n");
+	    strbuf_addf(sb, "ARRAY [\n");
 	    while (current_type != DBUS_TYPE_INVALID)
 	      {
 		print_iter (sb, &subiter, literal, depth+1);
@@ -317,7 +317,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    strbuf_addf(sb, "dict entry(\n");
+	    strbuf_addf(sb, "DICT ENTRY(\n");
 	    print_iter (sb, &subiter, literal, depth+1);
 	    dbus_message_iter_next (&subiter);
 	    print_iter (sb, &subiter, literal, depth+1);
@@ -333,7 +333,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 
 	    dbus_message_iter_recurse (iter, &subiter);
 
-	    strbuf_addf(sb, "struct {\n");
+	    strbuf_addf(sb, "STRUCT {\n");
 	    while ((current_type = dbus_message_iter_get_arg_type (&subiter)) != DBUS_TYPE_INVALID)
 	      {
 		print_iter (sb, &subiter, literal, depth+1);
@@ -347,7 +347,7 @@ static void print_iter (struct strbuf *sb, DBusMessageIter *iter, dbus_bool_t li
 	  }
 
 	default:
-	  strbuf_addf (sb, " (dbus-monitor too dumb to decipher arg type '%c')\n", type);
+	  strbuf_addf (sb, " (DBUS-MONITOR TOO DUMB TO DECIPHER ARG TYPE '%c')\n", type);
 	  break;
 	}
     } while (dbus_message_iter_next (iter));
@@ -370,16 +370,16 @@ void print_message (DBusMessage *message, dbus_bool_t literal, int print_body)
 
   if (!literal)
     {
-      strbuf_addf (&sb, "%s sender=%s -> dest=%s",
+      strbuf_addf (&sb, "%s [%s -> %s]",
 	      type_to_name (message_type),
-	      sender ? sender : "(null)",
-	      destination ? destination : "(null)");
+	      sender ? sender : "(NUL)",
+	      destination ? destination : "(NUL)");
 
       switch (message_type)
 	{
 	case DBUS_MESSAGE_TYPE_METHOD_CALL:
 	case DBUS_MESSAGE_TYPE_SIGNAL:
-	  strbuf_addf (&sb, " serial=%u path=%s; if=%s; member=%s\n",
+	  strbuf_addf (&sb, " SN=%u PATH=%s; IF=%s; MEM=%s\n",
                   dbus_message_get_serial (message),
 		  dbus_message_get_path (message),
 		  dbus_message_get_interface (message),
@@ -387,12 +387,12 @@ void print_message (DBusMessage *message, dbus_bool_t literal, int print_body)
 	  break;
 
 	case DBUS_MESSAGE_TYPE_METHOD_RETURN:
-	  strbuf_addf (&sb, " reply_serial=%u\n",
+	  strbuf_addf (&sb, " R-SN=%u\n",
           dbus_message_get_reply_serial (message));
 	  break;
 
 	case DBUS_MESSAGE_TYPE_ERROR:
-	  strbuf_addf (&sb, " error=%s reply_serial=%u\n",
+	  strbuf_addf (&sb, " ERROR=%s R-SN=%u\n",
 		  dbus_message_get_error_name (message),
           dbus_message_get_reply_serial (message));
 	  break;
