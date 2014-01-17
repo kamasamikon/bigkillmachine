@@ -30,7 +30,7 @@ void dbus_connection_dispatch_hook(DBusMessage *message)
 	static int print_body = -1;
 
 	if (print_body == -1) {
-		if (getenv("NH_DBUS_SKIPBODY"))
+		if (getenv("NH_DBUS_NOBODY"))
 			print_body = 0;
 		else
 			print_body = 1;

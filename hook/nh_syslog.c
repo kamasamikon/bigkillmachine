@@ -60,11 +60,12 @@ void vsyslog(int __pri, __const char *__fmt, __gnuc_va_list __ap)
 			call_realfunc = 'y';
 	}
 
-	klogmon_init();
-	klog_ap(__fmt, __ap);
+	if (call_realfunc == 'y') {
+		klogmon_init();
+		klog_ap(__fmt, __ap);
 
-	if (call_realfunc == 'y')
 		realfunc(__pri, __fmt, __ap);
+	}
 }
 #endif
 

@@ -39,6 +39,41 @@ build_type = None
 recfg_list = []
 rebuild_list = []
 
+### ###########################################################
+## MISC HELPER
+#
+s_days = 60 * 60 * 24
+s_hours = 60 * 60
+s_minutes = 60
+
+def fmtTime(t):
+    s = ""
+
+    if t >= s_days:
+        s += "%d days " % (t / s_days)
+
+    t = t % s_days
+    if t >= s_hours:
+        s += "%d hours " % (t / s_hours)
+
+    t = t % s_hours
+    if t >= s_minutes:
+        s += "%d minutes " % (t / s_minutes)
+
+    t = t % s_minutes
+    s += "%d seconds" % t
+
+    return s
+
+def showCost(t):
+    print "Time cost %f or %s" % (t, fmtTime(t))
+
+### ###########################################################
+## 
+#
+
+
+
 def syncdir(frdir, todir, dryrun):
     if not os.path.exists(frdir):
         return None
@@ -172,7 +207,7 @@ def do_update():
         print
 
     end = timeit.default_timer()
-    print "\nTime cost %f" % (end - start)
+    showCost(end - start)
     sys.exit(0)
 
 def unset_grep_options():
@@ -189,7 +224,7 @@ def do_make():
     print what
     os.system(what)
     end = timeit.default_timer()
-    print "Time cost %f" % (end - start)
+    showCost(end - start)
     sys.exit(0)
 
 def mark_rebuilt(dirpath):
@@ -199,8 +234,9 @@ def mark_reconfigure(dirpath):
     pass
 
 def copy(src, dst):
+    print "Copy [%s] => [%s]" % (src, dst)
     os.system("mkdir -p '%s'" % os.path.dirname(dst))
-    os.system("cp -frv '%s' '%s'" % (src, dst))
+    os.system("cp -fr '%s' '%s'" % (src, dst))
 
 def patch_dbus(bkm_7231dir):
     bkm_dbus_patch_path = bkm_7231dir + "/dbus-1.4.16-dispatch-hook.patch"
@@ -218,6 +254,7 @@ def patch_ntvlog():
     ntvlog_path = otv_rootdir + "/nemotv/src/utils/ntvlog.h"
     if os.path.exists(ntvlog_path + ".nmbak"):
         print "patch_ntvlog: already done, skip"
+        copy(bkm_7231dir + "/ntvlog.h", otv_rootdir + "/nemotv/src/utils/")
         return
 
     copy(ntvlog_path, ntvlog_path + ".nmbak")
@@ -231,7 +268,7 @@ def patch_buildroot_makefile(bkm_7231dir):
         os.system("meld '%s' '%s'" % (bkm_7231dir + "/br-Makefile", otv_rootdir + "/buildroot/Makefile"))
 
 def copy_hilda_to_staging():
-    if not os.path.isdir(otv_stagedir) or not os.path.islink(otv_stagedir):
+    if not os.path.isdir(otv_stagedir): # or not os.path.islink(otv_stagedir):
         print "%s is not exists" % otv_stagedir
         return
 
@@ -400,6 +437,10 @@ if __name__ == "__main__":
         sys.exit(0)
 
     set_dirs()
+
+    if "--set" in sys.argv:
+        copy_bkm_files()
+        sys.exit(0)
 
     ###
     # Update the source
