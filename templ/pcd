@@ -1,12 +1,12 @@
 #!/bin/sh
 
-alias echo='busybox echo'
-alias grep='busybox grep'
-alias cat='busybox cat'
-alias awk='busybox awk'
-alias cut='busybox cut'
-alias touch='busybox touch'
-alias chmod='busybox chmod'
+ALIAS_LIST_FILE=/tmp/alias.list
+BBCMDS=`busybox --list`
+for CMD in ${BBCMDS}; do
+    echo "alias ${CMD}='busybox ${CMD}'" >> ${ALIAS_LIST_FILE}
+done
+
+source ${ALIAS_LIST_FILE}
 
 if [ -e /home/ntvroot/pcd ]; then
     echo
@@ -48,6 +48,7 @@ initenv() {
     echo '' >> ${NMENV}
     echo '# export NH_SYSLOG_NOREAL=YES' >> ${NMENV}
     echo '# export PCDOUT=/dev/null' >> ${NMENV}
+    echo '# export PCDOUT=/tmp/pcd.out' >> ${NMENV}
     echo '' >> ${NMENV}
 }
 
@@ -139,14 +140,15 @@ touch ${KLOG_RTCFG}
 
 echo
 echo "Will call REAL pcd: \"/usr/sbin/pcd.real\""
+echo "If /tmp/pcd.rules.alt exit, will use it"
 echo
 if [ -e /tmp/pcd.rules.alt ]; then
     echo "++++++++++++++++++++++++++++++++++"
     echo "/tmp/pcd.rules.alt found, will use it"
     echo "----------------------------------"
- 
-    /usr/sbin/pcd.real -f /tmp/pcd.rules.alt
+
+    /usr/sbin/pcd.real -f /tmp/pcd.rules.alt -v &> ${PCDOUT}
 else
-    /usr/sbin/pcd.real $@
+    /usr/sbin/pcd.real $@ -v &> ${PCDOUT}
 fi
 
