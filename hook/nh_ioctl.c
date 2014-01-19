@@ -120,18 +120,8 @@ int ioctl(int d, unsigned long int r, ...)
 	int ret = realfunc(d, r, argp);
 
 	unsigned int i, cnt, dir = _IOC_DIR(r), type = _IOC_TYPE(r), size = _IOC_SIZE(r);
-	// 3 => (N + N + SP)
-	char buf[3 * MAX_DMP_SIZE], *p = buf, *ap = (char*)argp;
 
-	if (size > MAX_DMP_SIZE)
-		cnt = MAX_DMP_SIZE;
-	else
-		cnt = size;
-
-	for (i = 0; i < cnt; i++)
-		p += sprintf(p, "02u ", ap[i]);
-
-	klog("ioctl: d:%d, r:%08x, dir:%s, dev:%s, nr:%02x, size:%d, argp:%08x\n",
+	klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 			d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 
 	return ret;
