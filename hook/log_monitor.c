@@ -45,7 +45,7 @@ static int _output(const char *fmt, ...)
 
 	fprintf(stderr, "%s", buf);
 
-	sprintf(cmd, "echo '%s' >> '%s'", buf, "/tmp/lm.out");
+	sprintf(cmd, "echo -n '%s' >> '%s'", buf, "/tmp/lm.out");
 	system(cmd);
 
 	return done;
@@ -125,15 +125,20 @@ static int load_boot_args(int *argc, char ***argv)
 	char buffer[4096];
 	int bytes;
 
+	printf("load_boot_args: fp:%p\n", fp);
 	if (fp) {
 		bytes = fread(buffer, sizeof(char), sizeof(buffer), fp);
 		fclose(fp);
+
+		printf("load_boot_args: bytes:%d\n", bytes);
 
 		if (bytes <= 0)
 			return -1;
 
 		buffer[bytes] = '\0';
+		printf("load_boot_args:'%s'\n", buffer);
 		karg_build(buffer, argc, argv);
+		printf("load_boot_args: argc:%d\n", argc);
 		return 0;
 	}
 	return -1;
@@ -240,7 +245,9 @@ void klogmon_init()
 	inited = 1;
 	_output("klogmon_init: pid=%d\n", getpid());
 
+	printf("Will call load_boot_args\n");
 	load_boot_args(&argc, &argv);
+	printf("after call load_boot_args\n");
 
 	env = getenv("KLOG_TO_LOCAL");
 	if (env) {
