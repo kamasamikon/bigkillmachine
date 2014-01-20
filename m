@@ -65,7 +65,7 @@ def fmtTime(t):
 
     return s
 
-def showCost(t):
+def show_cost_time(t):
     print "Time cost %f or %s" % (t, fmtTime(t))
 
 ### ###########################################################
@@ -207,7 +207,7 @@ def do_update():
         print
 
     end = timeit.default_timer()
-    showCost(end - start)
+    show_cost_time(end - start)
     sys.exit(0)
 
 def unset_grep_options():
@@ -224,7 +224,7 @@ def do_make():
     print what
     os.system(what)
     end = timeit.default_timer()
-    showCost(end - start)
+    show_cost_time(end - start)
     sys.exit(0)
 
 def mark_rebuilt(dirpath):
