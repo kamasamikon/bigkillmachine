@@ -95,11 +95,9 @@ if [ "$KLOG_TO_LOCAL" != "" ]; then
 fi
 
 # PCD output
-PCDOUT=`grep "\bpcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
-if [ "$PCDOUT" != "" ]; then
-    pushenv PCDOUT=${PCDOUT}
-else
-    pushenv PCDOUT=/dev/null
+xPCDOUT=`grep "\bpcdout=.*" -o /proc/cmdline | cut -d ' ' -f1 | awk -F= '{ print $2 }'`
+if [ "$xPCDOUT" != "" ]; then
+    pushenv PCDOUT=${xPCDOUT}
 fi
 
 # HOOK
@@ -138,6 +136,12 @@ touch ${KLOG_RTCFG}
 # KLOG Agent is a opt-rpc-server
 /usr/bin/klagent.sh ${KLOG_RTCFG} &
 
+if [ ${PCDOUT} ]; then
+    PCD_OUT_CMD=" -v &> ${PCDOUT}"
+else
+    PCD_OUT_CMD=""
+fi
+
 echo
 echo "Will call REAL pcd: \"/usr/sbin/pcd.real\""
 echo "If /tmp/pcd.rules.alt exit, will use it"
@@ -147,8 +151,8 @@ if [ -e /tmp/pcd.rules.alt ]; then
     echo "/tmp/pcd.rules.alt found, will use it"
     echo "----------------------------------"
 
-    /usr/sbin/pcd.real -f /tmp/pcd.rules.alt -v &> ${PCDOUT}
+    /usr/sbin/pcd.real -f /tmp/pcd.rules.alt ${PCD_OUT_CMD}
 else
-    /usr/sbin/pcd.real $@ -v &> ${PCDOUT}
+    /usr/sbin/pcd.real $@ ${PCD_OUT_CMD}
 fi
 
