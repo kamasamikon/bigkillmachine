@@ -44,8 +44,7 @@ static int _output(const char *fmt, ...)
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	fprintf(stdout, "<%d> %s", pid, buf);
-	fprintf(stderr, "<%d> %s", pid, buf);
+	printf("<%d> %s", pid, buf);
 
 	sprintf(cmd, "echo -n '<%d> %s' >> '%s'", pid, buf, "/tmp/lm.out");
 	system(cmd);
@@ -234,6 +233,21 @@ static void logger_syslog(const char *content, int len)
 	syslog(LOG_INFO, "%s", content);
 }
 
+static char *get_prog_name()
+{
+	FILE *fp;
+	char path[256], buf[2048];
+
+	sprintf(path, "/proc/%d/cmdline", getpid());
+	fp = fopen(path, "rt");
+	if (!fp)
+		return "?";
+
+	fgets(buf, sizeof(buf), fp);
+	fclose(fp);
+	return strdup(basename(buf));
+}
+
 void klogmon_init()
 {
 	static int inited = 0;
@@ -244,23 +258,23 @@ void klogmon_init()
 		return;
 
 	inited = 1;
-	_output("klogmon_init.\n");
+	_output("klogmon_init. PROG='%s'\n", get_prog_name());
 
 	load_boot_args(&argc, &argv);
 
 	env = getenv("KLOG_TO_LOCAL");
 	if (env) {
-		_output("KLog: KLOG_TO_LOCAL opened, <%s>\n", env);
+		_output("KLog: KLOG_TO_LOCAL opened <%s>\n", env);
 		klog_add_logger(logger_file);
 	}
 	env = getenv("KLOG_TO_SYSLOG");
 	if (env) {
-		_output("KLog: KLOG_TO_SYSLOG opened, <%s>\n", env);
+		_output("KLog: KLOG_TO_SYSLOG opened <%s>\n", env);
 		klog_add_logger(logger_syslog);
 	}
 	env = getenv("KLOG_TO_REMOTE");
 	if (env) {
-		_output("KLog: KLOG_TO_REMOTE opened, <%s>\n", env);
+		_output("KLog: KLOG_TO_REMOTE opened <%s>\n", env);
 		klog_add_logger(logger_remote);
 
 		if (!rlog_serv_from_kernel_cmdline(env, __g_klog_serv, &__g_klog_serv_port))
