@@ -36,8 +36,11 @@ bkm_7231dir = None
 config_type = None
 build_type = None
 
-recfg_list = []
-rebuild_list = []
+config_type = None
+build_type = None
+build_mode = None
+
+modu_attrs = {}
 
 ### ###########################################################
 ## MISC HELPER
@@ -65,14 +68,20 @@ def fmtTime(t):
 
     return s
 
+def print_color(line, cr="red"):
+    if cr == "red":
+        print "\033[1;31m%s\033[0m" % line
+    elif cr == "yellow":
+        print "\033[1;33m%s\033[0m" % line
+    else:
+        print line
+
 def show_cost_time(t):
-    print "Time cost %f or %s" % (t, fmtTime(t))
+    print_color("Time cost %f or %s" % (t, fmtTime(t)))
 
 ### ###########################################################
 ## 
 #
-
-
 
 def syncdir(frdir, todir, dryrun):
     if not os.path.exists(frdir):
@@ -96,115 +105,135 @@ def syncdir(frdir, todir, dryrun):
 
     return set(full_list).difference(skip_list)
 
-def findprjdir(basedir):
-    if os.path.exists(basedir):
-        output = subprocess.Popen(["find", basedir, "-name", "configure.ac"], stdout=subprocess.PIPE).stdout.readlines()
-    else:
-        output = []
+def update_attr(attrs):
+    # XXX: Only set attrs related directories
 
-    full_list = []
-    for i in output:
-        full_list.append(os.path.dirname(i.strip()) + '/')
+    cpfrdir = attrs["cpfrdir"]
+    cptodir = attrs["cptodir"]
 
-    return set(full_list)
-
-def update(odir, bdir, force_reconfig):
-    odir_full = os.path.join(otv_rootdir, odir)
-    bdir_full = os.path.join(otv_builddir, bdir)
-
-    print "\n\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-    # print odir_full
-    print bdir_full
-
-    dirty_files = syncdir(odir_full, bdir_full, True)
+    dirty_files = syncdir(cpfrdir, cptodir, True)
     if not dirty_files:
         return
-    print "\nDirty files (DRY RUN)"
-    for l in list(dirty_files):
-        # print l
-        pass
 
-    prjdirs = findprjdir(bdir_full)
-    if prjdirs:
-        print "\nConfigure.ac DIR"
-    for l in list(prjdirs):
-        print l
-        pass
-    
-    dirty_prjdirs = dirty_files & prjdirs
-    if dirty_prjdirs:
-        print "\nDirty projects"
-    for l in list(dirty_prjdirs):
-        print l
-        pass
+    for path in list(dirty_files):
+        basename = os.path.basename(path)
+        if basename in [ "configure.ac", "Makefile.am" ]:
+            attrs["reconfigure"] = True
+            attrs["rebuild"] = True # fasten process_relation()
+            break
+        else:
+            attrs["rebuild"] = True
 
-    for dirty_dir in list(dirty_prjdirs):
-        recfg = False
-        rebuild = False
-
-        for path in list(dirty_files):
-            if path.startswith(dirty_dir):
-                if force_reconfig:
-                    recfg = True
-                    rebuild = False
-                    break
-
-                basename = os.path.basename(path)
-                if basename in [ "configure.ac", "Makefile.am" ]:
-                    recfg = True
-                    rebuild = False
-                    break
-                else:
-                    rebuild = True
-
-        if recfg:
-            print "\nReconfigure: %s" % dirty_dir
-            recfg_list.append(os.path.basename(dirty_dir[:-1]))
-            os.system("find '%s' -name '.configured' 2> /dev/null | xargs rm 2> /dev/null" % dirty_dir)
-            syncdir(odir_full, bdir_full, False)
-        elif rebuild:
-            print "\nRebuild: %s" % dirty_dir
-            rebuild_list.append(os.path.basename(dirty_dir[:-1]))
-            os.system("find '%s' -newer '%s.configured' -a -type f 2> /dev/null | grep -v .deps | xargs rm 2> /dev/null" % (dirty_dir, dirty_dir))
-            syncdir(odir_full, bdir_full, False)
-
-def show_info(ct, bt):
-    print ["CONFIG_TYPE not set, run 'nmk ct YOURTYPE' please", "CONFIG_TYPE=%s" % ct][ct != None]
-    print ["BUILD_TYPE not set, run 'nmk bt YOURTYPE' please", "BUILD_TYPE=%s" % bt][bt != None]
-
-def do_update():
+def get_omodu_path():
     omodu = ".nmk.omodu"
     if not os.path.exists(omodu):
         omodu = os.path.join(bkm_rootdir, "nmk.omodu")
         if not os.path.exists(omodu):
-            print "Error: ./.nmk.omodu or %s must be set, quit." % omodu
+            print_color("Error: ./.nmk.omodu or %s must be set, quit." % omodu)
             sys.exit(0)
+    return omodu
 
-    # force re-configure
-    force_reconfig = "-frc" in sys.argv
+def load_omodu_attrs(omodu_path):
+    for line in open(omodu_path).readlines():
+        #try:
+        line = line.strip()
+        if not line or line[0] == '#':
+            continue
+
+        attrs = {}
+        for seg in line.split(" "):
+            k,v = seg.split("=")
+            attrs[k] = v
+
+        if not attrs.has_key("cpfrdir"):
+            print_color("No modu name set")
+            continue
+
+        if not attrs.has_key("name"):
+            attrs["name"] = os.path.basename(attrs["cpfrdir"])
+
+        if attrs.has_key("belongto"):
+            attrs["belongto"] = attrs["belongto"].split(":")
+        else:
+            attrs["belongto"] = []
+
+        if attrs.has_key("dependon"):
+            attrs["dependon"] = attrs["dependon"].split(":")
+        else:
+            attrs["dependon"] = []
+
+        attrs["cpfrdir"] = os.path.join(otv_rootdir, attrs["cpfrdir"])
+
+        if not attrs.has_key("cptodir"):
+            attrs["cptodir"] = os.path.basename(attrs["cpfrdir"])
+        attrs["cptodir"] = os.path.join(otv_builddir, attrs["cptodir"])
+
+        attrs["reconfigure"] = False
+        attrs["rebuild"] = False
+
+        print attrs
+        modu_attrs[attrs["name"]] = attrs
+        #except:
+            #pass
+
+def process_relation():
+    def do_it():
+        processed = 0
+        for dummy,attrs in modu_attrs.items():
+            if attrs["reconfigure"] == True:
+
+                for belongto in attrs["belongto"]:
+                    if modu_attrs[belongto]["reconfigure"] == False:
+                        modu_attrs[belongto]["reconfigure"] = True
+                        processed += 1
+
+                for dependon in attrs["dependon"]:
+                    if modu_attrs[dependon]["reconfigure"] == False:
+                        modu_attrs[dependon]["reconfigure"] = True
+                        processed += 1
+
+            elif attrs["rebuild"] == True:
+
+                for belongto in attrs["belongto"]:
+                    print belongto
+                    if modu_attrs[belongto]["rebuild"] == False:
+                        modu_attrs[belongto]["rebuild"] = True
+                        processed += 1
+
+                for dependon in attrs["dependon"]:
+                    if modu_attrs[dependon]["rebuild"] == False:
+                        modu_attrs[dependon]["rebuild"] = True
+                        processed += 1
+        return processed
+
+    while do_it():
+        pass
+
+def sync_files():
+    for dummy,attrs in modu_attrs.items():
+        if attrs["reconfigure"] == True:
+            print_color("reconfigure: %s" % attrs["name"])
+            os.system("find '%s' -name '.configured' 2> /dev/null | xargs rm 2> /dev/null" % attrs["cptodir"])
+            syncdir(attrs["cpfrdir"], attrs["cptodir"], False)
+        elif attrs["rebuild"] == True:
+            print_color("rebuild: %s" % attrs["name"])
+            os.system("find '%s' -newer '%s.configured' -a -type f 2> /dev/null | grep -v .deps | xargs rm 2> /dev/null" % (attrs["cptodir"], attrs["cptodir"]))
+            syncdir(attrs["cpfrdir"], attrs["cptodir"], False)
+
+def do_update():
+    omodu_path = get_omodu_path()
+
     start = timeit.default_timer()
-    print "omodu:%s" % omodu
+    # print "omodu:%s" % omodu_path
 
-    # Read list
-    for line in open(omodu).readlines():
-        # NTV Dir and Build Dir
-        try:
-            odir, bdir = line.strip().split(" ")
-            update(odir, bdir, force_reconfig)
-        except:
-            pass
+    load_omodu_attrs(omodu_path)
 
-    if recfg_list:
-        print "\nWill reconfigure:",
-        for l in recfg_list:
-            print l,
-        print
+    for dummy,attrs in modu_attrs.items():
+        update_attr(attrs)
 
-    if rebuild_list:
-        print "\nWill rebuit:",
-        for l in rebuild_list:
-            print l,
-        print
+    process_relation()
+
+    sync_files()
 
     end = timeit.default_timer()
     show_cost_time(end - start)
@@ -220,47 +249,75 @@ def do_make():
     start = timeit.default_timer()
     os.chdir(otv_makedir)
 
-    what = "source ../set_env_bash.sh; make CONFIG_TYPE=%s BUILD_TYPE=%s DEBUG_INIT=1 V=1 %s" % (ct, bt, " ".join(sys.argv[varindex:]))
-    print what
+    what = "source ../set_env_bash.sh; make CONFIG_TYPE=%s BUILD_TYPE=%s DEBUG_INIT=1 V=1 %s" % (config_type, build_type, " ".join(sys.argv[varindex:]))
+    print_color(what, "yellow")
     os.system(what)
     end = timeit.default_timer()
     show_cost_time(end - start)
     sys.exit(0)
 
 def mark_rebuilt(dirpath):
+    # Should use module name, because rebuild will rsync the code
     pass
 
 def mark_reconfigure(dirpath):
     pass
 
 def copy(src, dst):
-    print "Copy [%s] => [%s]" % (src, dst)
+    print_color("Copy [%s] => [%s]" % (src, dst), "yellow")
     os.system("mkdir -p '%s'" % os.path.dirname(dst))
     os.system("cp -fr '%s' '%s'" % (src, dst))
+
+def is_diff(path0, path1):
+    if os.system("diff '%s' '%s' &> /dev/null" % (path0, path1)):
+        return True
+    return False
 
 def patch_dbus(bkm_7231dir):
     bkm_dbus_patch_path = bkm_7231dir + "/dbus-1.4.16-dispatch-hook.patch"
     br_dbus_patch_path = otv_rootdir + "/buildroot/package/dbus/dbus-1.4.16-dispatch-hook.patch"
 
-    if not os.system("diff '%s' '%s' &> /dev/null" % (bkm_dbus_patch_path, br_dbus_patch_path)):
-        print "patch_dbus: already done, skip"
+    if not is_diff(bkm_dbus_patch_path, br_dbus_patch_path):
+        print_color("patch_dbus: already done, skip")
         return 
 
     # When patch dbus, the old one MUST be rebuilt
     os.system("rm -fr '%s'" % otv_builddir + "/dbus-1.4.16")
     copy(bkm_dbus_patch_path, br_dbus_patch_path)
 
-def patch_ntvlog():
+def process_ntvlog():
+    # ntvlog.h.nmbak === Don's ntvlog.h
     ntvlog_path = otv_rootdir + "/nemotv/src/utils/ntvlog.h"
-    if os.path.exists(ntvlog_path + ".nmbak"):
-        print "patch_ntvlog: already done, skip"
-        copy(bkm_7231dir + "/ntvlog.h", otv_rootdir + "/nemotv/src/utils/")
-        return
+    ntvlog_nmbak_path = ntvlog_path + ".nmbak"
+    ntvlog_bkm_path = bkm_7231dir + "/ntvlog.h"
 
-    copy(ntvlog_path, ntvlog_path + ".nmbak")
-    copy(bkm_7231dir + "/ntvlog.h", otv_rootdir + "/nemotv/src/utils/")
+    rebuild = False
 
-    mark_rebuilt(otv_builddir + "/utils")
+    # 1. Ensure the nmbak file exists
+    if not os.path.exists(ntvlog_nmbak_path):
+        print_color("Backup Don's ntvlog.h to ntvlog.h.nmbak")
+        copy(ntvlog_path, ntvlog_nmbak_path)
+
+        if os.system("grep '275 Sacramento Street' %s" % ntvlog_nmbak_path):
+            print_color("==================================================")
+            print_color("= Fatal error: ntvlog.h.nmbak is not don's version")
+            print_color("==================================================")
+            sys.exit(0)
+
+    if build_mode == 'bkm':
+        # PatchMode: the ntvlog.h must same as bkm version
+        if is_diff(ntvlog_path, ntvlog_bkm_path):
+            copy(ntvlog_bkm_path, ntvlog_path)
+            rebuild = True
+
+    elif build_mode == 'otv':
+        # RestoreMode: the ntvlog.h must same as Don's version
+        if is_diff(ntvlog_path, ntvlog_nmbak_path):
+            copy(ntvlog_nmbak_path, ntvlog_path)
+            rebuild = True
+
+    if rebuild:
+        mark_rebuilt(otv_builddir + "/utils")
  
 # Modify buildroot/Makefile and add -lhilda to it
 def patch_buildroot_makefile(bkm_7231dir):
@@ -269,9 +326,10 @@ def patch_buildroot_makefile(bkm_7231dir):
 
 def copy_hilda_to_staging():
     if not os.path.isdir(otv_stagedir): # or not os.path.islink(otv_stagedir):
-        print "%s is not exists" % otv_stagedir
+        print_color("%s is not exists" % otv_stagedir)
         return
 
+    # -L and -I files
     copy(bkm_7231dir + "/libhilda.so", otv_stagedir + "/usr/lib/")
     copy(bkm_7231dir + "/hilda", otv_stagedir + "/usr/include/")
 
@@ -280,9 +338,10 @@ def copy_bkm_build_files():
 
     copy_hilda_to_staging()
 
-    patch_ntvlog()
     patch_dbus(bkm_7231dir)
     patch_buildroot_makefile(bkm_7231dir)
+
+    process_ntvlog()
 
 def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/libhilda.so", otv_targetdir + "/target/usr/lib/")
@@ -304,7 +363,7 @@ def set_dirs():
     otv_rootdir = os.path.abspath(os.path.join(otv_makedir, "..", ".."))
 
     # ~/vvvvv/ntvtgt/sam7231_uclibc_bc/bld_sh_hdi/
-    otv_targetdir = os.path.join(otv_makedir, "%s_%s" % (bt, ct))
+    otv_targetdir = os.path.join(otv_makedir, "%s_%s" % (build_type, config_type))
 
     # ~/vvvvv/ntvtgt/sam7231_uclibc_bc/bld_sh_hdi/build/
     otv_builddir = os.path.join(otv_targetdir, "build")
@@ -322,10 +381,14 @@ def set_dirs():
     bkm_7231dir = os.path.join(bkm_rootdir, "build", "target", "7231")
 
 def replace_pcd():
-    if os.system("diff '%s' '%s' &> /dev/null" % (bkm_7231dir + "/pcd", otv_targetdir + "/target/usr/sbin/pcd")):
-        copy(bkm_7231dir + "/pcd", otv_targetdir + "/target/usr/sbin/")
+    pcd_sbin_path = otv_targetdir + "/target/usr/sbin/pcd"
+    pcd_real_sbin_path = otv_targetdir + "/target/usr/sbin/pcd.real"
 
-    copy(otv_builddir + "/pcd-1.1.3/bin/target/usr/sbin/pcd", otv_targetdir + "/target/usr/sbin/pcd.real")
+    if is_diff(bkm_7231dir + "/pcd", pcd_sbin_path):
+        copy(bkm_7231dir + "/pcd", pcd_sbin_path)
+
+    if os.path.exists(otv_builddir + "/pcd-1.1.3/bin/target/usr/sbin/pcd"):
+        copy(otv_builddir + "/pcd-1.1.3/bin/target/usr/sbin/pcd", pcd_real_sbin_path)
 
 class EventHandler(pyinotify.ProcessEvent):
     def __init__(self, daemon, wm):
@@ -372,6 +435,11 @@ class WatchThread(threading.Thread):
         print "watch_staging_dir: %s" % otv_targetdir
         self.wm.add_watch(otv_targetdir, mask, rec=False)
 
+def show_info():
+    print_color(["CONFIG_TYPE not set, run 'nmk ct YOURTYPE' please", "CONFIG_TYPE=%s" % config_type][config_type != None])
+    print_color(["BUILD_TYPE not set, run 'nmk bt YOURTYPE' please", "BUILD_TYPE=%s" % build_type][build_type != None])
+    print_color(["MODE not set, run 'nmk bm YOURTYPE' please", "MODE=%s" % build_mode][build_mode != None])
+
 # m --ct ConfigType --bt BuildType -i info -r|--restore 
 if __name__ == "__main__":
     up = False
@@ -386,12 +454,20 @@ if __name__ == "__main__":
             print_info = True
             break
 
+        if sys.argv[i] == 'bm':
+            i += 1
+            if i < argc:
+                os.system('echo "%s" > .nmk.bm' % sys.argv[i])
+            else:
+                print_color("No NMK MODE set, default is otv mode")
+                os.system('echo "%s" > .nmk.bm' % "otv")
+
         if sys.argv[i] == 'ct':
             i += 1
             if i < argc:
                 os.system('echo "%s" > .nmk.ct' % sys.argv[i])
             else:
-                print "Need CONFIG_TYPE"
+                print_color("Need CONFIG_TYPE")
                 sys.exit(0)
 
         if sys.argv[i] == 'bt':
@@ -399,7 +475,7 @@ if __name__ == "__main__":
             if i < argc:
                 os.system('echo "%s" > .nmk.bt' % sys.argv[i])
             else:
-                print "Need BUILD_TYPE"
+                print_color("Need BUILD_TYPE")
                 sys.exit(0)
 
         if sys.argv[i] == 'up':
@@ -415,32 +491,37 @@ if __name__ == "__main__":
     # Ensure CONFIG_TYPE and BUILD_TYPE must be defined
     ###
     try:
-        ct = open(".nmk.ct").readline().strip()
+        config_type = open(".nmk.ct").readline().strip()
     except:
-        ct = None
+        config_type = None
 
     try:
-        bt = open(".nmk.bt").readline().strip()
+        build_type = open(".nmk.bt").readline().strip()
     except:
-        bt = None
+        build_type = None
+
+    try:
+        build_mode = open(".nmk.bm").readline().strip()
+    except:
+        build_mode = None
 
     if print_info:
-        show_info(ct, bt)
+        show_info()
         sys.exit(0)
 
-    if not ct or ct == "":
-        print "CONFIG_TYPE not set, run 'nmk ct YOURTYPE' please"
+    if not config_type or config_type == "":
+        print_color("CONFIG_TYPE not set, run 'nmk ct YOURTYPE' please")
         sys.exit(0)
 
-    if not bt or bt == "":
-        print "BUILD_TYPE not set, run 'nmk bt YOURTYPE' please"
+    if not build_type or build_type == "":
+        print_color("BUILD_TYPE not set, run 'nmk bt YOURTYPE' please")
+        sys.exit(0)
+
+    if build_mode not in [ "bkm", "otv" ]:
+        print_color("BUILD_MODE not set, run 'nmk bm [bkm | otv]' please")
         sys.exit(0)
 
     set_dirs()
-
-    if "--set" in sys.argv:
-        copy_bkm_files()
-        sys.exit(0)
 
     ###
     # Update the source
@@ -448,28 +529,28 @@ if __name__ == "__main__":
     if up:
         do_update()
 
-    replace_pcd()
-    wt = WatchThread("WatchThread", True)
-    wt.start()
-
     ###
     # Do make
     ###
     if argc == 1 or go:
+        replace_pcd()
+        wt = WatchThread("WatchThread", True)
+        wt.start()
+
         copy_bkm_files()
         do_make()
 
-# name:cpfrdir:cptodir:belongto:dependby
+# name:cpfrdir:cptodir:belongto:dependon
 # name = ID/name of a *DIRECTORY*
 # cpfrdir = Copy/Sync from directory name
 # cptodir = Copy/Sync to directory name
 # belongto = name;name A name list 
-# dependby = name;name A name list 
+# dependon = name;name A name list 
 
 # name : configman
 # cpfrdir : nemotv/src/configman
 # cptodir : configman
-# dependby : aim;recoder;otvgst
+# dependon : aim;recoder;otvgst
 
 # vim: sw=4 ts=4 sts=4 ai et
 
