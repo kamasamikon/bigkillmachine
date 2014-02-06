@@ -135,46 +135,46 @@ def get_omodu_path():
 
 def load_omodu_attrs(omodu_path):
     for line in open(omodu_path).readlines():
-        #try:
-        line = line.strip()
-        if not line or line[0] == '#':
-            continue
+        try:
+            line = line.strip()
+            if not line or line[0] == '#':
+                continue
 
-        attrs = {}
-        for seg in line.split(" "):
-            k,v = seg.split("=")
-            attrs[k] = v
+            attrs = {}
+            for seg in line.split(" "):
+                k,v = seg.split("=")
+                attrs[k] = v
 
-        if not attrs.has_key("cpfrdir"):
-            print_color("No modu name set")
-            continue
+            if not attrs.has_key("cpfrdir"):
+                print_color("No modu name set")
+                continue
 
-        if not attrs.has_key("name"):
-            attrs["name"] = os.path.basename(attrs["cpfrdir"])
+            if not attrs.has_key("name"):
+                attrs["name"] = os.path.basename(attrs["cpfrdir"])
 
-        if attrs.has_key("belongto"):
-            attrs["belongto"] = attrs["belongto"].split(":")
-        else:
-            attrs["belongto"] = []
+            if attrs.has_key("belongto"):
+                attrs["belongto"] = attrs["belongto"].split(":")
+            else:
+                attrs["belongto"] = []
 
-        if attrs.has_key("dependon"):
-            attrs["dependon"] = attrs["dependon"].split(":")
-        else:
-            attrs["dependon"] = []
+            if attrs.has_key("dependon"):
+                attrs["dependon"] = attrs["dependon"].split(":")
+            else:
+                attrs["dependon"] = []
 
-        attrs["cpfrdir"] = os.path.join(otv_rootdir, attrs["cpfrdir"])
+            attrs["cpfrdir"] = os.path.join(otv_rootdir, attrs["cpfrdir"])
 
-        if not attrs.has_key("cptodir"):
-            attrs["cptodir"] = os.path.basename(attrs["cpfrdir"])
-        attrs["cptodir"] = os.path.join(otv_builddir, attrs["cptodir"])
+            if not attrs.has_key("cptodir"):
+                attrs["cptodir"] = os.path.basename(attrs["cpfrdir"])
+            attrs["cptodir"] = os.path.join(otv_builddir, attrs["cptodir"])
 
-        attrs["reconfigure"] = False
-        attrs["rebuild"] = False
+            attrs["reconfigure"] = False
+            attrs["rebuild"] = False
 
-        print attrs
-        modu_attrs[attrs["name"]] = attrs
-        #except:
-            #pass
+            #print attrs
+            modu_attrs[attrs["name"]] = attrs
+        except:
+            pass
 
 def process_relation():
     def do_it():
@@ -220,19 +220,20 @@ def sync_files():
             os.system("find '%s' -newer '%s.configured' -a -type f 2> /dev/null | grep -v .deps | xargs rm 2> /dev/null" % (attrs["cptodir"], attrs["cptodir"]))
             syncdir(attrs["cpfrdir"], attrs["cptodir"], False)
 
-def do_update():
+def fill_omodu_attrs():
     omodu_path = get_omodu_path()
-
-    start = timeit.default_timer()
-    # print "omodu:%s" % omodu_path
-
     load_omodu_attrs(omodu_path)
 
+def update_all_omodu_attrs():
     for dummy,attrs in modu_attrs.items():
         update_attr(attrs)
 
-    process_relation()
+def do_update():
+    start = timeit.default_timer()
 
+    fill_omodu_attrs()
+    update_all_omodu_attrs()
+    process_relation()
     sync_files()
 
     end = timeit.default_timer()
@@ -256,12 +257,19 @@ def do_make():
     show_cost_time(end - start)
     sys.exit(0)
 
-def mark_rebuilt(dirpath):
-    # Should use module name, because rebuild will rsync the code
-    pass
+def mark_rebuilt(modu_name):
+    fill_omodu_attrs()
+    if modu_attrs.has_key(modu_name):
+        modu_attrs[modu_name]["rebuilt"] = True
+        process_relation()
+        sync_files()
 
-def mark_reconfigure(dirpath):
-    pass
+def mark_reconfigure(modu_name):
+    fill_omodu_attrs()
+    if modu_attrs.has_key(modu_name):
+        modu_attrs[modu_name]["reconfigure"] = True
+        process_relation()
+        sync_files()
 
 def copy(src, dst):
     print_color("Copy [%s] => [%s]" % (src, dst), "yellow")
@@ -317,7 +325,7 @@ def process_ntvlog():
             rebuild = True
 
     if rebuild:
-        mark_rebuilt(otv_builddir + "/utils")
+        mark_rebuilt("utils")
  
 # Modify buildroot/Makefile and add -lhilda to it
 def patch_buildroot_makefile(bkm_7231dir):
