@@ -152,11 +152,6 @@ def load_omodu_attrs(omodu_path):
             if not attrs.has_key("name"):
                 attrs["name"] = os.path.basename(attrs["cpfrdir"])
 
-            if attrs.has_key("belongto"):
-                attrs["belongto"] = attrs["belongto"].split(":")
-            else:
-                attrs["belongto"] = []
-
             if attrs.has_key("dependon"):
                 attrs["dependon"] = attrs["dependon"].split(":")
             else:
@@ -182,23 +177,12 @@ def process_relation():
         for dummy,attrs in modu_attrs.items():
             if attrs["reconfigure"] == True:
 
-                for belongto in attrs["belongto"]:
-                    if modu_attrs[belongto]["reconfigure"] == False:
-                        modu_attrs[belongto]["reconfigure"] = True
-                        processed += 1
-
                 for dependon in attrs["dependon"]:
                     if modu_attrs[dependon]["reconfigure"] == False:
                         modu_attrs[dependon]["reconfigure"] = True
                         processed += 1
 
             elif attrs["rebuild"] == True:
-
-                for belongto in attrs["belongto"]:
-                    print belongto
-                    if modu_attrs[belongto]["rebuild"] == False:
-                        modu_attrs[belongto]["rebuild"] = True
-                        processed += 1
 
                 for dependon in attrs["dependon"]:
                     if modu_attrs[dependon]["rebuild"] == False:
@@ -548,11 +532,10 @@ if __name__ == "__main__":
         copy_bkm_files()
         do_make()
 
-# name:cpfrdir:cptodir:belongto:dependon
+# name:cpfrdir:cptodir:dependon
 # name = ID/name of a *DIRECTORY*
 # cpfrdir = Copy/Sync from directory name
 # cptodir = Copy/Sync to directory name
-# belongto = name;name A name list 
 # dependon = name;name A name list 
 
 # name : configman
