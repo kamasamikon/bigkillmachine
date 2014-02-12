@@ -210,7 +210,8 @@ static void logger_remote(const char *content, int len)
 		if (__g_rlog_serv_skt != -1)
 			close(__g_rlog_serv_skt);
 		__g_rlog_serv_skt = -1;
-	}
+	} else if (content[len - 1] != '\n')
+		send(__g_rlog_serv_skt, "\n", 1, 0);
 }
 static void logger_file(const char *content, int len)
 {
@@ -220,7 +221,10 @@ static void logger_file(const char *content, int len)
 		fp = fopen(getenv("KLOG_TO_LOCAL"), "a+");
 
 	if (fp) {
-		fprintf(fp, "%s", content);
+		if (content[len - 1] == '\n')
+			fprintf(fp, "%s", content);
+		else
+			fprintf(fp, "%s\n", content);
 		fflush(fp);
 	}
 }
