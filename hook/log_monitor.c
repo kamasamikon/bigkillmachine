@@ -38,14 +38,15 @@ static int _output(const char *fmt, ...)
 	va_list arg;
 	int done;
 	char buf[2048], cmd[2048];
+	pid_t pid = getpid();
 
 	va_start(arg, fmt);
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	fprintf(stderr, "%s", buf);
+	fprintf(stderr, "<%d> %s", pid, buf);
 
-	sprintf(cmd, "echo -n '%s' >> '%s'", buf, "/tmp/lm.out");
+	sprintf(cmd, "echo -n '<%d> %s' >> '%s'", pid, buf, "/tmp/lm.out");
 	system(cmd);
 
 	return done;
@@ -66,7 +67,7 @@ static void load_cfg_file(const char *path)
 		if (line++ < lines_done)
 			continue;
 
-		_output("<%d> load_cfg_file: %s", getpid(), buf);
+		_output("load_cfg_file: %s", buf);
 		klog_rule_add(buf);
 		lines_done++;
 	}
@@ -83,7 +84,7 @@ static void* thread_monitor_cfgfile(void *user_data)
 
 	fd = inotify_init();
 	if (fd < 0) {
-		_output("<%d> monitor_cfgfile: inotify_init failed: %s.\n", getpid(), strerror(errno));
+		_output("monitor_cfgfile: inotify_init failed: %s.\n", strerror(errno));
 		exit(-1);
 	}
 
@@ -93,7 +94,7 @@ static void* thread_monitor_cfgfile(void *user_data)
 	_output("monitor_cfgfile: path: <%s>\n", path);
 	wd = inotify_add_watch(fd, path, EVENT_MASK);
 	if (wd < 0) {
-		_output("<%d> monitor_cfgfile: inotify_add_watch failed: %s.\n", getpid(), strerror(errno));
+		_output("monitor_cfgfile: inotify_add_watch failed: %s.\n", strerror(errno));
 		return NULL;
 	}
 
@@ -104,7 +105,7 @@ static void* thread_monitor_cfgfile(void *user_data)
 		while (((char*)event - buffer) < len) {
 			if (event->wd == wd) {
 				if (EVENT_MASK & event->mask) {
-					_output("<%d> monitor_cfgfile: Opt: Configure changed\n", getpid());
+					_output("monitor_cfgfile: Opt: Configure changed\n");
 					load_cfg_file(path);
 				}
 				break;
@@ -125,20 +126,15 @@ static int load_boot_args(int *argc, char ***argv)
 	char buffer[4096];
 	int bytes;
 
-	printf("load_boot_args: fp:%p\n", fp);
 	if (fp) {
 		bytes = fread(buffer, sizeof(char), sizeof(buffer), fp);
 		fclose(fp);
-
-		printf("load_boot_args: bytes:%d\n", bytes);
 
 		if (bytes <= 0)
 			return -1;
 
 		buffer[bytes] = '\0';
-		printf("load_boot_args:'%s'\n", buffer);
 		karg_build(buffer, argc, argv);
-		printf("load_boot_args: argc:%d\n", argc);
 		return 0;
 	}
 	return -1;
@@ -175,14 +171,14 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	struct hostent *he;
 	struct sockaddr_in their_addr;
 
-	_output("<%d> connect_rlog_serv: server:<%s>, port:%d\n", getpid(), server, port);
+	_output("connect_rlog_serv: server:<%s>, port:%d\n", server, port);
 
 	if ((he = gethostbyname(server)) == NULL) {
-		_output("<%d> connect_rlog_serv: gethostbyname error: %s.\n", getpid(), strerror(errno));
+		_output("connect_rlog_serv: gethostbyname error: %s.\n", strerror(errno));
 		return -1;
 	}
 	if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-		_output("<%d> connect_rlog_serv: socket error: %s.\n", getpid(), strerror(errno));
+		_output("connect_rlog_serv: socket error: %s.\n", strerror(errno));
 		return -1;
 	}
 
@@ -192,7 +188,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 	if (connect(sockfd, (struct sockaddr *)&their_addr,
 				sizeof their_addr) == -1) {
-		_output("<%d> connect_rlog_serv: connect error: %s.\n", getpid(), strerror(errno));
+		_output("connect_rlog_serv: connect error: %s.\n", strerror(errno));
 		close(sockfd);
 		return -1;
 	}
@@ -200,7 +196,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	config_socket(sockfd);
 
 	*retfd = sockfd;
-	_output("<%d> connect_rlog_serv: retfd: %d\n", getpid(), sockfd);
+	_output("connect_rlog_serv: retfd: %d\n", sockfd);
 	return 0;
 }
 
@@ -210,7 +206,7 @@ static void logger_remote(const char *content, int len)
 		connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
 
 	if (len != send(__g_rlog_serv_skt, content, len, 0)) {
-		_output("<%d> logger_wlogf: send error: %s, %d\n", getpid(), strerror(errno), __g_rlog_serv_skt);
+		_output("logger_wlogf: send error: %s, %d\n", strerror(errno), __g_rlog_serv_skt);
 		if (__g_rlog_serv_skt != -1)
 			close(__g_rlog_serv_skt);
 		__g_rlog_serv_skt = -1;
@@ -243,25 +239,23 @@ void klogmon_init()
 		return;
 
 	inited = 1;
-	_output("klogmon_init: pid=%d\n", getpid());
+	_output("klogmon_init\n");
 
-	printf("Will call load_boot_args\n");
 	load_boot_args(&argc, &argv);
-	printf("after call load_boot_args\n");
 
 	env = getenv("KLOG_TO_LOCAL");
 	if (env) {
-		_output("<%d> KLog: KLOG_TO_LOCAL opened, <%s>\n", getpid(), env);
+		_output("KLog: KLOG_TO_LOCAL opened, <%s>\n", env);
 		klog_add_logger(logger_file);
 	}
 	env = getenv("KLOG_TO_SYSLOG");
 	if (env) {
-		_output("<%d> KLog: KLOG_TO_SYSLOG opened, <%s>\n", getpid(), env);
+		_output("KLog: KLOG_TO_SYSLOG opened, <%s>\n", env);
 		klog_add_logger(logger_syslog);
 	}
 	env = getenv("KLOG_TO_REMOTE");
 	if (env) {
-		_output("<%d> KLog: KLOG_TO_REMOTE opened, <%s>\n", getpid(), env);
+		_output("KLog: KLOG_TO_REMOTE opened, <%s>\n", env);
 		klog_add_logger(logger_remote);
 
 		if (!rlog_serv_from_kernel_cmdline(env, __g_klog_serv, &__g_klog_serv_port))
