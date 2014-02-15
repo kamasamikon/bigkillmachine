@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: hook sewer agent
-clean: hook.clean sewer.clean agent.clean
+all: hook sewer agent ldmon
+clean: hook.clean sewer.clean agent.clean ld.clean
 
 -include Makefile.defs
 
@@ -81,6 +81,16 @@ agent: amust
 agent.clean: amust
 	make -C $(HI_PRJ_ROOT)/klog-agent clean
 
+#########################################################################
+# $(HI_PRJ_ROOT)/load-monitor
+#
+.PHONY: ldmon
+ldmon: amust
+	make -C $(HI_PRJ_ROOT)/load-monitor
+
+.PHONY: ldmon.clean
+ldmon.clean: amust
+	make -C $(HI_PRJ_ROOT)/load-monitor clean
 
 #########################################################################
 # Target::install

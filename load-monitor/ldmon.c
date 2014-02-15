@@ -21,28 +21,34 @@ int main(int argc, char *argv[])
 	struct tm *current_time;
 	time_t current_secs;
 	char tm_buf[1024];
-	FILE *fp;
+	FILE *fp = NULL;
+	int loops = -1;
 
 	if (argc < 2) {
 		printf("Usage: ldmon output-file\n");
 		return 0;
 	}
 
-	fp = fopen(argv[1], "wt");
-	if (!fp) {
-		printf("Open file '%s' failed.\n", argv[1]);
-		return 0;
-	}
+	while (1) {
+		loops++;
 
-	for (;;) {
+		if (!fp) {
+			fp = fopen(argv[1], "wt");
+			if (!fp) {
+				printf("Loop:%d, Open file '%s' failed.\n", loops, argv[1]);
+				sleep(1);
+				continue;
+			}
+		}
+
 		sysinfo(&info);
 
 		time(&current_secs);
 		current_time = localtime(&current_secs);
 		strftime(tm_buf, sizeof(tm_buf), "%H:%M:%S", current_time);
 
-		fprintf(fp, "%s %lu %u %u.%02u %u.%02u %u.%02u\n",
-				tm_buf, info.uptime, info.procs,
+		fprintf(fp, "%4u %s %8lu %4u %u.%02u %u.%02u %u.%02u\n",
+				loops, tm_buf, info.uptime, info.procs,
 				LOAD_INT(info.loads[0]), LOAD_FRAC(info.loads[0]),
 				LOAD_INT(info.loads[1]), LOAD_FRAC(info.loads[1]),
 				LOAD_INT(info.loads[2]), LOAD_FRAC(info.loads[2]));
