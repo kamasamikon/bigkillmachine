@@ -340,6 +340,7 @@ def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/libnemohook.so", otv_targetdir + "/target/usr/lib/")
     copy(bkm_7231dir + "/klagent", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/klagent.sh", otv_targetdir + "/target/usr/bin/")
+    copy(bkm_7231dir + "/ldmon", otv_targetdir + "/target/usr/bin/")
 
 def copy_bkm_files():
     copy_bkm_build_files()
@@ -544,4 +545,3 @@ if __name__ == "__main__":
 # dependon : aim;recoder;otvgst
 
 # vim: sw=4 ts=4 sts=4 ai et
-
