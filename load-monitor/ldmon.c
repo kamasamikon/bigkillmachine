@@ -24,19 +24,25 @@ int main(int argc, char *argv[])
 	FILE *fp = NULL;
 	int loops = -1;
 
-	if (argc < 2) {
-		printf("Usage: ldmon output-file\n");
-		return 0;
-	}
+	char *output_file;
+	int pause_time;
+
+	printf("Usage: ldmon output-file pause-time\n");
+
+	output_file = argc > 1 ?  argv[1] : "/dev/stdout";
+	pause_time = argc > 2 ?  atoi(argv[2]) : 500;
+
+	if (pause_time < 100)
+		pause_time = 100;
 
 	while (1) {
 		loops++;
 
 		if (!fp) {
-			fp = fopen(argv[1], "wt");
+			fp = fopen(output_file, "wt");
 			if (!fp) {
-				printf("Loop:%d, Open file '%s' failed.\n", loops, argv[1]);
-				sleep(1);
+				printf("Loop:%d, Open file '%s' failed.\n", loops, output_file);
+				usleep(1000 * pause_time);
 				continue;
 			}
 		}
@@ -52,7 +58,6 @@ int main(int argc, char *argv[])
 				LOAD_INT(info.loads[0]), LOAD_FRAC(info.loads[0]),
 				LOAD_INT(info.loads[1]), LOAD_FRAC(info.loads[1]),
 				LOAD_INT(info.loads[2]), LOAD_FRAC(info.loads[2]));
-		fflush(fp);
 
 #if 0
 		printf("totalram:  %lu\n", info.totalram);
@@ -65,8 +70,9 @@ int main(int argc, char *argv[])
 		printf("freehigh:  %lu\n", info.freehigh);
 #endif
 
-		sleep(1);
+		usleep(1000 * pause_time);
 	}
 
 	return 0;
 }
+
