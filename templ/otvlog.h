@@ -97,3 +97,4 @@ void o_log_assert_trap( void );
 #endif /* __cplusplus */
 
 #endif /* __NTVLOG_H__ */
+

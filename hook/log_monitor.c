@@ -33,20 +33,22 @@ static int __g_rlog_serv_skt = -1;
 static char __g_klog_serv[128];
 static unsigned short __g_klog_serv_port;
 
+static pid_t __g_pid;
+static char *__g_prog;
+
 static int _output(const char *fmt, ...)
 {
 	va_list arg;
 	int done;
 	char buf[2048], cmd[2048];
-	pid_t pid = getpid();
 
 	va_start(arg, fmt);
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	printf("<%d> %s", pid, buf);
+	printf("<%s@%d> %s", __g_prog, __g_pid, buf);
 
-	sprintf(cmd, "echo -n '<%d> %s' >> '%s'", pid, buf, "/tmp/lm.out");
+	sprintf(cmd, "echo -n '<%s@%d> %s' >> '%s'", __g_prog, __g_pid, buf, "/tmp/lm.out");
 	system(cmd);
 
 	return done;
@@ -258,7 +260,10 @@ void klogmon_init()
 		return;
 
 	inited = 1;
-	_output("klogmon_init. PROG='%s'\n", get_prog_name());
+	__g_pid = getpid();
+	__g_prog = get_prog_name();
+
+	_output("klogmon_init\n");
 
 	load_boot_args(&argc, &argv);
 
@@ -281,6 +286,7 @@ void klogmon_init()
 			connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
 	}
 
-	spl_thread_create(thread_monitor_cfgfile, (void*)getenv("KLOG_RTCFG"), 0);
+	/* XXX: inotify KLOG_RTCFG has been move to klog */
+	/* spl_thread_create(thread_monitor_cfgfile, (void*)getenv("KLOG_RTCFG"), 0); */
 }
 
