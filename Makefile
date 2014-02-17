@@ -4,7 +4,7 @@ export HI_PRJ_ROOT := $(CURDIR)
 .PHONY: all clean
 
 all: hook sewer agent ldmon
-clean: hook.clean sewer.clean agent.clean ld.clean
+clean: hook.clean sewer.clean agent.clean ldmon.clean
 
 -include Makefile.defs
 
