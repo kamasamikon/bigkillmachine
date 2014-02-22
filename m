@@ -194,15 +194,20 @@ def process_relation():
         pass
 
 def sync_files():
+    if "--dryrun" in sys.argv:
+        dryrun = True
+    else:
+        dryrun = False
+
     for dummy,attrs in modu_attrs.items():
         if attrs["reconfigure"] == True:
             print_color("reconfigure: %s" % attrs["name"])
             os.system("find '%s' -name '.configured' 2> /dev/null | xargs rm 2> /dev/null" % attrs["cptodir"])
-            syncdir(attrs["cpfrdir"], attrs["cptodir"], False)
+            syncdir(attrs["cpfrdir"], attrs["cptodir"], dryrun)
         elif attrs["rebuild"] == True:
             print_color("rebuild: %s" % attrs["name"])
             os.system("find '%s' -newer '%s.configured' -a -type f 2> /dev/null | grep -v .deps | xargs rm 2> /dev/null" % (attrs["cptodir"], attrs["cptodir"]))
-            syncdir(attrs["cpfrdir"], attrs["cptodir"], False)
+            syncdir(attrs["cpfrdir"], attrs["cptodir"], dryrun)
 
 def fill_omodu_attrs():
     omodu_path = get_omodu_path()
@@ -212,11 +217,17 @@ def update_all_omodu_attrs():
     for dummy,attrs in modu_attrs.items():
         update_attr(attrs)
 
-def do_update():
+def do_update(modu_name):
     start = timeit.default_timer()
 
     fill_omodu_attrs()
-    update_all_omodu_attrs()
+    if modu_name:
+        if modu_attrs.has_key(modu_name):
+            update_attr(modu_attrs[modu_name])
+        else:
+            print_color("update: '%s' not found." % modu_name, "yellow")
+    else:
+        update_all_omodu_attrs()
     process_relation()
     sync_files()
 
@@ -439,6 +450,7 @@ if __name__ == "__main__":
     go = False
     print_info = False
 
+    up_modu = None
     varindex = 1
     i = 0
     argc = len(sys.argv)
@@ -473,6 +485,10 @@ if __name__ == "__main__":
 
         if sys.argv[i] == 'up':
             up = True
+            i += 1
+            if i < argc:
+                up_modu = sys.argv[i]
+            break
 
         if sys.argv[i] == 'go':
             go = True
@@ -520,7 +536,7 @@ if __name__ == "__main__":
     # Update the source
     ###
     if up:
-        do_update()
+        do_update(up_modu)
 
     ###
     # Do make
