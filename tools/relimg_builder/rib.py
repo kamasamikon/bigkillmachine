@@ -124,12 +124,15 @@ def upload_gx_sh530cf_usb_bin(path):
         ftp = FTP(FTP_HOST, FTP_USER, FTP_PASS)
         ftp.storbinary(remote_name, open(path, 'rb'))
         ftp.close()
+        print2(">>> UPLOAD '%s-%s' FINISHED." % (imgfile, squashfs_bin_md5))
     except KeyboardInterrupt:
         COMM_SOCK.close()
         sys.exit(0)
     except Exception as e:
-        print2("FTP ERROR when put %s" % remote_name)
+        print2(">>> UPLOAD '%s-%s' FAILED." % (imgfile, squashfs_bin_md5))
+        print2("------------------------------------")
         print2(e)
+        print2("------------------------------------")
     print2(">>> QUIT FROM upload_gx_sh530cf_usb_bin\n\n\n")
 
 def do_command(cmd):
