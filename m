@@ -352,6 +352,7 @@ def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/klagent", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/klagent.sh", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/ldmon", otv_targetdir + "/target/usr/bin/")
+    copy(bkm_7231dir + "/libnilklog.so", otv_targetdir + "/target/usr/lib/")
 
 def copy_bkm_files():
     copy_bkm_build_files()

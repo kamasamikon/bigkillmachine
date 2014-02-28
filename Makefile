@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: hook sewer agent ldmon
-clean: hook.clean sewer.clean agent.clean ldmon.clean
+all: hook sewer agent ldmon nilklog
+clean: hook.clean sewer.clean agent.clean ldmon.clean nilklog.clean
 
 -include Makefile.defs
 
@@ -91,6 +91,17 @@ ldmon: amust
 .PHONY: ldmon.clean
 ldmon.clean: amust
 	make -C $(HI_PRJ_ROOT)/load-monitor clean
+
+#########################################################################
+# $(HI_PRJ_ROOT)/nilklog
+#
+.PHONY: nilklog
+nilklog: amust
+	make -C $(HI_PRJ_ROOT)/nilklog
+
+.PHONY: nilklog.clean
+nilklog.clean: amust
+	make -C $(HI_PRJ_ROOT)/nilklog clean
 
 #########################################################################
 # Target::install

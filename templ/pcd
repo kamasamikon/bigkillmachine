@@ -45,6 +45,7 @@ initenv() {
     echo '# export KLOG_TO_SYSLOG=YES' >> ${NMENV}
     echo '' >> ${NMENV}
     echo '# export LD_PRELOAD=/usr/lib/libnemohook.so' >> ${NMENV}
+    echo '# export LD_PRELOAD=/usr/lib/libnilklog.so' >> ${NMENV}
     echo '' >> ${NMENV}
     echo '# export NH_SYSLOG_NOREAL=YES' >> ${NMENV}
     echo '# export PCDOUT=/dev/null' >> ${NMENV}
