@@ -32,19 +32,6 @@
 
 #include "log_monitor.h"
 
-#define klog_ap(fmt, ap) do { \
-	KLOG_INNER_VAR_DEF(); \
-	if (__kl_ver_get > __kl_ver_sav) { \
-		__kl_ver_sav = __kl_ver_get; \
-		KLOG_SETUP_NAME_AND_ID(); \
-		__kl_mask = klog_calc_mask(__kl_prog_name_id_, __kl_modu_name_id_, __kl_file_name_id_, __kl_func_name_id, __LINE__, (int)spl_process_current()); \
-		if (!(__kl_mask & KLOG_LOG)) \
-			__kl_mask = 0; \
-	} \
-	if (__kl_mask) \
-		klog_f('L', __kl_mask, __kl_prog_name_, KMODU_NAME, __kl_file_name_, __FUNCTION__, __LINE__, fmt, ap); \
-} while (0)
-
 void vsyslog(int __pri, __const char *__fmt, __gnuc_va_list __ap)
 {
 	static int call_realfunc = 0;
@@ -62,7 +49,7 @@ void vsyslog(int __pri, __const char *__fmt, __gnuc_va_list __ap)
 
 	if (call_realfunc == 'y') {
 		klogmon_init();
-		klog_ap(__fmt, __ap);
+		KLOG_CHK_AND_CALL_AP(KLOG_INFO, 'L', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ap);
 
 		realfunc(__pri, __fmt, __ap);
 	}
