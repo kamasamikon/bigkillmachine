@@ -35,9 +35,6 @@ bkm_7231dir = None
 
 config_type = None
 build_type = None
-
-config_type = None
-build_type = None
 build_mode = None
 
 modu_attrs = {}
@@ -82,6 +79,15 @@ def show_cost_time(t):
 ### ###########################################################
 ## 
 #
+
+def shell_run(cmd):
+    if build_mode:
+        os.environ["BKM_BM"] = build_mode
+    if config_type:
+        os.environ["BKM_CT"] = config_type
+    if build_type:
+        os.environ["BKM_BT"] = build_type
+    os.system(cmd)
 
 def syncdir(frdir, todir, dryrun):
     if not os.path.exists(frdir):
@@ -202,11 +208,11 @@ def sync_files():
     for dummy,attrs in modu_attrs.items():
         if attrs["reconfigure"] == True:
             print_color("reconfigure: %s" % attrs["name"])
-            os.system("find '%s' -name '.configured' 2> /dev/null | xargs rm 2> /dev/null" % attrs["cptodir"])
+            shell_run("find '%s' -name '.configured' 2> /dev/null | xargs rm 2> /dev/null" % attrs["cptodir"])
             syncdir(attrs["cpfrdir"], attrs["cptodir"], dryrun)
         elif attrs["rebuild"] == True:
             print_color("rebuild: %s" % attrs["name"])
-            os.system("find '%s' -newer '%s.configured' -a -type f 2> /dev/null | grep -v .deps | xargs rm 2> /dev/null" % (attrs["cptodir"], attrs["cptodir"]))
+            shell_run("find '%s' -newer '%s.configured' -a -type f 2> /dev/null | grep -v .deps | xargs rm 2> /dev/null" % (attrs["cptodir"], attrs["cptodir"]))
             syncdir(attrs["cpfrdir"], attrs["cptodir"], dryrun)
 
 def fill_omodu_attrs():
@@ -247,7 +253,7 @@ def do_make():
 
     what = "source ../set_env_bash.sh; make CONFIG_TYPE=%s BUILD_TYPE=%s DEBUG_INIT=1 V=1 %s" % (config_type, build_type, " ".join(sys.argv[varindex:]))
     print_color(what, "yellow")
-    os.system(what)
+    shell_run(what)
     end = timeit.default_timer()
     show_cost_time(end - start)
     sys.exit(0)
@@ -268,11 +274,11 @@ def mark_reconfigure(modu_name):
 
 def copy(src, dst):
     print_color("Copy [%s] => [%s]" % (src, dst), "yellow")
-    os.system("mkdir -p '%s'" % os.path.dirname(dst))
-    os.system("cp -fr '%s' '%s'" % (src, dst))
+    shell_run("mkdir -p '%s'" % os.path.dirname(dst))
+    shell_run("cp -fr '%s' '%s'" % (src, dst))
 
 def is_diff(path0, path1):
-    if os.system("diff '%s' '%s' &> /dev/null" % (path0, path1)):
+    if shell_run("diff '%s' '%s' &> /dev/null" % (path0, path1)):
         return True
     return False
 
@@ -285,7 +291,7 @@ def patch_dbus(bkm_7231dir):
         return 
 
     # When patch dbus, the old one MUST be rebuilt
-    os.system("rm -fr '%s'" % otv_builddir + "/dbus-1.4.16")
+    shell_run("rm -fr '%s'" % otv_builddir + "/dbus-1.4.16")
     copy(bkm_dbus_patch_path, br_dbus_patch_path)
 
 def process_ntvlog():
@@ -301,7 +307,7 @@ def process_ntvlog():
         print_color("Backup Don's ntvlog.h to ntvlog.h.nmbak")
         copy(ntvlog_path, ntvlog_nmbak_path)
 
-        if os.system("grep '275 Sacramento Street' %s" % ntvlog_nmbak_path):
+        if shell_run("grep '275 Sacramento Street' %s" % ntvlog_nmbak_path):
             print_color("==================================================")
             print_color("= Fatal error: ntvlog.h.nmbak is not don's version")
             print_color("==================================================")
@@ -324,8 +330,8 @@ def process_ntvlog():
  
 # Modify buildroot/Makefile and add -lhilda to it
 def patch_buildroot_makefile(bkm_7231dir):
-    if os.system("grep \"^O_BUILD_CFLAGS += -lhilda\" '%s/buildroot/Makefile'" % otv_rootdir):
-        os.system("meld '%s' '%s'" % (bkm_7231dir + "/br-Makefile", otv_rootdir + "/buildroot/Makefile"))
+    if shell_run("grep \"^O_BUILD_CFLAGS += -lhilda\" '%s/buildroot/Makefile'" % otv_rootdir):
+        shell_run("meld '%s' '%s'" % (bkm_7231dir + "/br-Makefile", otv_rootdir + "/buildroot/Makefile"))
 
 def copy_hilda_to_staging():
     if not os.path.isdir(otv_stagedir): # or not os.path.islink(otv_stagedir):
@@ -349,14 +355,21 @@ def copy_bkm_build_files():
 def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/libhilda.so", otv_targetdir + "/target/usr/lib/")
     copy(bkm_7231dir + "/libnemohook.so", otv_targetdir + "/target/usr/lib/")
+    copy(bkm_7231dir + "/rtk", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/klagent", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/klagent.sh", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/ldmon", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/libnilklog.so", otv_targetdir + "/target/usr/lib/")
 
+def set_build_info():
+    hfile = open(otv_targetdir + "/target/BUILD.INFO", "wt")
+    hfile.write("Build at: %s" % time.asctime(time.localtime(time.time())))
+    hfile.close()
+
 def copy_bkm_files():
     copy_bkm_build_files()
     copy_bkm_runtime_files()
+    set_build_info()
 
 def set_dirs():
     global otv_makedir, otv_rootdir, otv_targetdir, otv_builddir, otv_stagedir, otv_imagedir, bkm_rootdir, bkm_7231dir
@@ -430,7 +443,7 @@ class WatchThread(threading.Thread):
 
     def watch_pcd_file(self):
         sbin_path = otv_targetdir + "/target/usr/sbin"
-        os.system("mkdir -p '%s'" % sbin_path)
+        shell_run("mkdir -p '%s'" % sbin_path)
 
         mask = pyinotify.IN_CREATE | pyinotify.IN_MODIFY
         self.wm.add_watch(sbin_path, mask, rec=False)
@@ -463,15 +476,15 @@ if __name__ == "__main__":
         if sys.argv[i] == 'bm':
             i += 1
             if i < argc:
-                os.system('echo "%s" > .nmk.bm' % sys.argv[i])
+                shell_run('echo "%s" > .nmk.bm' % sys.argv[i])
             else:
                 print_color("No NMK MODE set, default is otv mode")
-                os.system('echo "%s" > .nmk.bm' % "otv")
+                shell_run('echo "%s" > .nmk.bm' % "otv")
 
         if sys.argv[i] == 'ct':
             i += 1
             if i < argc:
-                os.system('echo "%s" > .nmk.ct' % sys.argv[i])
+                shell_run('echo "%s" > .nmk.ct' % sys.argv[i])
             else:
                 print_color("Need CONFIG_TYPE")
                 sys.exit(0)
@@ -479,7 +492,7 @@ if __name__ == "__main__":
         if sys.argv[i] == 'bt':
             i += 1
             if i < argc:
-                os.system('echo "%s" > .nmk.bt' % sys.argv[i])
+                shell_run('echo "%s" > .nmk.bt' % sys.argv[i])
             else:
                 print_color("Need BUILD_TYPE")
                 sys.exit(0)

@@ -506,7 +506,13 @@ include fs/common.mk
 ###
 ## ######################################################################
 # Nemo: Append hilda stuff, Will overwrite O_DEBUG_CFLAGS
+ifdef BKM_CT
+ifdef BKM_BT
+ifdef BKM_BM
 O_BUILD_CFLAGS += -lhilda
+endif
+endif
+endif
 
 O_DEBUG_CFLAGS:="CFLAGS= $(TARGET_CFLAGS) $(O_BUILD_CFLAGS)"
 

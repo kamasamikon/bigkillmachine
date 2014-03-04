@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: hook sewer agent ldmon nilklog
-clean: hook.clean sewer.clean agent.clean ldmon.clean nilklog.clean
+all: hook sewer agent ldmon nilklog kongso
+clean: hook.clean sewer.clean agent.clean ldmon.clean nilklog.clean kongso.clean
 
 -include Makefile.defs
 
@@ -102,6 +102,17 @@ nilklog: amust
 .PHONY: nilklog.clean
 nilklog.clean: amust
 	make -C $(HI_PRJ_ROOT)/nilklog clean
+
+#########################################################################
+# $(HI_PRJ_ROOT)/kongso
+#
+.PHONY: kongso
+kongso: amust
+	make -C $(HI_PRJ_ROOT)/kongso
+
+.PHONY: kongso.clean
+kongso.clean: amust
+	make -C $(HI_PRJ_ROOT)/kongso clean
 
 #########################################################################
 # Target::install
