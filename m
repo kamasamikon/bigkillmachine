@@ -87,7 +87,7 @@ def shell_run(cmd):
         os.environ["BKM_CT"] = config_type
     if build_type:
         os.environ["BKM_BT"] = build_type
-    os.system(cmd)
+    return os.system(cmd)
 
 def syncdir(frdir, todir, dryrun):
     if not os.path.exists(frdir):
@@ -326,7 +326,7 @@ def process_ntvlog():
             rebuild = True
 
     if rebuild:
-        mark_rebuilt("utils")
+        shell_run("rm -fr %s/utils" % otv_builddir)
  
 # Modify buildroot/Makefile and add -lhilda to it
 def patch_buildroot_makefile(bkm_7231dir):

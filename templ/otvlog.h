@@ -17,7 +17,7 @@ extern "C" {
 
 #include <hilda/klog.h>
 
-/**** Includes ***************************************************************/
+	/**** Includes ***************************************************************/
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,7 +27,7 @@ extern "C" {
 
 #define STMT(stuff) do { stuff } while(0)
 
-void o_log_assert_trap( void );
+	void o_log_assert_trap( void );
 
 #if !defined(NDEBUG)
 #define O_ASSERT                        kassert
@@ -50,47 +50,75 @@ void o_log_assert_trap( void );
 #define O_DEBUG                         7
 #define O_TRACE                         8
 
-/* Reset the O_LOG_LEVEL */
+	/* Reset the O_LOG_LEVEL */
 #ifdef O_LOG_LEVEL
 #undef O_LOG_LEVEL
 #define O_LOG_LEVEL                     O_TRACE
 #endif
 
-/* Set the LOG_LEVEL */
+	/* Set the LOG_LEVEL */
 #ifndef LOG_LEVEL
 #define LOG_LEVEL                       O_FATAL
 #endif
 
-#define O_LOG_FATAL                     kfatal
-
-#define O_LOG_ERROR                     kerror
-#define O_LOG_ERROR_SIMPLE              kerror
-
-#define O_LOG_WARNING                   kwarning
-#define O_LOG_WARNING_SIMPLE            kwarning
-
-#define O_LOG_MAINSTATUS                knotice
-#define O_LOG_MAINSTATUS_SIMPLE         knotice
-
-#define O_LOG_DEBUG                     klog
-#define O_LOG_DEBUG_SIMPLE              klog
-
-#define O_LOG_TRACE                     ktrace
-#define O_LOG_TRACE_SIMPLE              ktrace
-
-#if (O_LOG_LEVEL >= O_TRACE)
-#define O_LOG_ENTER(fmt, ...)           ktrace("Enter:" fmt, ##__VA_ARGS__)
-#define O_LOG_EXIT(fmt, ...)            ktrace("Exit:" fmt, ##__VA_ARGS__)
+#ifdef MY_FATAL
+#define O_LOG_FATAL(...)                ((void)0)
 #else
-#define O_LOG_ENTER(msg,args...)        ((void)0)
-#define O_LOG_EXIT(msg,args...)         ((void)0)
+#define O_LOG_FATAL                     kfatal
 #endif
 
+#ifdef MY_ERROR
+#define O_LOG_ERROR(...)                ((void)0)
+#define O_LOG_ERROR_SIMPLE(...)         ((void)0)
+#else
+#define O_LOG_ERROR                     kerror
+#define O_LOG_ERROR_SIMPLE              kerror
+#endif
 
-#define REQUIRE(pre)                    ((void)0)
-#define ENSURE(post)                    ((void)0)
-#define LOOP_INVARIANT_INIT(inv,x)      ((void)0)
-#define LOOP_INVARIANT_TEST(inv,x)      ((void)0)
+#ifdef MY_WARNING
+#define O_LOG_WARNING(...)              ((void)0)
+#define O_LOG_WARNING_SIMPLE(...)       ((void)0)
+#else
+#define O_LOG_WARNING                   kwarning
+#define O_LOG_WARNING_SIMPLE            kwarning
+#endif
+
+#ifdef MY_MAINSTATUS
+#define O_LOG_MAINSTATUS(...)           ((void)0)
+#define O_LOG_MAINSTATUS_SIMPLE(...)    ((void)0)
+#else
+#define O_LOG_MAINSTATUS                knotice
+#define O_LOG_MAINSTATUS_SIMPLE         knotice
+#endif
+
+#ifdef MY_DEBUG
+#define O_LOG_DEBUG(...)                ((void)0)
+#define O_LOG_DEBUG_SIMPLE(...)         ((void)0)
+#else
+#define O_LOG_DEBUG                     klog
+#define O_LOG_DEBUG_SIMPLE              klog
+#endif
+
+#ifdef MY_TRACE
+#define O_LOG_TRACE(...)                ((void)0)
+#define O_LOG_TRACE_SIMPLE(...)         ((void)0)
+#else
+#define O_LOG_TRACE                     ktrace
+#define O_LOG_TRACE_SIMPLE              ktrace
+#endif
+
+#ifdef MY_E_E
+#define O_LOG_ENTER(...)                ((void)0)
+#define O_LOG_EXIT(...)                 ((void)0)
+#else
+#define O_LOG_ENTER(fmt, ...)           ktrace("Enter:" fmt, ##__VA_ARGS__)
+#define O_LOG_EXIT(fmt, ...)            ktrace("Exit:" fmt, ##__VA_ARGS__)
+#endif
+
+#define REQUIRE(...)                    ((void)0)
+#define ENSURE(...)                     ((void)0)
+#define LOOP_INVARIANT_INIT(...)        ((void)0)
+#define LOOP_INVARIANT_TEST(...)        ((void)0)
 
 #ifdef __cplusplus
 }
