@@ -356,10 +356,12 @@ def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/libhilda.so", otv_targetdir + "/target/usr/lib/")
     copy(bkm_7231dir + "/libnemohook.so", otv_targetdir + "/target/usr/lib/")
     copy(bkm_7231dir + "/rtk", otv_targetdir + "/target/usr/bin/")
+    copy(bkm_7231dir + "/klbench", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/klagent", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/klagent.sh", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/ldmon", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/libnilklog.so", otv_targetdir + "/target/usr/lib/")
+    copy(bkm_7231dir + "/libkongso.so", otv_targetdir + "/target/usr/lib/")
 
 def set_build_info():
     hfile = open(otv_targetdir + "/target/BUILD.INFO", "wt")

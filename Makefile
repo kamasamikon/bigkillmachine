@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: hook sewer agent ldmon nilklog kongso
-clean: hook.clean sewer.clean agent.clean ldmon.clean nilklog.clean kongso.clean
+all: hook sewer agent ldmon nilklog kongso klbench
+clean: hook.clean sewer.clean agent.clean ldmon.clean nilklog.clean kongso.clean klbench.clean
 
 -include Makefile.defs
 
@@ -80,6 +80,17 @@ agent: amust
 .PHONY: agent.clean
 agent.clean: amust
 	make -C $(HI_PRJ_ROOT)/klog-agent clean
+
+#########################################################################
+# $(HI_PRJ_ROOT)/klog-bench
+#
+.PHONY: klbench
+klbench: amust
+	make -C $(HI_PRJ_ROOT)/klog-bench
+
+.PHONY: klbench.clean
+klbench.clean: amust
+	make -C $(HI_PRJ_ROOT)/klog-bench clean
 
 #########################################################################
 # $(HI_PRJ_ROOT)/load-monitor
