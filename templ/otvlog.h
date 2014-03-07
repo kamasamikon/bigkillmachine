@@ -17,7 +17,6 @@ extern "C" {
 
 #include <hilda/klog.h>
 
-	/**** Includes ***************************************************************/
 #include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -27,7 +26,7 @@ extern "C" {
 
 #define STMT(stuff) do { stuff } while(0)
 
-	void o_log_assert_trap( void );
+void o_log_assert_trap(void);
 
 #if !defined(NDEBUG)
 #define O_ASSERT                        kassert
@@ -50,13 +49,13 @@ extern "C" {
 #define O_DEBUG                         7
 #define O_TRACE                         8
 
-	/* Reset the O_LOG_LEVEL */
+/* Reset the O_LOG_LEVEL */
 #ifdef O_LOG_LEVEL
 #undef O_LOG_LEVEL
 #define O_LOG_LEVEL                     O_TRACE
 #endif
 
-	/* Set the LOG_LEVEL */
+/* Set the LOG_LEVEL */
 #ifndef LOG_LEVEL
 #define LOG_LEVEL                       O_FATAL
 #endif

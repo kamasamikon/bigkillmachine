@@ -32,27 +32,41 @@
 
 #include "log_monitor.h"
 
-void vsyslog(int __pri, __const char *__fmt, __gnuc_va_list __ap)
+void syslog(int __pri, __const char *__fmt, ...)
 {
-	static int call_realfunc = 0;
-	static int (*realfunc)(int, __const char*, __gnuc_va_list) = NULL;
+	va_list ap;
 
-	if (!realfunc)
-		realfunc = dlsym(RTLD_NEXT, "vsyslog");
-
-	if (call_realfunc == 0) {
-		if (getenv("NH_SYSLOG_NOREAL"))
-			call_realfunc = 'n';
-		else
-			call_realfunc = 'y';
+	va_start(ap, __fmt);
+	klogmon_init();
+	switch (__pri) {
+	case LOG_EMERG:
+		KLOG_CHK_AND_CALL_AP(KLOG_FATAL, 'F', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	case LOG_ALERT:
+		KLOG_CHK_AND_CALL_AP(KLOG_ALERT, 'A', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	case LOG_CRIT:
+		KLOG_CHK_AND_CALL_AP(KLOG_CRIT, 'C', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	case LOG_ERR:
+		KLOG_CHK_AND_CALL_AP(KLOG_ERR, 'E', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	case LOG_WARNING:
+		KLOG_CHK_AND_CALL_AP(KLOG_WARNING, 'W', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	case LOG_NOTICE:
+		KLOG_CHK_AND_CALL_AP(KLOG_NOTICE, 'N', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	case LOG_INFO:
+		KLOG_CHK_AND_CALL_AP(KLOG_INFO, 'L', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	case LOG_DEBUG:
+		KLOG_CHK_AND_CALL_AP(KLOG_DEBUG, 'T', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
+		break;
+	default:
+		KLOG_CHK_AND_CALL_AP(KLOG_INFO, 'L', KMODU_NAME, __FILE__, __func__, __LINE__, __fmt, ap);
 	}
-
-	if (call_realfunc == 'y') {
-		klogmon_init();
-		KLOG_CHK_AND_CALL_AP(KLOG_INFO, 'L', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ap);
-
-		realfunc(__pri, __fmt, __ap);
-	}
+	va_end(ap);
 }
 #endif
 
