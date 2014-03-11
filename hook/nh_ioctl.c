@@ -105,12 +105,13 @@ static const char *dir_name(unsigned int dir)
 
 int ioctl(int d, unsigned long int r, ...)
 {
+	static int skip_klog = -1;
 	static int (*realfunc)(int d, unsigned long int r, void*) = NULL;
-	if (!realfunc)
-		realfunc = dlsym(RTLD_NEXT, "ioctl");
-
 	va_list args;
 	void *argp;
+
+	if (!realfunc)
+		realfunc = dlsym(RTLD_NEXT, "ioctl");
 
 	va_start(args, r);
 	argp = va_arg(args, void *);
@@ -119,11 +120,18 @@ int ioctl(int d, unsigned long int r, ...)
 	klogmon_init();
 	int ret = realfunc(d, r, argp);
 
-	unsigned int i, cnt, dir = _IOC_DIR(r), type = _IOC_TYPE(r), size = _IOC_SIZE(r);
+	if (skip_klog == -1) {
+		if (getenv("NH_IOCTL_SKIP"))
+			skip_klog = 1;
+		else
+			skip_klog = 0;
+	}
+	if (skip_klog)
+		return ret;
 
+	unsigned int i, cnt, dir = _IOC_DIR(r), type = _IOC_TYPE(r), size = _IOC_SIZE(r);
 	klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 			d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
-
 	return ret;
 }
 #endif
