@@ -34,10 +34,14 @@ initenv() {
     echo '## PCDOUT="Local file to save PCD log"' >> ${NMENV}
     echo '## NH_DBUS_NOBODY="If defined, dont print dbus message body"' >> ${NMENV}
     echo '' >> ${NMENV}
+    echo '# export NH_DBUS_NOBODY=YES' >> ${NMENV}
     echo '# export NH_DBUS_SKIP=YES' >> ${NMENV}
     echo '# export NH_IOCTL_SKIP=YES' >> ${NMENV}
     echo '# export NH_SQLITE_SKIP=YES' >> ${NMENV}
     echo '# export NH_SYSLOG_SKIP=YES' >> ${NMENV}
+    echo '' >> ${NMENV}
+    echo '# export LD_LIBRARY_PATH=/tmp/lib:$LD_LIBRARY_PATH' >> ${NMENV}
+    echo '# export LD_LIBRARY_PATH=/mnt/lib:$LD_LIBRARY_PATH' >> ${NMENV}
     echo '' >> ${NMENV}
     echo '# export KLOG_DFCFG=/tmp/klog.df.cfg' >> ${NMENV}
     echo '# export KLOG_RTCFG=/tmp/klog.rt.cfg' >> ${NMENV}

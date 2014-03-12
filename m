@@ -365,8 +365,9 @@ def copy_bkm_runtime_files():
 
 def set_build_info():
     hfile = open(otv_targetdir + "/target/BUILD.INFO", "wt")
-    hfile.write("Build at: %s" % time.asctime(time.localtime(time.time())))
-    hfile.write("Root: %s" % otv_targetdir)
+    hfile.write("Build at: %s\n" % time.asctime(time.localtime(time.time())))
+    hfile.write("Root: %s\n" % otv_targetdir)
+    hfile.write("Mode: %s" % build_mode)
     hfile.close()
 
 def copy_bkm_files():
