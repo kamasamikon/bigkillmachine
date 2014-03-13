@@ -368,12 +368,12 @@ include fs/common.mk
 
 ###
 ## ######################################################################
-# Nemo: Append hilda stuff, Will overwrite O_DEBUG_CFLAGS
+# Nemo: Append nhlog stuff, Will overwrite O_DEBUG_CFLAGS
 O_BUILD_CFLAGS += -save-temps -Wl,-Map=nemo.map
 ifdef BKM_CT
 ifdef BKM_BT
 ifeq ($(BKM_BM),bkm)
-O_BUILD_CFLAGS += -lhilda
+O_BUILD_CFLAGS += -lnhlog
 endif
 endif
 endif

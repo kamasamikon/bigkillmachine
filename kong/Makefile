@@ -1,12 +1,12 @@
 export HI_PRJ_ROOT = ..
 -include $(HI_PRJ_ROOT)/Makefile.defs
 
-SUB_OBJS_kongso = \
-				 $(HI_PRJ_ROOT)/kongso/kongso.o
+SUB_OBJS_kong = \
+				 $(HI_PRJ_ROOT)/kong/kong.o
 
-LOCAL_OUT_OBJS = $(SUB_OBJS_kongso)
-LOCAL_OUT_LIB = kongso.a
-LOCAL_SHARE_LIB = libkongso.so
+LOCAL_OUT_OBJS = $(SUB_OBJS_kong)
+LOCAL_OUT_LIB = kong.a
+LOCAL_SHARE_LIB = libkong.so
 
 .PHONY: all clean
 

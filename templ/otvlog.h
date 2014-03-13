@@ -8,14 +8,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if (defined(O_LOG_COMPNAME))
-#define KMODU_NAME  O_LOG_COMPNAME
+#define NHL_MODU_NAME  O_LOG_COMPNAME
 #elif (defined(PACKAGE_NAME))
-#define KMODU_NAME  PACKAGE_NAME
+#define NHL_MODU_NAME  PACKAGE_NAME
 #else
-#define KMODU_NAME  "NONAME"
+#define NHL_MODU_NAME  "NONAME"
 #endif
 
-#include <hilda/klog.h>
+#include <nhlog.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -29,11 +29,11 @@ extern "C" {
 void o_log_assert_trap(void);
 
 #if !defined(NDEBUG)
-#define O_ASSERT                        kassert
-#define O_WARN                          kassert
-#define ASSERT                          kassert
-#define O_DEBUG_ASSERT                  kassert
-#define WARN                            kassert
+#define O_ASSERT                        nhassert
+#define O_WARN                          nhassert
+#define ASSERT                          nhassert
+#define O_DEBUG_ASSERT                  nhassert
+#define WARN                            nhassert
 #else
 #define O_WARN(cond)                    ((void)0)
 #define O_ASSERT(cond)                  ((void)0)
@@ -63,55 +63,55 @@ void o_log_assert_trap(void);
 #ifdef MY_FATAL
 #define O_LOG_FATAL(...)                ((void)0)
 #else
-#define O_LOG_FATAL                     kfatal
+#define O_LOG_FATAL                     nhfatal
 #endif
 
 #ifdef MY_ERROR
 #define O_LOG_ERROR(...)                ((void)0)
 #define O_LOG_ERROR_SIMPLE(...)         ((void)0)
 #else
-#define O_LOG_ERROR                     kerror
-#define O_LOG_ERROR_SIMPLE              kerror
+#define O_LOG_ERROR                     nherror
+#define O_LOG_ERROR_SIMPLE              nherror
 #endif
 
 #ifdef MY_WARNING
 #define O_LOG_WARNING(...)              ((void)0)
 #define O_LOG_WARNING_SIMPLE(...)       ((void)0)
 #else
-#define O_LOG_WARNING                   kwarning
-#define O_LOG_WARNING_SIMPLE            kwarning
+#define O_LOG_WARNING                   nhwarning
+#define O_LOG_WARNING_SIMPLE            nhwarning
 #endif
 
 #ifdef MY_MAINSTATUS
 #define O_LOG_MAINSTATUS(...)           ((void)0)
 #define O_LOG_MAINSTATUS_SIMPLE(...)    ((void)0)
 #else
-#define O_LOG_MAINSTATUS                knotice
-#define O_LOG_MAINSTATUS_SIMPLE         knotice
+#define O_LOG_MAINSTATUS                nhnotice
+#define O_LOG_MAINSTATUS_SIMPLE         nhnotice
 #endif
 
 #ifdef MY_DEBUG
 #define O_LOG_DEBUG(...)                ((void)0)
 #define O_LOG_DEBUG_SIMPLE(...)         ((void)0)
 #else
-#define O_LOG_DEBUG                     klog
-#define O_LOG_DEBUG_SIMPLE              klog
+#define O_LOG_DEBUG                     nhlog
+#define O_LOG_DEBUG_SIMPLE              nhlog
 #endif
 
 #ifdef MY_TRACE
 #define O_LOG_TRACE(...)                ((void)0)
 #define O_LOG_TRACE_SIMPLE(...)         ((void)0)
 #else
-#define O_LOG_TRACE                     ktrace
-#define O_LOG_TRACE_SIMPLE              ktrace
+#define O_LOG_TRACE                     nhtrace
+#define O_LOG_TRACE_SIMPLE              nhtrace
 #endif
 
 #ifdef MY_E_E
 #define O_LOG_ENTER(...)                ((void)0)
 #define O_LOG_EXIT(...)                 ((void)0)
 #else
-#define O_LOG_ENTER(fmt, ...)           ktrace("Enter:" fmt, ##__VA_ARGS__)
-#define O_LOG_EXIT(fmt, ...)            ktrace("Exit:" fmt, ##__VA_ARGS__)
+#define O_LOG_ENTER(fmt, ...)           nhtrace("Enter:" fmt, ##__VA_ARGS__)
+#define O_LOG_EXIT(fmt, ...)            nhtrace("Exit:" fmt, ##__VA_ARGS__)
 #endif
 
 #define REQUIRE(...)                    ((void)0)

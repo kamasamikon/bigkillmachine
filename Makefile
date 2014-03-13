@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: hook sewer agent ldmon nilklog kongso klbench
-clean: hook.clean sewer.clean agent.clean ldmon.clean nilklog.clean kongso.clean klbench.clean
+all: hook sewer agent ldmon nhlog kong klbench
+clean: hook.clean sewer.clean agent.clean ldmon.clean nhlog.clean kong.clean klbench.clean
 
 -include Makefile.defs
 
@@ -104,26 +104,26 @@ ldmon.clean: amust
 	make -C $(HI_PRJ_ROOT)/load-monitor clean
 
 #########################################################################
-# $(HI_PRJ_ROOT)/nilklog
+# $(HI_PRJ_ROOT)/nhlog
 #
-.PHONY: nilklog
-nilklog: amust
-	make -C $(HI_PRJ_ROOT)/nilklog
+.PHONY: nhlog
+nhlog: amust
+	make -C $(HI_PRJ_ROOT)/nhlog
 
-.PHONY: nilklog.clean
-nilklog.clean: amust
-	make -C $(HI_PRJ_ROOT)/nilklog clean
+.PHONY: nhlog.clean
+nhlog.clean: amust
+	make -C $(HI_PRJ_ROOT)/nhlog clean
 
 #########################################################################
-# $(HI_PRJ_ROOT)/kongso
+# $(HI_PRJ_ROOT)/kong
 #
-.PHONY: kongso
-kongso: amust
-	make -C $(HI_PRJ_ROOT)/kongso
+.PHONY: kong
+kong: amust
+	make -C $(HI_PRJ_ROOT)/kong
 
-.PHONY: kongso.clean
-kongso.clean: amust
-	make -C $(HI_PRJ_ROOT)/kongso clean
+.PHONY: kong.clean
+kong.clean: amust
+	make -C $(HI_PRJ_ROOT)/kong clean
 
 #########################################################################
 # Target::install

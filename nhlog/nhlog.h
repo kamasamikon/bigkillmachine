@@ -25,10 +25,10 @@ static char VAR_UNUSED *__nhl_prog_name_ = NULL;
 static int VAR_UNUSED __nhl_modu_name_id_ = -1;
 
 /*-----------------------------------------------------------------------
- * Define KMODU_NAME if someone forgot it.
+ * Define NHL_MODU_NAME if someone forgot it.
  */
-#ifndef KMODU_NAME
-#define KMODU_NAME  "?"
+#ifndef NHL_MODU_NAME
+#define NHL_MODU_NAME  "?"
 #endif
 
 /*-----------------------------------------------------------------------
@@ -125,25 +125,25 @@ static int VAR_UNUSED __nhl_modu_name_id_ = -1;
 	nhlog_f(0, 0, NULL, NULL, NULL, NULL, 0, fmt, ##__VA_ARGS__); \
 } while (0)
 
-#define nhfatal(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_FATAL,   'F', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhalert(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_ALERT,   'A', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhcritical(fmt, ...)    NHLOG_CHK_AND_CALL(NHLOG_CRIT,    'C', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nherror(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_ERR,     'E', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhwarning(fmt, ...)     NHLOG_CHK_AND_CALL(NHLOG_WARNING, 'W', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhnotice(fmt, ...)      NHLOG_CHK_AND_CALL(NHLOG_NOTICE,  'N', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhinfo(fmt, ...)        NHLOG_CHK_AND_CALL(NHLOG_INFO,    'I', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhlog(fmt, ...)         NHLOG_CHK_AND_CALL(NHLOG_INFO,    'L', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhdebug(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_DEBUG,   'D', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
-#define nhtrace(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_DEBUG,   'T', KMODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhfatal(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_FATAL,   'F', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhalert(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_ALERT,   'A', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhcritical(fmt, ...)    NHLOG_CHK_AND_CALL(NHLOG_CRIT,    'C', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nherror(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_ERR,     'E', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhwarning(fmt, ...)     NHLOG_CHK_AND_CALL(NHLOG_WARNING, 'W', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhnotice(fmt, ...)      NHLOG_CHK_AND_CALL(NHLOG_NOTICE,  'N', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhinfo(fmt, ...)        NHLOG_CHK_AND_CALL(NHLOG_INFO,    'I', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhlog(fmt, ...)         NHLOG_CHK_AND_CALL(NHLOG_INFO,    'L', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhdebug(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_DEBUG,   'D', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+#define nhtrace(fmt, ...)       NHLOG_CHK_AND_CALL(NHLOG_DEBUG,   'T', NHL_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 
 #define nhassert(_x_) do { \
 	if (!(_x_)) { \
 		NHLOG_INNER_VAR_DEF(); \
 		if (__nhl_ver_get > __nhl_ver_sav) { \
 			__nhl_ver_sav = __nhl_ver_get; \
-			NHLOG_SETUP_NAME_AND_ID(KMODU_NAME, __FILE__, __func__); \
+			NHLOG_SETUP_NAME_AND_ID(NHL_MODU_NAME, __FILE__, __func__); \
 		} \
-		nhlog_f('!', NHLOG_ALL, __nhl_prog_name_, KMODU_NAME, __nhl_file_name_, __FUNCTION__, __LINE__, \
+		nhlog_f('!', NHLOG_ALL, __nhl_prog_name_, NHL_MODU_NAME, __nhl_file_name_, __FUNCTION__, __LINE__, \
 				"\n\tASSERT NG: \"%s\"\n\n", #_x_); \
 	} \
 } while (0)

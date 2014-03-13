@@ -328,10 +328,14 @@ def process_ntvlog():
     if rebuild:
         shell_run("rm -fr %s/utils" % otv_builddir)
  
-# Modify buildroot/Makefile and add -lhilda to it
+# Modify buildroot/Makefile and add -lnhlog to it
 def patch_buildroot_makefile(bkm_7231dir):
-    if shell_run("grep \"^O_BUILD_CFLAGS += -lhilda\" '%s/buildroot/Makefile'" % otv_rootdir):
+    if shell_run("grep \"^O_BUILD_CFLAGS += -lnhlog\" '%s/buildroot/Makefile'" % otv_rootdir):
         shell_run("meld '%s' '%s'" % (bkm_7231dir + "/br-Makefile", otv_rootdir + "/buildroot/Makefile"))
+
+def copy_nhlog_to_staging():
+    copy(bkm_7231dir + "/libnhlog.so", otv_stagedir + "/usr/lib/")
+    copy(bkm_7231dir + "/nhlog.h", otv_stagedir + "/usr/include/")
 
 def copy_hilda_to_staging():
     if not os.path.isdir(otv_stagedir): # or not os.path.islink(otv_stagedir):
@@ -345,6 +349,7 @@ def copy_hilda_to_staging():
 def copy_bkm_build_files():
     # Copy to /staging/usr/lib and /staging/usr/include
 
+    copy_nhlog_to_staging()
     copy_hilda_to_staging()
 
     patch_dbus(bkm_7231dir)
@@ -360,8 +365,8 @@ def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/klagent", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/klagent.sh", otv_targetdir + "/target/usr/bin/")
     copy(bkm_7231dir + "/ldmon", otv_targetdir + "/target/usr/bin/")
-    copy(bkm_7231dir + "/libnilklog.so", otv_targetdir + "/target/usr/lib/")
-    copy(bkm_7231dir + "/libkongso.so", otv_targetdir + "/target/usr/lib/")
+    copy(bkm_7231dir + "/libnhlog.so", otv_targetdir + "/target/usr/lib/")
+    copy(bkm_7231dir + "/libkong.so", otv_targetdir + "/target/usr/lib/")
 
 def set_build_info():
     hfile = open(otv_targetdir + "/target/BUILD.INFO", "wt")

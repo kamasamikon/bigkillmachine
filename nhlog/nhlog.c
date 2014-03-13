@@ -1,6 +1,6 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
-#include "nhlog.h"
+#include <nhlog.h>
 
 int nhlog_touches(void)
 {
