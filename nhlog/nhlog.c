@@ -4,7 +4,7 @@
 
 int nhlog_touches(void)
 {
-	return 0;
+	return -1;
 }
 
 int nhlog_vf(unsigned char type, unsigned int mask, const char *prog, const char *modu, const char *file, const char *func, int ln, const char *fmt, va_list ap)
@@ -19,12 +19,12 @@ int nhlog_f(unsigned char type, unsigned int mask, const char *prog, const char 
 
 char* nhlog_get_name_part(char *name)
 {
-	return 0;
+	return "<nil>";
 }
 
 char* nhlog_get_prog_name()
 {
-	return 0;
+	return "<nil>";
 }
 
 int nhlog_file_name_add(const char *name)
@@ -49,6 +49,7 @@ int nhlog_func_name_add(const char *name)
 
 unsigned int nhlog_calc_mask(int prog, int modu, int file, int func, int line, int pid)
 {
+	/* Default is no output */
 	return 0;
 }
 

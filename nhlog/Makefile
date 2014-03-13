@@ -7,11 +7,10 @@ LOCAL_OUT_OBJS = $(SUB_OBJS_nhlog)
 LOCAL_OUT_LIB = nhlog.a
 LOCAL_SHARE_LIB = libnhlog.so
 
+CFLAGS += -save-temps -Wl,-Map=nhlog.map
 CFLAGS += -I$(SYSROOT_DIR)/usr/include
 
 LDFLAGS += -L$(SYSROOT_DIR)/usr/lib
-
-LDFLAGS += -lglib-2.0
 
 .PHONY: all clean
 
