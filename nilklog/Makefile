@@ -8,6 +8,8 @@ LOCAL_OUT_OBJS = $(SUB_OBJS_nilklog)
 LOCAL_OUT_LIB = nilklog.a
 LOCAL_SHARE_LIB = libnilklog.so
 
+LDFLAGS := $(filter-out -lhilda,$(LDFLAGS))
+
 .PHONY: all clean
 
 all: $(LOCAL_OUT_LIB) $(LOCAL_SHARE_LIB)

@@ -8,6 +8,8 @@ LOCAL_OUT_OBJS = $(SUB_OBJS_kong)
 LOCAL_OUT_LIB = kong.a
 LOCAL_SHARE_LIB = libkong.so
 
+LDFLAGS := $(filter-out -lhilda,$(LDFLAGS))
+
 .PHONY: all clean
 
 all: $(LOCAL_OUT_LIB) $(LOCAL_SHARE_LIB)
