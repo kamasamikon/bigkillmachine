@@ -12,7 +12,7 @@ CFLAGS += -I$(SYSROOT_DIR)/usr/include
 
 CFLAGS += -save-temps -Wl,-Map=nhlog.map
 
-LDFLAGS += -L$(SYSROOT_DIR)/usr/lib
+LDFLAGS := $(filter-out -lhilda,$(LDFLAGS))
 
 .PHONY: all clean
 

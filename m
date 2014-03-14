@@ -223,20 +223,38 @@ def update_all_omodu_attrs():
     for dummy,attrs in modu_attrs.items():
         update_attr(attrs)
 
-def do_update(modu_name):
+def do_update(modus):
     start = timeit.default_timer()
 
     fill_omodu_attrs()
-    if modu_name:
-        if modu_attrs.has_key(modu_name):
-            update_attr(modu_attrs[modu_name])
-        else:
-            print_color("update: '%s' not found." % modu_name, "yellow")
+    if modus:
+        for modu_name in modus:
+            if modu_attrs.has_key(modu_name):
+                update_attr(modu_attrs[modu_name])
+            else:
+                print_color("update: '%s' not found." % modu_name, "yellow")
     else:
         update_all_omodu_attrs()
     process_relation()
     sync_files()
 
+    end = timeit.default_timer()
+    show_cost_time(end - start)
+    sys.exit(0)
+
+def do_clean(modus):
+    unset_grep_options()
+
+    start = timeit.default_timer()
+    os.chdir(otv_makedir)
+
+    targets = ""
+    for m in modus:
+        targets += " %s-clean %s-dirclean " % (m, m)
+
+    what = "source ../set_env_bash.sh; make CONFIG_TYPE=%s BUILD_TYPE=%s DEBUG_INIT=1 V=1 %s" % (config_type, build_type, targets)
+    print_color(what, "yellow")
+    shell_run(what)
     end = timeit.default_timer()
     show_cost_time(end - start)
     sys.exit(0)
@@ -470,10 +488,11 @@ def show_info():
 # m --ct ConfigType --bt BuildType -i info -r|--restore 
 if __name__ == "__main__":
     up = False
+    clean = False
     go = False
     print_info = False
 
-    up_modu = None
+    modus = None
     varindex = 1
     i = 0
     argc = len(sys.argv)
@@ -510,7 +529,14 @@ if __name__ == "__main__":
             up = True
             i += 1
             if i < argc:
-                up_modu = sys.argv[i]
+                modus = sys.argv[i:]
+            break
+
+        if sys.argv[i] == 'clean':
+            clean = True
+            i += 1
+            if i < argc:
+                modus = sys.argv[i:]
             break
 
         if sys.argv[i] == 'go':
@@ -559,7 +585,10 @@ if __name__ == "__main__":
     # Update the source
     ###
     if up:
-        do_update(up_modu)
+        do_update(modus)
+
+    if clean:
+        do_clean(modus)
 
     ###
     # Do make
