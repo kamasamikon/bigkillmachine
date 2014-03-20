@@ -30,16 +30,16 @@ void dbus_connection_dispatch_hook(DBusMessage *message)
 	static int print_body = -1;
 	static int skip_klog = -1;
 
-	if (skip_klog == -1) {
+	if (unlikely(skip_klog == -1)) {
 		if (getenv("NH_DBUS_SKIP"))
 			skip_klog = 1;
 		else
 			skip_klog = 0;
 	}
-	if (skip_klog)
+	if (unlikely(skip_klog))
 		return;
 
-	if (print_body == -1) {
+	if (unlikely(print_body == -1)) {
 		if (getenv("NH_DBUS_NOBODY"))
 			print_body = 0;
 		else

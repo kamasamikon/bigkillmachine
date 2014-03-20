@@ -110,7 +110,7 @@ int ioctl(int d, unsigned long int r, ...)
 	va_list args;
 	void *argp;
 
-	if (!realfunc)
+	if (unlikely(!realfunc))
 		realfunc = dlsym(RTLD_NEXT, "ioctl");
 
 	va_start(args, r);
@@ -120,13 +120,13 @@ int ioctl(int d, unsigned long int r, ...)
 	klogmon_init();
 	int ret = realfunc(d, r, argp);
 
-	if (skip_klog == -1) {
+	if (unlikely(skip_klog == -1)) {
 		if (getenv("NH_IOCTL_SKIP"))
 			skip_klog = 1;
 		else
 			skip_klog = 0;
 	}
-	if (skip_klog)
+	if (unlikely(skip_klog))
 		return ret;
 
 	unsigned int i, cnt, dir = _IOC_DIR(r), type = _IOC_TYPE(r), size = _IOC_SIZE(r);

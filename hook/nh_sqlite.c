@@ -24,7 +24,7 @@ static int is_skip_klog()
 {
 	static int skip_klog = -1;
 
-	if (skip_klog == -1) {
+	if (unlikely(skip_klog == -1)) {
 		if (getenv("NH_SQLITE_SKIP"))
 			skip_klog = 1;
 		else
@@ -41,15 +41,15 @@ static void sqliteTrace(void *arg, const char *query)
 int sqlite3_open(const char *filename, sqlite3 **ppDb)
 {
 	static int (*realfunc)(const char*, sqlite3**) = NULL;
-	if (!realfunc)
+	if (unlikely(!realfunc))
 		realfunc = dlsym(RTLD_NEXT, "sqlite3_open");
 
 	klogmon_init();
 	int ret = realfunc(filename, ppDb);
-	if (ret == SQLITE_OK)
+	if (likely(ret == SQLITE_OK))
 		sqlite3_trace(*ppDb, sqliteTrace, *ppDb);
 
-	if (is_skip_klog())
+	if (unlikely(is_skip_klog()))
 		return ret;
 
 	klog("sqlite3_open: file:\"%s\", ret:%d, *ppDb:%p\n", filename, ret, *ppDb);
@@ -58,15 +58,15 @@ int sqlite3_open(const char *filename, sqlite3 **ppDb)
 int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 {
 	static int (*realfunc)(const char*, sqlite3**) = NULL;
-	if (!realfunc)
+	if (unlikely(!realfunc))
 		realfunc = dlsym(RTLD_NEXT, "sqlite3_open16");
 
 	klogmon_init();
 	int ret = realfunc(filename, ppDb);
-	if (ret == SQLITE_OK)
+	if (likely(ret == SQLITE_OK))
 		sqlite3_trace(*ppDb, sqliteTrace, *ppDb);
 
-	if (is_skip_klog())
+	if (unlikely(is_skip_klog()))
 		return ret;
 
 	klog("sqlite3_open16: file:\"%s\", ret:%d, *ppDb:%p\n", (char*)filename, ret, *ppDb);
@@ -75,15 +75,15 @@ int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char *zVfs)
 {
 	static int (*realfunc)(const char*, sqlite3**, int, const char*) = NULL;
-	if (!realfunc)
+	if (unlikely(!realfunc))
 		realfunc = dlsym(RTLD_NEXT, "sqlite3_open_v2");
 
 	klogmon_init();
 	int ret = realfunc(filename, ppDb, flags, zVfs);
-	if (ret == SQLITE_OK)
+	if (likely(ret == SQLITE_OK))
 		sqlite3_trace(*ppDb, sqliteTrace, *ppDb);
 
-	if (is_skip_klog())
+	if (unlikely(is_skip_klog()))
 		return ret;
 
 	klog("sqlite3_open_v2: file:\"%s\", ret:%d, *ppDb:%p\n", filename, ret, *ppDb);

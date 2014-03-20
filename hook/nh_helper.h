@@ -9,8 +9,14 @@ extern "C" {
 
 /* XXX: define before include dlfcn.h */
 #define _GNU_SOURCE
-
 #include <dlfcn.h>
+
+#ifndef likely
+#define likely(x)      __builtin_expect(!!(x), 1)
+#endif
+#ifndef unlikely
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+#endif
 
 #ifdef __cplusplus
 }

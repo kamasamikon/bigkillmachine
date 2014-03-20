@@ -256,7 +256,7 @@ void klogmon_init()
 	int argc;
 	char **argv, *env;
 
-	if (inited)
+	if (unlikely(inited))
 		return;
 
 	inited = 1;
