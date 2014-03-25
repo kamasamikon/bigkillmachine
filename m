@@ -355,6 +355,9 @@ def copy_nhlog_to_staging():
     copy(bkm_7231dir + "/libnhlog.so", otv_stagedir + "/usr/lib/")
     copy(bkm_7231dir + "/nhlog.h", otv_stagedir + "/usr/include/")
 
+def copy_ntvlog2_to_staging():
+    copy(bkm_7231dir + "/ntvlog2.h", otv_stagedir + "/usr/include/")
+
 def copy_hilda_to_staging():
     if not os.path.isdir(otv_stagedir): # or not os.path.islink(otv_stagedir):
         print_color("%s is not exists" % otv_stagedir)
@@ -368,6 +371,7 @@ def copy_bkm_build_files():
     # Copy to /staging/usr/lib and /staging/usr/include
 
     copy_nhlog_to_staging()
+    copy_ntvlog2_to_staging()
     copy_hilda_to_staging()
 
     patch_dbus(bkm_7231dir)
