@@ -53,6 +53,7 @@ int sqlite3_open(const char *filename, sqlite3 **ppDb)
 		return ret;
 
 	klog("sqlite3_open: file:\"%s\", ret:%d, *ppDb:%p\n", filename, ret, *ppDb);
+	printf("sqlite3_open: file:\"%s\", ret:%d, *ppDb:%p\n", filename, ret, *ppDb);
 	return ret;
 }
 int sqlite3_open16(const void *filename, sqlite3 **ppDb)
@@ -70,6 +71,7 @@ int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 		return ret;
 
 	klog("sqlite3_open16: file:\"%s\", ret:%d, *ppDb:%p\n", (char*)filename, ret, *ppDb);
+	printf("sqlite3_open16: file:\"%s\", ret:%d, *ppDb:%p\n", (char*)filename, ret, *ppDb);
 	return ret;
 }
 int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char *zVfs)
@@ -87,6 +89,7 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 		return ret;
 
 	klog("sqlite3_open_v2: file:\"%s\", ret:%d, *ppDb:%p\n", filename, ret, *ppDb);
+	printf("sqlite3_open_v2: file:\"%s\", ret:%d, *ppDb:%p\n", filename, ret, *ppDb);
 	return ret;
 }
 #endif

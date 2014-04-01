@@ -1,7 +1,7 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
-#ifndef __NTVLOG_H__
-#define __NTVLOG_H__
+#ifndef __NTVLOG_H_
+#define __NTVLOG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -123,5 +123,5 @@ void o_log_assert_trap(void);
 }
 #endif /* __cplusplus */
 
-#endif /* __NTVLOG_H__ */
+#endif /* __NTVLOG_H_ */
 
