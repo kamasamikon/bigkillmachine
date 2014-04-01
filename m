@@ -391,11 +391,11 @@ def copy_bkm_runtime_files():
     copy(bkm_7231dir + "/libkong.so", otv_targetdir + "/target/usr/lib/")
 
 def set_build_info():
-    hfile = open(otv_targetdir + "/target/BUILD.INFO", "wt")
-    hfile.write("Build at: %s\n" % time.asctime(time.localtime(time.time())))
-    hfile.write("Root: %s\n" % otv_targetdir)
-    hfile.write("Mode: %s" % build_mode)
-    hfile.close()
+    path = otv_targetdir + "/target/BUILD.INFO"
+
+    os.system("date > '%s'" % path)
+    os.system("readlink -f '%s' >> '%s'" % (otv_targetdir, path))
+    os.system("cat .nmk.bm >> '%s'" % path)
 
 def copy_bkm_files():
     copy_bkm_build_files()
