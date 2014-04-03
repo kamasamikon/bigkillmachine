@@ -393,7 +393,7 @@ def copy_bkm_runtime_files():
 def set_build_info():
     path = otv_targetdir + "/target/BUILD.INFO"
 
-    os.system("date > '%s'" % path)
+    os.system("date --rfc-2822 > '%s'" % path)
     os.system("readlink -f '%s' >> '%s'" % (otv_targetdir, path))
     os.system("cat .nmk.bm >> '%s'" % path)
 
