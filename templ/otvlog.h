@@ -8,12 +8,14 @@ extern "C" {
 #endif /* __cplusplus */
 
 #if (defined(O_LOG_COMPNAME))
-#define NHL_MODU_NAME  O_LOG_COMPNAME
+#define NHL_MODU_NAME O_LOG_COMPNAME
 #elif (defined(PACKAGE_NAME))
-#define NHL_MODU_NAME  PACKAGE_NAME
+#define NHL_MODU_NAME PACKAGE_NAME
 #else
-#define NHL_MODU_NAME  "NONAME"
+#define NHL_MODU_NAME "NONAME"
 #endif
+
+#define SHOW_LOG_FILE "/tmp/.show_log"
 
 #include <nhlog.h>
 
