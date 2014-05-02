@@ -367,12 +367,26 @@ def copy_hilda_to_staging():
     copy(bkm_7231dir + "/libhilda.so", otv_stagedir + "/usr/lib/")
     copy(bkm_7231dir + "/hilda", otv_stagedir + "/usr/include/")
 
-def copy_bkm_build_files():
-    # Copy to /staging/usr/lib and /staging/usr/include
+def copy_staging_files():
+    if not os.path.exists(otv_stagedir):
+        return
+
+    if not os.path.isdir(otv_stagedir):
+        print_color("ERROR: staging is not a directory")
+        return
+
+    if not os.path.islink(otv_stagedir):
+        print_color("ERROR: staging is not a link")
+        return
 
     copy_nhlog_to_staging()
     copy_ntvlog2_to_staging()
     copy_hilda_to_staging()
+
+def copy_bkm_build_files():
+    # Copy to /staging/usr/lib and /staging/usr/include
+
+    copy_staging_files()
 
     patch_dbus(bkm_7231dir)
     patch_buildroot_makefile(bkm_7231dir)
@@ -451,7 +465,7 @@ class EventHandler(pyinotify.ProcessEvent):
             replace_pcd()
         elif event.pathname == otv_stagedir:
             print "process_IN_CREATE:" + event.pathname
-            copy_hilda_to_staging()
+            copy_staging_files()
 
     def process_IN_MODIFY(self, event):
         if event.pathname == self.pcd_path:
