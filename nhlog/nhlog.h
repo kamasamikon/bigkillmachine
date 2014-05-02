@@ -22,7 +22,6 @@ static char VAR_UNUSED *__nhl_file_name_ = NULL;
 static int VAR_UNUSED __nhl_prog_name_id_ = -1;
 static char VAR_UNUSED *__nhl_prog_name_ = NULL;
 
-static int VAR_UNUSED __nhl_modu_name_id_ = -1;
 
 /*-----------------------------------------------------------------------
  * Define NHL_MODU_NAME if someone forgot it.
@@ -67,9 +66,10 @@ static int VAR_UNUSED __nhl_modu_name_id_ = -1;
  */
 #define NHLOG_INNER_VAR_DEF() \
 	static int VAR_UNUSED __nhl_ver_sav = -1; \
+	static int VAR_UNUSED __nhl_modu_name_id = -1; \
 	static int VAR_UNUSED __nhl_func_name_id = -1; \
 	static int VAR_UNUSED __nhl_mask = 0; \
-	int VAR_UNUSED __nhl_ver_get = nhlog_touches();
+	int VAR_UNUSED __nhl_ver_get = nhlog_touches()
 
 #define NHLOG_SETUP_NAME_AND_ID(modu, file, func) do { \
 	if (__nhl_file_name_id_ == -1) { \
@@ -80,8 +80,8 @@ static int VAR_UNUSED __nhl_modu_name_id_ = -1;
 		__nhl_prog_name_ = nhlog_get_prog_name(); \
 		__nhl_prog_name_id_ = nhlog_prog_name_add(__nhl_prog_name_); \
 	} \
-	if (__nhl_modu_name_id_ == -1) { \
-		__nhl_modu_name_id_ = nhlog_modu_name_add(modu); \
+	if (__nhl_modu_name_id == -1) { \
+		__nhl_modu_name_id = nhlog_modu_name_add(modu); \
 	} \
 	if (__nhl_func_name_id == -1) { \
 		__nhl_func_name_id = nhlog_func_name_add(func); \
@@ -93,7 +93,7 @@ static int VAR_UNUSED __nhl_modu_name_id_ = -1;
 	if (__nhl_ver_get > __nhl_ver_sav) { \
 		__nhl_ver_sav = __nhl_ver_get; \
 		NHLOG_SETUP_NAME_AND_ID(modu, file, func); \
-		__nhl_mask = nhlog_calc_mask(__nhl_prog_name_id_, __nhl_modu_name_id_, __nhl_file_name_id_, __nhl_func_name_id, line, (int)getpid()); \
+		__nhl_mask = nhlog_calc_mask(__nhl_prog_name_id_, __nhl_modu_name_id, __nhl_file_name_id_, __nhl_func_name_id, line, (int)getpid()); \
 		if (!(__nhl_mask & (mask))) { \
 			__nhl_mask = 0; \
 		} \
@@ -108,7 +108,7 @@ static int VAR_UNUSED __nhl_modu_name_id_ = -1;
 	if (__nhl_ver_get > __nhl_ver_sav) { \
 		__nhl_ver_sav = __nhl_ver_get; \
 		NHLOG_SETUP_NAME_AND_ID(modu, file, func); \
-		__nhl_mask = nhlog_calc_mask(__nhl_prog_name_id_, __nhl_modu_name_id_, __nhl_file_name_id_, __nhl_func_name_id, line, (int)getpid()); \
+		__nhl_mask = nhlog_calc_mask(__nhl_prog_name_id_, __nhl_modu_name_id, __nhl_file_name_id_, __nhl_func_name_id, line, (int)getpid()); \
 		if (!(__nhl_mask & (mask))) { \
 			__nhl_mask = 0; \
 		} \
