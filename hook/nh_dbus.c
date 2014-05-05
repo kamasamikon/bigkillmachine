@@ -50,11 +50,5 @@ void dbus_connection_dispatch_hook(DBusMessage *message)
 	print_message(message, 0, print_body);
 }
 
-void nh_js_alert(char *str)
-{
-	klogmon_init();
-	klog("js_alert: %s", str);
-}
-
 #endif
 
