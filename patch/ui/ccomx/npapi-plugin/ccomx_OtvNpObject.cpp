@@ -372,8 +372,7 @@ NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
             memcpy(handlerName,(char *)(NPVARIANT_TO_STRING(*args).UTF8Characters),stringlen);
             handlerName[stringlen] = 0;
 
-#include "/home/auv/Desktop/phase2.1/uiklog/klog_def.h"
-            NHLOG_CHK_AND_CALL_TMP(NHLOG_INFO, 'L', "UI", __FILE__, __func__, __LINE__, "%s\n", handlerName);
+            NHLOG_CHK_AND_CALL(NHLOG_INFO, 'L', "UI", __FILE__, __func__, __LINE__, "%s\n", handlerName);
 
             NPN_MemFree(utf8name);
             return true;
@@ -782,8 +781,7 @@ NpObj::Invoke(NPObject *npobj, NPIdentifier name,
             memcpy(handlerName,(char *)(NPVARIANT_TO_STRING(*args).UTF8Characters),stringlen);
             handlerName[stringlen] = 0;
 
-#include "/home/auv/Desktop/phase2.1/uiklog/klog_def.h"
-            NHLOG_CHK_AND_CALL_TMP(NHLOG_INFO, 'L', "UI", __FILE__, __func__, __LINE__, "%s\n", handlerName);
+            NHLOG_CHK_AND_CALL(NHLOG_INFO, 'L', "UI", __FILE__, __func__, __LINE__, "%s\n", handlerName);
 
             NPN_MemFree(utf8name);
             return;

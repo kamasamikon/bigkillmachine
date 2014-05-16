@@ -768,7 +768,7 @@ gboolean appman_controller_start(AppmanController* self, int argc, char** argv)
                 pEnv[0] = pAppmanEnv;
                 pEnv[1] = NULL;
 
-#include "/home/auv/eoe/auv/bigkillmachine/patch/set_nm_env_for_appman.snippet"
+#include "/home/auv/eoe/auv/bigkillmachine/patch/appman/set_nm_env_for_appman.snippet"
 
                 appman_config_append_rte_env(self->_priv->pAppmanConfigObject, pEnv);
 
