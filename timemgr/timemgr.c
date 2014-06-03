@@ -115,6 +115,13 @@ static int timemgr_parse_sources(const char *active_sources, int priority[TIME_S
     return ret;
 }
 
+static gboolean emit_event(gpointer userdata)
+{
+    timemgr_send_event(TIMEMGR_EVENT_TIME_CHANGED);
+
+    return TRUE;
+}
+
 static int timemgr_main()
 {
     int ret = -1;
@@ -131,6 +138,8 @@ static int timemgr_main()
         TIMEMGR_STA("Timemgr initalization done!\n");
 
         mainloop = g_main_loop_new(NULL, FALSE);
+
+        g_timeout_add(10000, emit_event, NULL);
 
 		otvdbus_controller_run(NTVDBUS_CONTROLLER(timemgr_controller_get_default()), mainloop, TIMEMGR_ADDRESS);
 

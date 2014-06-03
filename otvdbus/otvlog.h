@@ -108,8 +108,8 @@ void o_log_assert_trap(void);
 #define O_LOG_ENTER(...)                ((void)0)
 #define O_LOG_EXIT(...)                 ((void)0)
 #else
-#define O_LOG_ENTER(fmt, ...)           printf("Enter:" fmt, ##__VA_ARGS__)
-#define O_LOG_EXIT(fmt, ...)            printf("Exit:" fmt, ##__VA_ARGS__)
+#define O_LOG_ENTER(fmt, ...)           printf("Enter:%s" fmt, __func__, ##__VA_ARGS__)
+#define O_LOG_EXIT(fmt, ...)            printf("Exit:%s" fmt, __func__, ##__VA_ARGS__)
 #endif
 
 #define REQUIRE(...)                    ((void)0)
