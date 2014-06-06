@@ -216,7 +216,7 @@ static gboolean timemgr_is_time_valid(
     gint *valid,
     GError** error)
 {
-    TIMEMGR_TRC("is_time_valid() called!\n");
+    printf("is_time_valid() called!, s_time_is_valid:%d\n", s_time_is_valid);
     *valid = s_time_is_valid;
     return TRUE;
 }

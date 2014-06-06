@@ -11,6 +11,7 @@ SUB_OBJS_hook = \
 LOCAL_OUT_OBJS = $(SUB_OBJS_hook)
 LOCAL_OUT_ELF = timemgr
 
+CFLAGS += -save-temps
 CFLAGS += -I.
 CFLAGS += -I$(HI_PRJ_ROOT)/otvdbus
 CFLAGS += -I$(SYSROOT_DIR)/usr/include
