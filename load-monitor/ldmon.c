@@ -10,12 +10,13 @@
 
 #include <sys/sysinfo.h>
 
-#define FSHIFT          16                      /* nr of bits of precision */
-#define FIXED_1         (1 << FSHIFT)           /* 1.0 as fixed-point */
-#define LOAD_INT(x)     (unsigned)((x) >> FSHIFT)
-#define LOAD_FRAC(x)    LOAD_INT(((x) & (FIXED_1 - 1)) * 100)
+#define FSHIFT		16			/* nr of bits of precision */
+#define FIXED_1		(1 << FSHIFT)		/* 1.0 as fixed-point */
+#define LOAD_INT(x)	(unsigned)((x) >> FSHIFT)
+#define LOAD_FRAC(x)	LOAD_INT(((x) & (FIXED_1 - 1)) * 100)
 
-#define CACHE_DEPT      50000
+#define CACHE_DEPT	50000
+
 static char *__g_cache[CACHE_DEPT];
 static int __g_cache_used = 0;
 
@@ -33,8 +34,8 @@ int main(int argc, char *argv[])
 
 	printf("Usage: ldmon output-file pause-time\n");
 
-	output_file = argc > 1 ?  argv[1] : "/dev/stdout";
-	pause_time = argc > 2 ?  atoi(argv[2]) : 500;
+	output_file = argc > 1 ? argv[1] : "/dev/stdout";
+	pause_time = argc > 2 ? atoi(argv[2]) : 500;
 
 	if (pause_time < 100)
 		pause_time = 100;
@@ -46,6 +47,8 @@ int main(int argc, char *argv[])
 			fp = fopen(output_file, "wt");
 			if (!fp)
 				printf("Loop:%d, Open file '%s' failed.\n", loops, output_file);
+			else
+				printf("totalram freeram sharedram bufferram totalswap freeswap totalhigh freehigh\n");
 		}
 
 		sysinfo(&info);
@@ -81,17 +84,6 @@ int main(int argc, char *argv[])
 			__g_cache[__g_cache_used % CACHE_DEPT] = strdup(cache_line);
 			__g_cache_used++;
 		}
-
-#if 0
-		printf("totalram:  %lu\n", info.totalram);
-		printf("freeram:   %lu\n", info.freeram);
-		printf("sharedram: %lu\n", info.sharedram);
-		printf("bufferram: %lu\n", info.bufferram);
-		printf("totalswap: %lu\n", info.totalswap);
-		printf("freeswap:  %lu\n", info.freeswap);
-		printf("totalhigh: %lu\n", info.totalhigh);
-		printf("freehigh:  %lu\n", info.freehigh);
-#endif
 
 		usleep(1000 * pause_time);
 	}

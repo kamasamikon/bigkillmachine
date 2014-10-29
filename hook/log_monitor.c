@@ -77,51 +77,6 @@ static void load_cfg_file(const char *path)
 	fclose(fp);
 }
 
-static void* thread_monitor_cfgfile(void *user_data)
-{
-	const char *path = (const char*)user_data;
-	int fd, wd, len, tmp_len;
-	char buffer[4096], *offset = NULL;
-	struct inotify_event *event;
-
-	fd = inotify_init();
-	if (fd < 0) {
-		_output("monitor_cfgfile: inotify_init failed: %s.\n", strerror(errno));
-		exit(-1);
-	}
-
-	if (!path)
-		path = "/tmp/klog.rt.cfg";
-
-	_output("monitor_cfgfile: path: <%s>\n", path);
-	wd = inotify_add_watch(fd, path, EVENT_MASK);
-	if (wd < 0) {
-		_output("monitor_cfgfile: inotify_add_watch failed: %s.\n", strerror(errno));
-		return NULL;
-	}
-
-	while (len = read(fd, buffer, sizeof(buffer))) {
-		offset = buffer;
-		event = (struct inotify_event*)buffer;
-
-		while (((char*)event - buffer) < len) {
-			if (event->wd == wd) {
-				if (EVENT_MASK & event->mask) {
-					_output("monitor_cfgfile: Opt: Configure changed\n");
-					load_cfg_file(path);
-				}
-				break;
-			}
-
-			tmp_len = sizeof(struct inotify_event) + event->len;
-			event = (struct inotify_event*)(offset + tmp_len);
-			offset += tmp_len;
-		}
-	}
-	_output("monitor_cfgfile: bye\n");
-	return NULL;
-}
-
 static int load_boot_args(int *argc, char ***argv)
 {
 	FILE *fp = fopen("/proc/cmdline", "rt");
@@ -243,7 +198,7 @@ static char *get_prog_name()
 	sprintf(path, "/proc/%d/cmdline", getpid());
 	fp = fopen(path, "rt");
 	if (!fp)
-		return "?";
+		return strdup("?");
 
 	fgets(buf, sizeof(buf), fp);
 	fclose(fp);
@@ -285,8 +240,5 @@ void klogmon_init()
 		if (!rlog_serv_from_kernel_cmdline(env, __g_klog_serv, &__g_klog_serv_port))
 			connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
 	}
-
-	/* XXX: inotify KLOG_RTCFG has been move to klog */
-	/* spl_thread_create(thread_monitor_cfgfile, (void*)getenv("KLOG_RTCFG"), 0); */
 }
 
