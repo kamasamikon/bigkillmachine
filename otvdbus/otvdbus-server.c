@@ -306,7 +306,7 @@ static gboolean _is_server_address_free(const gchar* address)
     if (!dbus_parse_address (address, &entries, &len, &error))
     {
 
-        O_LOG_DEBUG("Bad Address  %s", address);
+        O_LOG_DEBUG("Bad Address  %s\n", address);
         return FALSE;
     }
     i = 0;
@@ -328,7 +328,7 @@ static gboolean _is_server_address_free(const gchar* address)
 
                 if (stat (path, &sb) == 0)
                 {
-                    O_LOG_WARNING("There is an Already running server at: %s",address);
+                    O_LOG_WARNING("There is an Already running server at: %s\n",address);
                     bIsSingleInstance = FALSE;
                     break;
 
@@ -358,7 +358,7 @@ _otvdbus_server_listen_internal (OtvdbusServer  *server,
     DBusError error;
 
     priv = NTVDBUS_SERVER_GET_PRIVATE (server);
-    O_LOG_DEBUG(" Starting Server at Address : %s",address);
+    O_LOG_DEBUG(" Starting Server at Address : %s\n",address);
 
 
 #ifdef NTVDBUS_VALIDATE_SERVER_ADDRESS_INSTANCES
@@ -380,7 +380,7 @@ _otvdbus_server_listen_internal (OtvdbusServer  *server,
     		{
     			pPath++;
     		}
-    		O_LOG_WARNING("Unlinking Path = %s",pPath);
+    		O_LOG_WARNING("Unlinking Path = %s\n",pPath);
     		unlink( pPath );
     	}
 #endif
@@ -406,7 +406,7 @@ _otvdbus_server_listen_internal (OtvdbusServer  *server,
 
   /*  dbus_server_set_auth_mechanisms (priv->server, NULL);*/
 
-    O_LOG_DEBUG(" Binding server %s to context %p",address,pContext);
+    O_LOG_DEBUG(" Binding server %s to context %p\n",address,pContext);
     /* bind the server to the current thread context */
     dbus_server_setup_with_g_main(priv->server, pContext);
     server->pServerContext = pContext;
@@ -431,7 +431,7 @@ otvdbus_server_disconnect (OtvdbusServer *server)
     {
 #if !defined(NDEBUG)
         const gchar * server_address = otvdbus_server_get_address (server);
-        O_LOG_DEBUG(" Stopping Server at Address : %s",server_address);
+        O_LOG_DEBUG(" Stopping Server at Address : %s\n",server_address);
         g_free((gpointer)server_address);
 #endif
         dbus_server_disconnect (priv->server);
