@@ -1,9 +1,5 @@
 CFLAGS += -g -Wall
 
-HILDA_FLAGS += -I `echo $$HILDA_INC`
-HILDA_FLAGS += -L `echo $$HILDA_LIB/x86`
-HILDA_FLAGS += -lhilda
-
 .PHONY: all
 
 all: klsewer
