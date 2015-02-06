@@ -28,6 +28,7 @@ CFLAGS += -I$(SYSROOT_DIR)/usr/local/include
 CFLAGS += -I$(SYSROOT_DIR)/usr/lib/glib-2.0/include
 CFLAGS += -I$(SYSROOT_DIR)/usr/lib/dbus-1.0/include
 
+LDFLAGS += -L$(SYSROOT_DIR)/lib
 LDFLAGS += -L$(SYSROOT_DIR)/usr/lib
 
 LDFLAGS += -lgconf-2 -lglib-2.0  
