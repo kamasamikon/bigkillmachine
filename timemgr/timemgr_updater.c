@@ -25,6 +25,8 @@
 // #include "outils.h"
 // #include "configman_lib.h"
 
+#include "marshaller.c"
+
 /**********************************************************
  *                 Config values                          *
  **********************************************************/
@@ -186,6 +188,8 @@ static void timemgr_class_init(TimemgrClass* klass)
     int i;
     O_ASSERT(klass != NULL);
 
+    dbus_g_object_register_marshaller(g_cclosure_user_marshal_VOID__UINT_STRING, G_TYPE_NONE, G_TYPE_UINT, G_TYPE_STRING, G_TYPE_INVALID);
+
     for (i = 0; i < TIMEMGR_EVENT_ENDDEF; i++)
     {
         s_timemgr_signals[i] = g_signal_new(
@@ -195,7 +199,8 @@ static void timemgr_class_init(TimemgrClass* klass)
             0,
             NULL,
             NULL,
-            g_cclosure_marshal_VOID__UINT,
+            // g_cclosure_marshal_VOID__UINT,
+            g_cclosure_user_marshal_VOID__UINT_STRING,  /* g_cclosure_marshal_VOID__STRING*/
             G_TYPE_NONE,
             1,
             G_TYPE_UINT);
@@ -1153,7 +1158,7 @@ void timemgr_send_event(timemgr_event_t evt)
             TIMEMGR_PATH,
             s_timemgr_signals[evt],
             0,
-            evt);
+            evt + 111, "shit");
         TIMEMGR_DBG("Signal %d (%s) has been sent!\n", s_timemgr_signals[evt], g_time_event_names[evt]);
     }
     else

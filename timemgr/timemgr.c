@@ -122,7 +122,7 @@ static gboolean emit_event(gpointer userdata)
     return TRUE;
 }
 
-static int timemgr_main()
+static int timemgr_main(int timeout)
 {
     int ret = -1;
     GMainLoop* mainloop = NULL;
@@ -139,7 +139,7 @@ static int timemgr_main()
 
         mainloop = g_main_loop_new(NULL, FALSE);
 
-        g_timeout_add(10000, emit_event, NULL);
+        g_timeout_add(timeout, emit_event, NULL);
 
 		otvdbus_controller_run(NTVDBUS_CONTROLLER(timemgr_controller_get_default()), mainloop, TIMEMGR_ADDRESS);
 
@@ -179,5 +179,13 @@ int timemgr_get_preempt_time(void)
 
 int main(int argc, char** argv)
 {
-    return timemgr_main();
+    int timeout = 0;
+
+    if (argc > 1)
+        timeout = atoi(argv[1]);
+
+    if (timeout < 100)
+        timeout = 100;
+
+    return timemgr_main(timeout);
 }

@@ -26,6 +26,7 @@
 
     <signal name="timeChanged">
         <arg type="u" name="event" direction="out"/>      
+        <arg type="s" name="shit" direction="out"/>      
     </signal>
 
     <signal name="timeZoneChanged">
