@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: hook sewer agent ldmon nhlog kong klbench
-clean: hook.clean sewer.clean agent.clean ldmon.clean nhlog.clean kong.clean klbench.clean
+all: dagou sewer agent ldmon nhlog kong klbench
+clean: dagou.clean sewer.clean agent.clean ldmon.clean nhlog.clean kong.clean klbench.clean
 
 -include Makefile.defs
 
@@ -15,8 +15,8 @@ clean: hook.clean sewer.clean agent.clean ldmon.clean nhlog.clean kong.clean klb
 banner:
 	@echo
 	@echo "***************************************************************"
-	@echo "* Architecture: $(HILDA_PLATFORM)"
-	@echo "* Debug: $(HILDA_DEBUG)"
+	@echo "* Architecture: $(BKM_PLATFORM)"
+	@echo "* Debug: $(BKM_DEBUG)"
 	@echo "***************************************************************"
 	@echo
 
@@ -37,27 +37,31 @@ arch.x86: clean
 arch.7231: clean
 	cp -f $(HI_PRJ_ROOT)/build/config/$(shell echo $@ | sed 's/arch.//g') $(HI_PRJ_ROOT)/.configure
 
+.PHONY: arch.sdtv
+arch.sdtv: clean
+	cp -f $(HI_PRJ_ROOT)/build/config/$(shell echo $@ | sed 's/arch.//g') $(HI_PRJ_ROOT)/.configure
+
 #########################################################################
 # Architecture of target board
 #
 .PHONY: debug.yes
 debug.yes: clean
-	@sed -i "s/HILDA_DEBUG := no/HILDA_DEBUG := yes/g" $(HI_PRJ_ROOT)/.configure
+	@sed -i "s/BKM_DEBUG := no/BKM_DEBUG := yes/g" $(HI_PRJ_ROOT)/.configure
 
 .PHONY: debug.no
 debug.no: clean
-	@sed -i "s/HILDA_DEBUG := yes/HILDA_DEBUG := no/g" $(HI_PRJ_ROOT)/.configure
+	@sed -i "s/BKM_DEBUG := yes/BKM_DEBUG := no/g" $(HI_PRJ_ROOT)/.configure
 
 #########################################################################
-# $(HI_PRJ_ROOT)/hook
+# $(HI_PRJ_ROOT)/dagou
 #
-.PHONY: hook
-hook: amust
-	make -C $(HI_PRJ_ROOT)/hook
+.PHONY: dagou
+dagou: amust
+	make -C $(HI_PRJ_ROOT)/dagou
 
-.PHONY: hook.clean
-hook.clean: amust
-	make -C $(HI_PRJ_ROOT)/hook clean
+.PHONY: dagou.clean
+dagou.clean: amust
+	make -C $(HI_PRJ_ROOT)/dagou clean
 
 #########################################################################
 # $(HI_PRJ_ROOT)/klog-sewer
@@ -129,5 +133,5 @@ kong.clean: amust
 # Target::install
 #
 .PHONY: install install.test
-install: hook
-	@./build/install/${HILDA_PLATFORM}
+install: dagou
+	@./build/install/${BKM_PLATFORM}
