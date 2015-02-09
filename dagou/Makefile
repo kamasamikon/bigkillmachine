@@ -4,6 +4,7 @@ export HI_PRJ_ROOT = ..
 SUB_OBJS_dagou = \
 				 $(HI_PRJ_ROOT)/dagou/nbuf.o \
 				 $(HI_PRJ_ROOT)/dagou/dbus-print-message.o \
+				 $(HI_PRJ_ROOT)/dagou/helper.o \
 				 $(HI_PRJ_ROOT)/dagou/dagou_dbus.o \
 				 $(HI_PRJ_ROOT)/dagou/dagou_ioctol.o \
 				 $(HI_PRJ_ROOT)/dagou/dagou_nsulog.o \
