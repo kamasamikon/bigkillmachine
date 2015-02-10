@@ -71,7 +71,7 @@ void gconf_client_set(GConfClient* client, const gchar* key,
 	realfunc(client, key, val, err);
 
 	vstr = entry_value(val, buf, sizeof(buf));
-	klog("NEMOHOOK: gconf_sources_query_value: key: <%s>, vstr:<%s>\n", key, vstr);
+	dalog_info("NEMOHOOK: gconf_sources_query_value: key: <%s>, vstr:<%s>\n", key, vstr);
 	if (vstr != buf)
 		free(vstr);
 }
@@ -88,7 +88,7 @@ GConfValue* gconf_client_get(GConfClient* client, const gchar* key, GError** err
 	GConfValue *ret = realfunc(client, key, err);
 
 	val = entry_value(ret, buf, sizeof(buf));
-	klog("NEMOHOOK: gconf_client_get: key: <%s>, val:<%s>\n", key, val);
+	dalog_info("NEMOHOOK: gconf_client_get: key: <%s>, val:<%s>\n", key, val);
 	if (val != buf)
 		free(val);
 

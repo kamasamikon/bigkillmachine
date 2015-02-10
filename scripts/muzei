@@ -1,0 +1,23 @@
+#!/bin/sh
+
+### #####################################################################
+## Load environment from file
+#
+
+da_ENVFILE=./myenv
+#da_ENVFILE=./myenv
+#da_ENVFILE=./myenv
+
+source ${da_ENVFILE}
+
+### #####################################################################
+## Call the real application 
+#
+
+da_BASEDIR=.
+#da_BASEDIR=/tmp
+#da_BASEDIR=/home/ntvroot
+
+# exec /sbin/${APP}.real
+exec ${da_BASEDIR}/`basename $0`.real
+

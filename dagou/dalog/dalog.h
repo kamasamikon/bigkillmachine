@@ -2,7 +2,7 @@
 
 
 /**
- * @file     nbuf.h
+ * @file     dalog.h
  * @author   Yu Nemo Wenbin
  * @version  1.0
  * @date     Sep, 2014
@@ -148,7 +148,7 @@ typedef void (*RLOGGER)(unsigned char type, unsigned int mask, char *prog, char 
 #define dalog_info(fmt, ...)        DALOG_CHK_AND_CALL(DALOG_INFO,    'I', DALOG_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 #define dalog_debug(fmt, ...)       DALOG_CHK_AND_CALL(DALOG_DEBUG,   'D', DALOG_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 
-#define nassert(_x_) do { \
+#define dalog_assert(_x_) do { \
 	if (!(_x_)) { \
 		DALOG_INNER_VAR_DEF(); \
 		if (__dal_ver_get > __dal_ver_sav) { \

@@ -408,7 +408,7 @@ void print_message (DBusMessage *message, dbus_bool_t literal, int print_body)
       print_iter (&nb, &iter, literal, 1);
   }
 
-  klog(nb.buf);
+  dalog_info("%s", nb.buf);
   nbuf_release(&nb);
 }
 

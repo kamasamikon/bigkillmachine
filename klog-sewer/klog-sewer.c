@@ -18,7 +18,7 @@
 #include <stdarg.h>
 #include <assert.h>
 
-#define BACKLOG 50
+#define BACK_LOG 50
 #define __g_epoll_max 50
 
 static void config_socket(int s);
@@ -32,7 +32,7 @@ static FILE *__g_fp_out = NULL;
 /*-----------------------------------------------------------------------
  * Server
  */
-static int process_klog_data(int s, char *buf, int len)
+static int process_dalog_data(int s, char *buf, int len)
 {
 	if (len != fwrite(buf, sizeof(char), len, __g_fp_out))
 		printf("fwrite error: %d\n", errno);
@@ -73,7 +73,7 @@ static void *worker_thread_or_server(unsigned short port)
 		return NULL;
 	}
 
-	if (listen(s_listen, BACKLOG) == -1) {
+	if (listen(s_listen, BACK_LOG) == -1) {
 		printf("c:%s, e:%s\n", "listen", strerror(errno));
 		return NULL;
 	}
@@ -120,7 +120,7 @@ static void *worker_thread_or_server(unsigned short port)
 			}
 
 			if ((n = recv(e->data.fd, buf, bufsize, 0)) > 0) {
-				if (process_klog_data(e->data.fd, buf, n))
+				if (process_dalog_data(e->data.fd, buf, n))
 					close_connect(e->data.fd);
 			} else {
 				printf("Remote close socket: %d\n", e->data.fd);
@@ -162,7 +162,7 @@ static void ignore_pipe()
 static void help(int die)
 {
 
-	printf("usage: klogserv [PORT] [TOFILE]\n");
+	printf("usage: dalogserv [PORT] [TOFILE]\n");
 	printf("       environ: LOGSEW_PORT LOGSEW_FILE\n");
 
 	if (die)

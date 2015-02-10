@@ -32,19 +32,19 @@
 
 #include <dalog_setup.h>
 
-static int skip_klog = -1;
+static int skip_dalog = -1;
 
 void syslog(int __pri, __const char *__fmt, ...)
 {
 	va_list ap;
 
-	if (dagou_unlikely(skip_klog == -1)) {
+	if (dagou_unlikely(skip_dalog == -1)) {
 		if (getenv("NH_SYSLOG_SKIP"))
-			skip_klog = 1;
+			skip_dalog = 1;
 		else
-			skip_klog = 0;
+			skip_dalog = 0;
 	}
-	if (dagou_unlikely(skip_klog))
+	if (dagou_unlikely(skip_dalog))
 		return;
 
 	va_start(ap, __fmt);
@@ -82,13 +82,13 @@ void syslog(int __pri, __const char *__fmt, ...)
 
 void vsyslog(int __pri, const char *__fmt, va_list ap)
 {
-	if (dagou_unlikely(skip_klog == -1)) {
+	if (dagou_unlikely(skip_dalog == -1)) {
 		if (getenv("NH_SYSLOG_SKIP"))
-			skip_klog = 1;
+			skip_dalog = 1;
 		else
-			skip_klog = 0;
+			skip_dalog = 0;
 	}
-	if (dagou_unlikely(skip_klog))
+	if (dagou_unlikely(skip_dalog))
 		return;
 
 	dalog_setup();

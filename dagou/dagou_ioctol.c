@@ -105,7 +105,7 @@ static const char *dir_name(unsigned int dir)
 
 int ioctl(int d, unsigned long int r, ...)
 {
-	static int skip_klog = -1;
+	static int skip_dalog = -1;
 	static int (*realfunc)(int d, unsigned long int r, void*) = NULL;
 	va_list args;
 	void *argp;
@@ -120,104 +120,104 @@ int ioctl(int d, unsigned long int r, ...)
 	dalog_setup();
 	int ret = realfunc(d, r, argp);
 
-	if (dagou_unlikely(skip_klog == -1)) {
+	if (dagou_unlikely(skip_dalog == -1)) {
 		if (getenv("NH_IOCTL_SKIP"))
-			skip_klog = 1;
+			skip_dalog = 1;
 		else
-			skip_klog = 0;
+			skip_dalog = 0;
 	}
-	if (dagou_unlikely(skip_klog))
+	if (dagou_unlikely(skip_dalog))
 		return ret;
 
 	unsigned int i, cnt, dir = _IOC_DIR(r), type = _IOC_TYPE(r), size = _IOC_SIZE(r);
 
 	switch (type) {
 	case NH_DEV_ID_AUDDEC:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_CRYPTO:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_DMX:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_FPCHAR:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_HDMI:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_INJECT:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_LED:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_LINKER:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_NOCS:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_PD_WRITER:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_RFMOD:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_SCART:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_SMARTCARD:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_STB:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_TUNER:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_VIDDEC:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_VIDENC:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_SOC:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_AUDOUT:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_FAN:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	case NH_DEV_ID_TRANSCODE:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	default:
-		klog("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
+		dalog_info("ioctl: d:%d r:%08x dir:%s dev:%s nr:%02x size:%d arg:%08x.\n",
 				d, r, dir_name(dir), dev_name(type), _IOC_NR(r), _IOC_SIZE(r), argp);
 		break;
 	}

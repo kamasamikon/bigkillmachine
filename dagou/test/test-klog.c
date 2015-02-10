@@ -14,7 +14,7 @@
 #include <hilda/xtcool.h>
 
 #define DALOG_MODU_NAME "NHKLOG"
-#include <hilda/klog.h>
+#include <dalog.h>
 
 void show_help()
 {
@@ -49,7 +49,7 @@ void show_help()
 
 void shit()
 {
-	klog("Swming in shit\n");
+	dalog("Swming in shit\n");
 }
 
 static void mylogger(const char *content, int len)
@@ -70,10 +70,10 @@ int main_klog(int argc, char *argv[])
 	tick = spl_get_ticks();
 
 	shit();
-	klog("Shit\n");
+	dalog("Shit\n");
 
 	for (i = 0; i < count; i++) {
-		klog("remote klog test. puppy FANG is a bad egg. done<%d>\n", i);
+		dalog("remote dalog test. puppy FANG is a bad egg. done<%d>\n", i);
 		shit();
 		kerror("This is an error\n");
 		spl_sleep(1000);

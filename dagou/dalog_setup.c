@@ -19,20 +19,20 @@
 #include <syslog.h>
 
 /*-----------------------------------------------------------------------
- * KLOG
+ * DALOG
  *
  * Direct to server
  */
 #include <dalog/dalog.h>
 #include <dalog_setup.h>
 
-static int __g_rlog_serv_skt = -1;
+static int __serv_sock = -1;
 
-static char __g_klog_serv[128];
-static unsigned short __g_klog_serv_port;
+static char __serv_addr[128];
+static unsigned short __serv_port;
 
-static pid_t __g_pid;
-static char *__g_prog;
+static pid_t __pid;
+static char *__prg;
 
 static int _output(const char *fmt, ...)
 {
@@ -44,9 +44,9 @@ static int _output(const char *fmt, ...)
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	printf("<%s@%d> %s", __g_prog, __g_pid, buf);
+	printf("<%s@%d> %s", __prg, __pid, buf);
 
-	sprintf(cmd, "echo -n '<%s@%d> %s' >> '%s'", __g_prog, __g_pid, buf, "/tmp/lm.out");
+	sprintf(cmd, "echo -n '<%s@%d> %s' >> '%s'", __prg, __pid, buf, "/tmp/lm.out");
 	system(cmd);
 
 	return done;
@@ -68,7 +68,7 @@ static void load_cfg_file(const char *path)
 			continue;
 
 		_output("load_cfg_file: %s", buf);
-		klog_rule_add(buf);
+		log_rule_add(buf);
 		lines_done++;
 	}
 
@@ -135,25 +135,25 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	return 0;
 }
 
-static void logger_remote(const char *content, int len)
+static void logger_remote(char *content, int len)
 {
-	if (__g_rlog_serv_skt == -1)
-		connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
+	if (__serv_sock == -1)
+		connect_rlog_serv(__serv_addr, __serv_port, &__serv_sock);
 
-	if (len != send(__g_rlog_serv_skt, content, len, 0)) {
-		_output("logger_wlogf: send error: %s, %d\n", strerror(errno), __g_rlog_serv_skt);
-		if (__g_rlog_serv_skt != -1)
-			close(__g_rlog_serv_skt);
-		__g_rlog_serv_skt = -1;
+	if (len != send(__serv_sock, content, len, 0)) {
+		_output("logger_wlogf: send error: %s, %d\n", strerror(errno), __serv_sock);
+		if (__serv_sock != -1)
+			close(__serv_sock);
+		__serv_sock = -1;
 	} else if (content[len - 1] != '\n')
-		send(__g_rlog_serv_skt, "\n", 1, 0);
+		send(__serv_sock, "\n", 1, 0);
 }
-static void logger_file(const char *content, int len)
+static void logger_file(char *content, int len)
 {
 	static FILE *fp = NULL;
 
 	if (!fp)
-		fp = fopen(getenv("KLOG_TO_LOCAL"), "a+");
+		fp = fopen(getenv("DALOG_TO_LOCAL"), "a+");
 
 	if (fp) {
 		if (content[len - 1] == '\n')
@@ -163,7 +163,7 @@ static void logger_file(const char *content, int len)
 		fflush(fp);
 	}
 }
-static void logger_syslog(const char *content, int len)
+static void logger_syslog(char *content, int len)
 {
 	syslog(LOG_INFO, "%s", content);
 }
@@ -192,28 +192,28 @@ void dalog_setup()
 		return;
 
 	inited = 1;
-	__g_pid = getpid();
-	__g_prog = get_prog_name();
+	__pid = getpid();
+	__prg = get_prog_name();
 
 	_output("dalog_setup\n");
 
-	env = getenv("KLOG_TO_LOCAL");
+	env = getenv("DALOG_TO_LOCAL");
 	if (env) {
-		_output("KLog: KLOG_TO_LOCAL opened <%s>\n", env);
-		klog_add_logger(logger_file);
+		_output("daLog: DALOG_TO_LOCAL opened <%s>\n", env);
+		dalog_add_logger(logger_file);
 	}
-	env = getenv("KLOG_TO_SYSLOG");
+	env = getenv("DALOG_TO_SYSLOG");
 	if (env) {
-		_output("KLog: KLOG_TO_SYSLOG opened <%s>\n", env);
-		klog_add_logger(logger_syslog);
+		_output("daLog: DALOG_TO_SYSLOG opened <%s>\n", env);
+		dalog_add_logger(logger_syslog);
 	}
-	env = getenv("KLOG_TO_REMOTE");
+	env = getenv("DALOG_TO_REMOTE");
 	if (env) {
-		_output("KLog: KLOG_TO_REMOTE opened <%s>\n", env);
-		klog_add_logger(logger_remote);
+		_output("daLog: DALOG_TO_REMOTE opened <%s>\n", env);
+		dalog_add_logger(logger_remote);
 
-		if (!rlog_serv_from_kernel_cmdline(env, __g_klog_serv, &__g_klog_serv_port))
-			connect_rlog_serv(__g_klog_serv, __g_klog_serv_port, &__g_rlog_serv_skt);
+		if (!rlog_serv_from_kernel_cmdline(env, __serv_addr, &__serv_port))
+			connect_rlog_serv(__serv_addr, __serv_port, &__serv_sock);
 	}
 }
 
