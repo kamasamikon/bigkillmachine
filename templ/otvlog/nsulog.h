@@ -21,8 +21,8 @@ extern "C" {
 /*-----------------------------------------------------------------------
  * Embedded variable used by nsulog_xxx
  */
-static char __attribute__((unused)) *__dal_file_name = NULL;
-static char __attribute__((unused)) *__dal_prog_name = NULL;
+static char __attribute__((unused)) *__nsul_file_name = NULL;
+static char __attribute__((unused)) *__nsul_prog_name = NULL;
 
 /*-----------------------------------------------------------------------
  * Normal and Raw Logger
@@ -73,54 +73,54 @@ typedef void (*RLOGGER)(unsigned char type, unsigned int mask, char *prog, char 
  * Embedded variable used by nsulog_xxx
  */
 #define NSULOG_INNER_VAR_DEF() \
-	static int __attribute__((unused)) __dal_ver_sav = -1; \
-	static char __attribute__((unused)) *__dal_modu_name = NULL; \
-	static char __attribute__((unused)) *__dal_func_name = NULL; \
-	static int __attribute__((unused)) __dal_mask = 0; \
-	int __attribute__((unused)) __dal_ver_get = nsulog_touches()
+	static int __attribute__((unused)) __nsul_ver_sav = -1; \
+	static char __attribute__((unused)) *__nsul_modu_name = NULL; \
+	static char __attribute__((unused)) *__nsul_func_name = NULL; \
+	static int __attribute__((unused)) __nsul_mask = 0; \
+	int __attribute__((unused)) __nsul_ver_get = nsulog_touches()
 
 #define NSULOG_SETUP_NAME(modu, file, func) do { \
-	if (nsulog_unlikely(__dal_file_name == NULL)) { \
-		__dal_file_name = nsulog_file_name_add((char*)file); \
+	if (nsulog_unlikely(__nsul_file_name == NULL)) { \
+		__nsul_file_name = nsulog_file_name_add((char*)file); \
 	} \
-	if (nsulog_unlikely(__dal_prog_name == NULL)) { \
-		__dal_prog_name = nsulog_prog_name_add(NULL); \
+	if (nsulog_unlikely(__nsul_prog_name == NULL)) { \
+		__nsul_prog_name = nsulog_prog_name_add(NULL); \
 	} \
-	if (nsulog_unlikely(__dal_modu_name == NULL)) { \
-		__dal_modu_name = nsulog_modu_name_add((char*)modu); \
+	if (nsulog_unlikely(__nsul_modu_name == NULL)) { \
+		__nsul_modu_name = nsulog_modu_name_add((char*)modu); \
 	} \
-	if (nsulog_unlikely(__dal_func_name == NULL)) { \
-		__dal_func_name = nsulog_func_name_add((char*)func); \
+	if (nsulog_unlikely(__nsul_func_name == NULL)) { \
+		__nsul_func_name = nsulog_func_name_add((char*)func); \
 	} \
 } while (0)
 
 #define NSULOG_CHK_AND_CALL(mask, indi, modu, file, func, line, fmt, ...) do { \
 	NSULOG_INNER_VAR_DEF(); \
-	if (nsulog_unlikely(__dal_ver_get > __dal_ver_sav)) { \
-		__dal_ver_sav = __dal_ver_get; \
+	if (nsulog_unlikely(__nsul_ver_get > __nsul_ver_sav)) { \
+		__nsul_ver_sav = __nsul_ver_get; \
 		NSULOG_SETUP_NAME(modu, file, func); \
-		__dal_mask = nsulog_calc_mask(__dal_prog_name, __dal_modu_name, __dal_file_name, __dal_func_name, line); \
-		if (!(__dal_mask & (mask))) { \
-			__dal_mask = 0; \
+		__nsul_mask = nsulog_calc_mask(__nsul_prog_name, __nsul_modu_name, __nsul_file_name, __nsul_func_name, line); \
+		if (!(__nsul_mask & (mask))) { \
+			__nsul_mask = 0; \
 		} \
 	} \
-	if (__dal_mask) { \
-		nsulog_f(indi, __dal_mask, __dal_prog_name, modu, __dal_file_name, (char*)func, line, fmt, ##__VA_ARGS__); \
+	if (__nsul_mask) { \
+		nsulog_f(indi, __nsul_mask, __nsul_prog_name, modu, __nsul_file_name, (char*)func, line, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 
 #define NSULOG_CHK_AND_CALL_AP(mask, indi, modu, file, func, line, fmt, ap) do { \
 	NSULOG_INNER_VAR_DEF(); \
-	if (nsulog_unlikely(__dal_ver_get > __dal_ver_sav)) { \
-		__dal_ver_sav = __dal_ver_get; \
+	if (nsulog_unlikely(__nsul_ver_get > __nsul_ver_sav)) { \
+		__nsul_ver_sav = __nsul_ver_get; \
 		NSULOG_SETUP_NAME(modu, file, func); \
-		__dal_mask = nsulog_calc_mask(__dal_prog_name, __dal_modu_name, __dal_file_name, __dal_func_name, line); \
-		if (!(__dal_mask & (mask))) { \
-			__dal_mask = 0; \
+		__nsul_mask = nsulog_calc_mask(__nsul_prog_name, __nsul_modu_name, __nsul_file_name, __nsul_func_name, line); \
+		if (!(__nsul_mask & (mask))) { \
+			__nsul_mask = 0; \
 		} \
 	} \
-	if (__dal_mask) { \
-		nsulog_vf(indi, __dal_mask, __dal_prog_name, modu, __dal_file_name, (char*)func, line, fmt, ap); \
+	if (__nsul_mask) { \
+		nsulog_vf(indi, __nsul_mask, __nsul_prog_name, modu, __nsul_file_name, (char*)func, line, fmt, ap); \
 	} \
 } while (0)
 
@@ -139,6 +139,18 @@ typedef void (*RLOGGER)(unsigned char type, unsigned int mask, char *prog, char 
 #define nsulog_notice(fmt, ...)      NSULOG_CHK_AND_CALL(NSULOG_NOTICE,  'N', NSULOG_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 #define nsulog_info(fmt, ...)        NSULOG_CHK_AND_CALL(NSULOG_INFO,    'I', NSULOG_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 #define nsulog_debug(fmt, ...)       NSULOG_CHK_AND_CALL(NSULOG_DEBUG,   'D', NSULOG_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
+
+#define nsulog_assert(_x_) do { \
+	if (!(_x_)) { \
+		NSULOG_INNER_VAR_DEF(); \
+		if (__nsul_ver_get > __nsul_ver_sav) { \
+			__nsul_ver_sav = __nsul_ver_get; \
+			NSULOG_SETUP_NAME(NSULOG_MODU_NAME, __FILE__, __func__); \
+		} \
+		nsulog_f('!', NSULOG_ALL, __nsul_prog_name, NSULOG_MODU_NAME, __nsul_file_name, (char*)__FUNCTION__, __LINE__, \
+				"\n\tASSERT NG: \"%s\"\n\n", #_x_); \
+	} \
+} while (0)
 
 /*-----------------------------------------------------------------------
  * Functions:
