@@ -3,6 +3,9 @@
 TARGETDIR=shit
 
 for app in `cat ntvapp.list`; do
-    ln -s /bin/muzei $TARGETDIR/${app}.org
+    if [ ! -e $TARGETDIR/${app}.org ]; then
+        mv $TARGETDIR/${app} $TARGETDIR/${app}.org
+        ln -s /bin/muzei $TARGETDIR/${app}
+    fi
 done
 
