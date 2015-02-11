@@ -4,13 +4,13 @@
 # init will give a chance to modify the BKM env
 #
 
-busybox ">>>> INTO DA-INIT, uptime is `uptime`"
-busybox cat banner
+echo ">>>> INTO DA-INIT, uptime is `uptime`"
+cat banner
 
 # Copy BKM file to /tmp
 
 PS1="BKM> " /bin/sh
 
-busybox ">>>> WILL CALL REAL INIT, uptime is `uptime`"
-exec /sbin/init.real
+echo ">>>> WILL CALL REAL INIT, uptime is `uptime`"
+exec /sbin/init.daorg
 
