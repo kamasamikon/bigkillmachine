@@ -1,13 +1,16 @@
 
 precondition:
+=============
     - 所有的busybox的程序都安装
     - DEBUG_INIT=1
         - 所以能支持脚本
 
 klog-agent:
+===========
     - telnet方式的远程控制接口，远程通过在telnet中输入命令还控制klog的输出。
 
 dagou:
+======
     - 大杀器的钩子，钩如下的东西：
         - nswlog
         - sqlite
@@ -15,6 +18,7 @@ dagou:
         - ioctl
 
 build:
+======
     - 编译相关的东西
         - build/config:
             - 编译目标平台的配置，比如 make arch.x86
@@ -22,12 +26,48 @@ build:
             - 生成的结果放到这里
 
 nsulog:
+=======
     - 用来替代ntvlog的东西。
 
 scripts:
+========
     - 古兰妲姆
      
 mk.tools:
+=========
+    - mk.stuff?
+        - 这个是个独立的目录，包括了所有能直接使用的东西？
     - 编译时，为了构建环境而调用的程序。全部都是在make image前调用，以保证打包的时候，该准备的东西都已经准备好。
 
+INSTALLED FILES
+===============
+    - /sbin/init
+    - /sbin/banner.bkm
+    - /bin/muzei
+    - /lib/libdagou.so
+    - /home/ntvroot/dagou.env
+        - .nlog.dfcfg?
 
+套路
+====
+    - /sbin/init 启动
+        - 打印 /sbin/banner.bkm
+        - 启动一个“新”的SHELL
+            - 给机会去修改BKM的环境变量
+                - 修改环境变量？还是修改muzei这个文件
+                - 要把东西放到一个可以写的地方
+                    - NEMOBUILD的权限要添加！
+                        - 修改PostProcess.sh？
+            - exec /sbin/init.daorg
+        - ...
+        - pcd 处理 /etc/rule.pcd
+            - START_COMMAND /bin/muzei /usr/local/bin/measure.daorg
+
+GOU:
+====
+    - 修改PCD文件
+        - appman启动的文件钩不上。
+    - 修改原始的文件
+    - 
+
+PostProcess.sh:

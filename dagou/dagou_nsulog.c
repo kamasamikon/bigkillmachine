@@ -2,25 +2,28 @@
 
 #include "dalog/dalog.h"
 
-int nsulog_add_logger(NLOGGER logger)
+typedef void (*NSU_NLOGGER)(char *content, int len);
+typedef void (*NSU_RLOGGER)(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, va_list ap);
+
+int nsulog_add_logger(NSU_NLOGGER logger)
 {
 	/* All the logger provided by BKM */
 	return 0;
 }
 
-int nsulog_del_logger(NLOGGER logger)
+int nsulog_del_logger(NSU_NLOGGER logger)
 {
 	/* All the logger provided by BKM */
 	return 0;
 }
 
-int nsulog_add_rlogger(RLOGGER logger)
+int nsulog_add_rlogger(NSU_RLOGGER logger)
 {
 	/* All the logger provided by BKM */
 	return 0;
 }
 
-int nsulog_del_rlogger(RLOGGER logger)
+int nsulog_del_rlogger(NSU_RLOGGER logger)
 {
 	/* All the logger provided by BKM */
 	return 0;

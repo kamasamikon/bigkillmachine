@@ -88,8 +88,8 @@ struct _dalogcc_s {
 	rulearr_s arr_rule;
 
 	unsigned char nlogger_cnt, rlogger_cnt;
-	NLOGGER nloggers[MAX_NLOGGER];
-	RLOGGER rloggers[MAX_RLOGGER];
+	DAL_NLOGGER nloggers[MAX_NLOGGER];
+	DAL_RLOGGER rloggers[MAX_RLOGGER];
 };
 
 static dalogcc_s *__g_dalogcc = NULL;
@@ -108,7 +108,7 @@ static inline void *dalog_cc(void)
 /*-----------------------------------------------------------------------
  * dalog-logger
  */
-int dalog_add_logger(NLOGGER logger)
+int dalog_add_logger(DAL_NLOGGER logger)
 {
 	dalogcc_s *cc = (dalogcc_s*)dalog_cc();
 	int i;
@@ -126,7 +126,7 @@ int dalog_add_logger(NLOGGER logger)
 	return 0;
 }
 
-int dalog_del_logger(NLOGGER logger)
+int dalog_del_logger(DAL_NLOGGER logger)
 {
 	dalogcc_s *cc = (dalogcc_s*)dalog_cc();
 	int i;
@@ -142,7 +142,7 @@ int dalog_del_logger(NLOGGER logger)
 	return -1;
 }
 
-int dalog_add_rlogger(RLOGGER logger)
+int dalog_add_rlogger(DAL_RLOGGER logger)
 {
 	dalogcc_s *cc = (dalogcc_s*)dalog_cc();
 	int i;
@@ -160,7 +160,7 @@ int dalog_add_rlogger(RLOGGER logger)
 	return 0;
 }
 
-int dalog_del_rlogger(RLOGGER logger)
+int dalog_del_rlogger(DAL_RLOGGER logger)
 {
 	dalogcc_s *cc = (dalogcc_s*)dalog_cc();
 	int i;

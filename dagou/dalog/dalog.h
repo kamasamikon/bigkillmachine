@@ -35,8 +35,8 @@ static char __attribute__((unused)) *__dal_prog_name = NULL;
 /*-----------------------------------------------------------------------
  * Normal and Raw Logger
  */
-typedef void (*NLOGGER)(char *content, int len);
-typedef void (*RLOGGER)(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, va_list ap);
+typedef void (*DAL_NLOGGER)(char *content, int len);
+typedef void (*DAL_RLOGGER)(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, va_list ap);
 
 /*-----------------------------------------------------------------------
  * Define DALOG_MODU_NAME if someone forgot it.
@@ -175,11 +175,11 @@ unsigned int dalog_calc_mask(char *prog, char *modu, char *file, char *func, int
 int dalog_f(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, ...) __attribute__ ((format (printf, 8, 9)));
 int dalog_vf(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, va_list ap);
 
-int dalog_add_logger(NLOGGER logger);
-int dalog_del_logger(NLOGGER logger);
+int dalog_add_logger(DAL_NLOGGER logger);
+int dalog_del_logger(DAL_NLOGGER logger);
 
-int dalog_add_rlogger(RLOGGER logger);
-int dalog_del_rlogger(RLOGGER logger);
+int dalog_add_rlogger(DAL_RLOGGER logger);
+int dalog_del_rlogger(DAL_RLOGGER logger);
 
 void *dalog_attach(void *logcc);
 void dalog_touch(void);

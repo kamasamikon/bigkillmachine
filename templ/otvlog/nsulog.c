@@ -2,22 +2,22 @@
 
 #include "nsulog.h"
 
-int nsulog_add_logger(NLOGGER logger)
+int nsulog_add_logger(NSU_NLOGGER logger)
 {
 	return 0;
 }
 
-int nsulog_del_logger(NLOGGER logger)
+int nsulog_del_logger(NSU_NLOGGER logger)
 {
 	return 0;
 }
 
-int nsulog_add_rlogger(RLOGGER logger)
+int nsulog_add_rlogger(NSU_RLOGGER logger)
 {
 	return 0;
 }
 
-int nsulog_del_rlogger(RLOGGER logger)
+int nsulog_del_rlogger(NSU_RLOGGER logger)
 {
 	return 0;
 }

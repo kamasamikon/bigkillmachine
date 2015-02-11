@@ -5,7 +5,7 @@
 #
 
 echo ">>>> INTO DA-INIT, uptime is `uptime`"
-cat banner
+cat /sbin/banner.bkm
 
 # Copy BKM file to /tmp
 

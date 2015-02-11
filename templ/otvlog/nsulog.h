@@ -27,8 +27,8 @@ static char __attribute__((unused)) *__nsul_prog_name = NULL;
 /*-----------------------------------------------------------------------
  * Normal and Raw Logger
  */
-typedef void (*NLOGGER)(char *content, int len);
-typedef void (*RLOGGER)(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, va_list ap);
+typedef void (*NSU_NLOGGER)(char *content, int len);
+typedef void (*NSU_RLOGGER)(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, va_list ap);
 
 /*-----------------------------------------------------------------------
  * Define NSULOG_MODU_NAME if someone forgot it.
@@ -167,11 +167,11 @@ unsigned int nsulog_calc_mask(char *prog, char *modu, char *file, char *func, in
 int nsulog_f(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, ...) __attribute__ ((format (printf, 8, 9)));
 int nsulog_vf(unsigned char type, unsigned int mask, char *prog, char *modu, char *file, char *func, int ln, const char *fmt, va_list ap);
 
-int nsulog_add_logger(NLOGGER logger);
-int nsulog_del_logger(NLOGGER logger);
+int nsulog_add_logger(NSU_NLOGGER logger);
+int nsulog_del_logger(NSU_NLOGGER logger);
 
-int nsulog_add_rlogger(RLOGGER logger);
-int nsulog_del_rlogger(RLOGGER logger);
+int nsulog_add_rlogger(NSU_RLOGGER logger);
+int nsulog_del_rlogger(NSU_RLOGGER logger);
 
 void *nsulog_attach(void *logcc);
 void nsulog_touch(void);
