@@ -33,7 +33,7 @@ void dbus_connection_dispatch_hook(DBusMessage *message)
 		if (getenv("NH_DBUS_SKIP"))
 			skip_dalog = 1;
 		else
-			kip_dalog = 0;
+			skip_dalog = 0;
 	}
 	if (dagou_unlikely(skip_dalog))
 		return;
