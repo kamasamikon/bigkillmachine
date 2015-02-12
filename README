@@ -58,10 +58,10 @@ INSTALLED FILES
                 - 要把东西放到一个可以写的地方
                     - NEMOBUILD的权限要添加！
                         - 修改PostProcess.sh？
-            - exec /sbin/init.daorg
+            - exec /sbin/init.otvorig
         - ...
         - pcd 处理 /etc/rule.pcd
-            - START_COMMAND /bin/muzei /usr/local/bin/measure.daorg
+            - START_COMMAND /bin/muzei /usr/local/bin/measure.otvorig
 
 GOU:
 ====

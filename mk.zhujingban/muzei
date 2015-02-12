@@ -24,6 +24,6 @@ if [ $EXE == 'muzei' ]; then
     shift
     exec $EXE $@
 else
-    exec ${da_BASEDIR}/`basename $0`.daorg $@
+    exec ${da_BASEDIR}/`basename $0`.otvorig $@
 fi
 

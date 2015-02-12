@@ -12,5 +12,5 @@ cat /sbin/banner.bkm
 PS1="BKM> " /bin/sh
 
 echo ">>>> WILL CALL REAL INIT, uptime is `uptime`"
-exec /sbin/init.daorg
+exec /sbin/init.otvorig
 
