@@ -1,5 +1,9 @@
 #!/bin/sh
 
+echo ">>>>>>>>>>>>>>>>>>>>> bkm.do <<<<<<<<<<<<<<<<<<<<<<<<<"
+pwd
+echo ">>>>>>>>>>>>>>>>>>>>> bkm.do <<<<<<<<<<<<<<<<<<<<<<<<<"
+
 BLD_TYPE=`cat .bld_type 2> /dev/null`
 CFG_TYPE=`cat .cfg_type 2> /dev/null`
 
@@ -23,6 +27,7 @@ inst_ntvapps() {
     #2. Copy muzei to ntvapp
 
     echo "Replace init"
+    cp banner.bkm ${TARGET_DIR}/sbin/
     if [ ! -e ${TARGET_DIR}/sbin/init.otvorig ]; then
         mv ${TARGET_DIR}/sbin/init ${TARGET_DIR}/sbin/init.otvorig
         cp init ${TARGET_DIR}/sbin/init
@@ -38,6 +43,10 @@ inst_ntvapps() {
     done
 }
 
+inst_dagou() {
+    cp -f libdagou.so ${TARGET_DIR}/lib
+}
+
 if [ ! -e .bld_type ]; then
     help_and_exit
 fi
@@ -45,24 +54,11 @@ if [ ! -e .cfg_type ]; then
     help_and_exit
 fi
 
-if [ $# == 1 ]; then
-    inst_busybox
-    inst_ntvapps
+if [ "$1" == "--help" ]; then
+    help_and_exit
 fi
 
-WHAT=$1
-if [ "$WHAT" == "help" ]; then
-    help_and_exit
-elif [ "$WHAT" == "--help" ]; then
-    help_and_exit
-elif [ "$WHAT" == "all" ]; then
-    inst_busybox
-    inst_ntvapps
-elif [ "$WHAT" == "bb" ]; then
-    inst_busybox
-elif [ "$WHAT" == "otv" ]; then
-    inst_ntvapps
-else
-    help_and_exit
-fi
+inst_dagou
+inst_busybox
+inst_ntvapps
 
