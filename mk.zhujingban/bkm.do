@@ -25,14 +25,16 @@ inst_busybox() {
 gen_banner() {
     echo "Generate banner"
 
-    BANNER=${TARGET_DIR}/sbin/banner.bkm
+    BANNER=${TARGET_DIR}/etc/banner.bkm
 
     figlet -w 5000 "BigKillMachine V0.2" > ${BANNER}
     echo "" >> ${BANNER}
     echo "" >> ${BANNER}
-    echo "  TIME : `date`"  >> ${BANNER}
-    echo "   PWD : ...."  >> ${BANNER}
-    echo " BUILD : make BUILD_TYPE=$BLD_TYPE CONFIG_TYPE=$CFG_TYPE DEBUG_INIT=1" >> ${BANNER}
+
+    echo "    PWD : `pwd`" >> ${BANNER}
+    echo "   TIME : `date -R`" >> ${BANNER}
+    echo "COMMAND : make DEBUG_INIT=1 CONFIG_TYPE=${CFG_TYPE} BUILD_TYPE=${BLD_TYPE}" >> ${BANNER}
+    echo "" >> ${BANNER}
 }
 
 inst_ntvapps() {

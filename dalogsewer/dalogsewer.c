@@ -19,22 +19,22 @@
 #include <assert.h>
 
 #define BACK_LOG 50
-#define __g_epoll_max 50
+#define __epoll_max 50
 
 static void config_socket(int s);
 static void ignore_pipe();
 
-static int __g_epoll_fd = -1;
-static struct epoll_event __g_epoll_events[__g_epoll_max];
+static int __epoll_fd = -1;
+static struct epoll_event __epoll_events[__epoll_max];
 
-static FILE *__g_fp_out = NULL;
+static FILE *__fp_out = NULL;
 
 /*-----------------------------------------------------------------------
  * Server
  */
 static int process_dalog_data(int s, char *buf, int len)
 {
-	if (len != fwrite(buf, sizeof(char), len, __g_fp_out))
+	if (len != fwrite(buf, sizeof(char), len, __fp_out))
 		printf("fwrite error: %d\n", errno);
 	return 0;
 }
@@ -78,20 +78,20 @@ static void *worker_thread_or_server(unsigned short port)
 		return NULL;
 	}
 
-	__g_epoll_fd = epoll_create(__g_epoll_max);
+	__epoll_fd = epoll_create(__epoll_max);
 	memset(&ev, 0, sizeof(ev));
 	ev.data.fd = s_listen;
 	ev.events = EPOLLIN;
-	epoll_ctl(__g_epoll_fd, EPOLL_CTL_ADD, s_listen, &ev);
+	epoll_ctl(__epoll_fd, EPOLL_CTL_ADD, s_listen, &ev);
 
 	buf = malloc(bufsize);
 	for (;;) {
 		do
-			ready = epoll_wait(__g_epoll_fd, __g_epoll_events, __g_epoll_max, -1);
+			ready = epoll_wait(__epoll_fd, __epoll_events, __epoll_max, -1);
 		while ((ready == -1) && (errno == EINTR));
 
 		for (i = 0; i < ready; i++) {
-			e = __g_epoll_events + i;
+			e = __epoll_events + i;
 
 			if (e->data.fd == s_listen) {
 				sin_size = sizeof(their_addr);
@@ -111,7 +111,7 @@ static void *worker_thread_or_server(unsigned short port)
 				memset(&ev, 0, sizeof(ev));
 				ev.data.fd = new_fd;
 				ev.events = EPOLLIN;
-				epoll_ctl(__g_epoll_fd, EPOLL_CTL_ADD, new_fd, &ev);
+				epoll_ctl(__epoll_fd, EPOLL_CTL_ADD, new_fd, &ev);
 
 				continue;
 			} else if (!(e->events & EPOLLIN)) {
@@ -127,14 +127,14 @@ static void *worker_thread_or_server(unsigned short port)
 				close_connect(e->data.fd);
 
 				/* XXX: Should not put it here */
-				fflush(__g_fp_out);
+				fflush(__fp_out);
 			}
 		}
 	}
 	free(buf);
 
-	close(__g_epoll_fd);
-	__g_epoll_fd = -1;
+	close(__epoll_fd);
+	__epoll_fd = -1;
 
 	return NULL;
 }
@@ -161,8 +161,7 @@ static void ignore_pipe()
 
 static void help(int die)
 {
-
-	printf("usage: dalogserv [PORT] [TOFILE]\n");
+	printf("usage: dalogsewer [PORT] [TOFILE]\n");
 	printf("       environ: LOGSEW_PORT LOGSEW_FILE\n");
 
 	if (die)
@@ -183,13 +182,13 @@ int main(int argc, char *argv[])
 		env = getenv("LOGSEW_FILE");
 		if (!env)
 			help(1);
-		__g_fp_out = fopen(env, "wt+");
+		__fp_out = fopen(env, "wt+");
 	} else {
 		port = (unsigned short)atoi(argv[1]);
-		__g_fp_out = fopen(argv[2], "wt+");
+		__fp_out = fopen(argv[2], "wt+");
 	}
 
-	if (!__g_fp_out) {
+	if (!__fp_out) {
 		printf("open '%s' failed, error: '%s'\n", argv[2], strerror(errno));
 		exit(0);
 	}

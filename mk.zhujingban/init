@@ -5,11 +5,13 @@
 #
 
 echo ">>>> INTO DA-INIT, uptime is `uptime`"
-cat /sbin/banner.bkm
+cat /etc/banner.bkm
 
 # Copy BKM file to /tmp
 
 PS1="BKM> " /bin/sh
+
+export BKM_SEW_PATH=HAHA
 
 echo ">>>> WILL CALL REAL INIT, uptime is `uptime`"
 exec /sbin/init.otvorig

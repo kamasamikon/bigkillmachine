@@ -33,25 +33,26 @@ scripts:
 ========
     - 古兰妲姆
      
-mk.tools:
+mk.zhujingban:
 =========
-    - mk.stuff?
-        - 这个是个独立的目录，包括了所有能直接使用的东西？
+    - 这个是个独立的目录，包括了所有能直接使用的东西？
     - 编译时，为了构建环境而调用的程序。全部都是在make image前调用，以保证打包的时候，该准备的东西都已经准备好。
 
-INSTALLED FILES
-===============
-    - /sbin/init
-    - /sbin/banner.bkm
-    - /bin/muzei
-    - /lib/libdagou.so
-    - /home/ntvroot/dagou.env
-        - .nlog.dfcfg?
+    - INSTALLED FILES
+        - /sbin/init
+        - /etc/banner.bkm
+        - /bin/muzei
+        - /lib/libdagou.so
+        - /home/ntvroot/dagou.env
+            - .nlog.dfcfg?
+            - 这个可以不安装
+        - /bin/dalogsew
+
 
 套路
 ====
     - /sbin/init 启动
-        - 打印 /sbin/banner.bkm
+        - 打印 /etc/banner.bkm
         - 启动一个“新”的SHELL
             - 给机会去修改BKM的环境变量
                 - 修改环境变量？还是修改muzei这个文件
@@ -61,13 +62,19 @@ INSTALLED FILES
             - exec /sbin/init.otvorig
         - ...
         - pcd 处理 /etc/rule.pcd
-            - START_COMMAND /bin/muzei /usr/local/bin/measure.otvorig
+            - START_COMMAND /bin/muzei /usr/local/bin/measure.otvorig ...
+            - START_COMMAND /local/bin/measure ...
 
 GOU:
 ====
     - 修改PCD文件
         - appman启动的文件钩不上。
     - 修改原始的文件
-    - 
+
+MISC:
+    - 或者不修改init，而是修改rule.pcd?
 
 PostProcess.sh:
+    - bkm.undo
+    - bkm.do
+
