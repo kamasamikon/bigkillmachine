@@ -22,12 +22,26 @@ inst_busybox() {
     done
 }
 
+gen_banner() {
+    echo "Generate banner"
+
+    BANNER=${TARGET_DIR}/sbin/banner.bkm
+
+    figlet -w 5000 "BigKillMachine V0.2" > ${BANNER}
+    echo "" >> ${BANNER}
+    echo "" >> ${BANNER}
+    echo "  TIME : `date`"  >> ${BANNER}
+    echo "   PWD : ...."  >> ${BANNER}
+    echo " BUILD : make BUILD_TYPE=$BLD_TYPE CONFIG_TYPE=$CFG_TYPE DEBUG_INIT=1" >> ${BANNER}
+}
+
 inst_ntvapps() {
     #1. Move ntvapp to ntvapp.otvorig
     #2. Copy muzei to ntvapp
 
+    gen_banner
+
     echo "Replace init"
-    cp banner.bkm ${TARGET_DIR}/sbin/
     if [ ! -e ${TARGET_DIR}/sbin/init.otvorig ]; then
         mv ${TARGET_DIR}/sbin/init ${TARGET_DIR}/sbin/init.otvorig
         cp init ${TARGET_DIR}/sbin/init
