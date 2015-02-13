@@ -46,7 +46,7 @@ int sqlite3_open(const char *filename, sqlite3 **ppDb)
 
 	dalog_setup();
 	int ret = realfunc(filename, ppDb);
-	if (likely(ret == SQLITE_OK))
+	if (dagou_likely(ret == SQLITE_OK))
 		sqlite3_trace(*ppDb, sqliteTrace, *ppDb);
 
 	if (dagou_unlikely(is_skip_dalog()))
@@ -64,7 +64,7 @@ int sqlite3_open16(const void *filename, sqlite3 **ppDb)
 
 	dalog_setup();
 	int ret = realfunc(filename, ppDb);
-	if (likely(ret == SQLITE_OK))
+	if (dagou_likely(ret == SQLITE_OK))
 		sqlite3_trace(*ppDb, sqliteTrace, *ppDb);
 
 	if (dagou_unlikely(is_skip_dalog()))
@@ -82,7 +82,7 @@ int sqlite3_open_v2(const char *filename, sqlite3 **ppDb, int flags, const char 
 
 	dalog_setup();
 	int ret = realfunc(filename, ppDb, flags, zVfs);
-	if (likely(ret == SQLITE_OK))
+	if (dagou_likely(ret == SQLITE_OK))
 		sqlite3_trace(*ppDb, sqliteTrace, *ppDb);
 
 	if (dagou_unlikely(is_skip_dalog()))

@@ -1,3 +1,6 @@
+NOTE:
+=====
+    - NEMOBUILD的工具链把LD_PRELOAD干掉了，要用老的ld-uClibc-*** 才可以。
 
 precondition:
 =============
