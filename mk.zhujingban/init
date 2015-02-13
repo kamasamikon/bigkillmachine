@@ -4,15 +4,34 @@
 # init will give a chance to modify the BKM env
 #
 
+### #####################################################################
+## Print welcome
+#
 echo ">>>> INTO DA-INIT, uptime is `uptime`"
 cat /etc/banner.bkm
 
-# Copy BKM file to /tmp
+### #####################################################################
+## Collect envionment for dalogsewer and ntvapps
+#
+da_ENVFILE=/tmp/dalogsewer.env
+#da_ENVFILE=./myenv
 
+initenv() {
+    echo -n "" > ${da_ENVFILE}
+    echo '# export LOGSEW_PORT=50000' >> ${da_ENVFILE}
+    echo '# export LOGSEW_FILE=/tmp/dalog.sew' >> ${da_ENVFILE}
+    echo '' >> ${da_ENVFILE}
+}
+
+initenv
 PS1="BKM> " /bin/sh
 
-export BKM_SEW_PATH=HAHA
+source ${da_ENVFILE}
+/bin/dalogsewer &
 
+### #####################################################################
+## Run the real init
+#
 echo ">>>> WILL CALL REAL INIT, uptime is `uptime`"
 exec /sbin/init.otvorig
 

@@ -135,7 +135,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	return 0;
 }
 
-static void logger_remote(char *content, int len)
+static void logger_network(char *content, int len)
 {
 	if (__serv_sock == -1)
 		connect_rlog_serv(__serv_addr, __serv_port, &__serv_sock);
@@ -207,10 +207,10 @@ void dalog_setup()
 		_output("daLog: DALOG_TO_SYSLOG opened <%s>\n", env);
 		dalog_add_logger(logger_syslog);
 	}
-	env = getenv("DALOG_TO_REMOTE");
+	env = getenv("DALOG_TO_NETWORK");
 	if (env) {
-		_output("daLog: DALOG_TO_REMOTE opened <%s>\n", env);
-		dalog_add_logger(logger_remote);
+		_output("daLog: DALOG_TO_NETWORK opened <%s>\n", env);
+		dalog_add_logger(logger_network);
 
 		if (!rlog_serv_from_kernel_cmdline(env, __serv_addr, &__serv_port))
 			connect_rlog_serv(__serv_addr, __serv_port, &__serv_sock);

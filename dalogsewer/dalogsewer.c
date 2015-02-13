@@ -19,22 +19,18 @@
 #include <assert.h>
 
 #define BACK_LOG 50
-#define __epoll_max 50
+#define EPOLL_MAX 50
 
 static void config_socket(int s);
 static void ignore_pipe();
 
-static int __epoll_fd = -1;
-static struct epoll_event __epoll_events[__epoll_max];
-
-static FILE *__fp_out = NULL;
 
 /*-----------------------------------------------------------------------
  * Server
  */
-static int process_dalog_data(int s, char *buf, int len)
+static int process_dalog_data(int s, char *buf, int len, FILE *fp)
 {
-	if (len != fwrite(buf, sizeof(char), len, __fp_out))
+	if (len != fwrite(buf, sizeof(char), len, fp))
 		printf("fwrite error: %d\n", errno);
 	return 0;
 }
@@ -44,16 +40,21 @@ static void close_connect(int s)
 	close(s);
 }
 
-static void *worker_thread_or_server(unsigned short port)
+static void *worker_thread_or_server(unsigned short port, const char *file)
 {
-	int ready, i, n, bufsize = 64 * 1024;
+	int ready, i, n, bufsize = 256 * 1024;
 	void *buf;
-	struct epoll_event ev, *e;
 
 	int s_listen, new_fd;
 	struct sockaddr_in their_addr;
 	struct sockaddr_in my_addr;
 	socklen_t sin_size;
+
+	int epoll_fd = -1;
+	struct epoll_event epoll_events[EPOLL_MAX];
+	struct epoll_event ev, *e;
+
+	FILE *fp = NULL;
 
 	ignore_pipe();
 
@@ -78,20 +79,20 @@ static void *worker_thread_or_server(unsigned short port)
 		return NULL;
 	}
 
-	__epoll_fd = epoll_create(__epoll_max);
+	epoll_fd = epoll_create(EPOLL_MAX);
 	memset(&ev, 0, sizeof(ev));
 	ev.data.fd = s_listen;
 	ev.events = EPOLLIN;
-	epoll_ctl(__epoll_fd, EPOLL_CTL_ADD, s_listen, &ev);
+	epoll_ctl(epoll_fd, EPOLL_CTL_ADD, s_listen, &ev);
 
 	buf = malloc(bufsize);
 	for (;;) {
 		do
-			ready = epoll_wait(__epoll_fd, __epoll_events, __epoll_max, -1);
+			ready = epoll_wait(epoll_fd, epoll_events, EPOLL_MAX, -1);
 		while ((ready == -1) && (errno == EINTR));
 
 		for (i = 0; i < ready; i++) {
-			e = __epoll_events + i;
+			e = epoll_events + i;
 
 			if (e->data.fd == s_listen) {
 				sin_size = sizeof(their_addr);
@@ -111,7 +112,7 @@ static void *worker_thread_or_server(unsigned short port)
 				memset(&ev, 0, sizeof(ev));
 				ev.data.fd = new_fd;
 				ev.events = EPOLLIN;
-				epoll_ctl(__epoll_fd, EPOLL_CTL_ADD, new_fd, &ev);
+				epoll_ctl(epoll_fd, EPOLL_CTL_ADD, new_fd, &ev);
 
 				continue;
 			} else if (!(e->events & EPOLLIN)) {
@@ -120,21 +121,29 @@ static void *worker_thread_or_server(unsigned short port)
 			}
 
 			if ((n = recv(e->data.fd, buf, bufsize, 0)) > 0) {
-				if (process_dalog_data(e->data.fd, buf, n))
+				if (!fp)
+					fp = fopen(file, "a+");
+
+				if (!fp) {
+					printf("Open '%s' NG\n", file);
+					continue;
+				}
+
+				if (process_dalog_data(e->data.fd, buf, n, fp))
 					close_connect(e->data.fd);
 			} else {
 				printf("Remote close socket: %d\n", e->data.fd);
 				close_connect(e->data.fd);
 
 				/* XXX: Should not put it here */
-				fflush(__fp_out);
+				fflush(fp);
 			}
 		}
 	}
 	free(buf);
 
-	close(__epoll_fd);
-	__epoll_fd = -1;
+	close(epoll_fd);
+	epoll_fd = -1;
 
 	return NULL;
 }
@@ -171,6 +180,7 @@ static void help(int die)
 int main(int argc, char *argv[])
 {
 	unsigned short port;
+	const char *file;
 	char *env;
 
 	if (argc < 3) {
@@ -182,19 +192,15 @@ int main(int argc, char *argv[])
 		env = getenv("LOGSEW_FILE");
 		if (!env)
 			help(1);
-		__fp_out = fopen(env, "wt+");
+		file = strdup(env);
 	} else {
 		port = (unsigned short)atoi(argv[1]);
-		__fp_out = fopen(argv[2], "wt+");
+		file = strdup(argv[2]);
 	}
 
-	if (!__fp_out) {
-		printf("open '%s' failed, error: '%s'\n", argv[2], strerror(errno));
-		exit(0);
-	}
+	worker_thread_or_server(port, file);
 
-	worker_thread_or_server(port);
-
+	free(file);
 	return 0;
 }
 

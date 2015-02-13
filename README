@@ -46,7 +46,7 @@ mk.zhujingban:
         - /home/ntvroot/dagou.env
             - .nlog.dfcfg?
             - 这个可以不安装
-        - /bin/dalogsew
+        - /bin/dalogsewer
 
 
 套路
@@ -64,6 +64,32 @@ mk.zhujingban:
         - pcd 处理 /etc/rule.pcd
             - START_COMMAND /bin/muzei /usr/local/bin/measure.otvorig ...
             - START_COMMAND /local/bin/measure ...
+
+da_ENVFILE:
+    - 包含了所有需要的环境变量
+    - 包含
+        - dagou
+            - DALOG_DFCFG 
+                - Default configure
+                - DALOG_DFCFG=/home/df.cfg
+            - DALOG_RTCFG 
+                - Runtime configure
+                - DALOG_DFCFG=/home/rt.cfg
+            - DALOG_TO_LOCAL 
+                - 输出到本地文件
+                - DALOG_TO_LOCAL=/tmp/da.log
+            - DALOG_TO_SYSLOG 
+                - 输出到syslog
+                - DALOG_TO_SYSLOG=YES|NO
+            - DALOG_TO_NETWORK
+                - 通过网络发送
+                - DALOG_TO_NETWORK=localhost:3333
+
+        - dalogsewer
+            - LOGSEW_PORT
+                - Listen port, see DALOG_TO_NETWORK
+            - LOGSEW_FILE
+                - Where the log will be saved to
 
 GOU:
 ====

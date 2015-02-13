@@ -209,7 +209,7 @@ static void load_muzei_opt()
 {
 	int argc;
 	char **argv;
-	char *env = getenv("muzei_OPT");
+	char *env = getenv("MUZEI_OPT");
 
 	if (narg_build(env, &argc, &argv))
 		return;
