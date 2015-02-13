@@ -200,7 +200,7 @@ int main(int argc, char *argv[])
 
 	worker_thread_or_server(port, file);
 
-	free(file);
+	free((void*)file);
 	return 0;
 }
 

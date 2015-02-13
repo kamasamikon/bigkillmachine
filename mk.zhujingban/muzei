@@ -4,9 +4,7 @@
 ## Load environment from file
 #
 
-da_ENVFILE=./myenv
-#da_ENVFILE=./myenv
-#da_ENVFILE=./myenv
+da_ENVFILE=/home/ntvroot/daenv
 
 source ${da_ENVFILE}
 
@@ -15,9 +13,7 @@ source ${da_ENVFILE}
 #
 EXE=`basename $0`
 
-da_BASEDIR=.
-#da_BASEDIR=/tmp
-#da_BASEDIR=/home/ntvroot
+da_BASEDIR=/usr/local/bin
 
 if [ $EXE == 'muzei' ]; then
     EXE=$1

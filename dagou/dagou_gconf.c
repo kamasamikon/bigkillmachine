@@ -11,14 +11,14 @@
 #include <time.h>
 
 #define DALOG_MODU_NAME "NHGCONF"
-#include <dalog/dalog.h>
+#include <dalog.h>
 
-#define NH_GCONF
+#define DAGOU_GCONF
 
 /*-----------------------------------------------------------------------
  * gconf
  */
-#ifdef NH_GCONF
+#ifdef DAGOU_GCONF
 #include <gconf/gconf-client.h>
 
 /* Return buf, if ret != buf, should call free(ret) */

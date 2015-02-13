@@ -23,7 +23,7 @@
  *
  * Direct to server
  */
-#include <dalog/dalog.h>
+#include <dalog.h>
 #include <dalog_setup.h>
 
 static int __serv_sock = -1;
@@ -39,6 +39,7 @@ static int _output(const char *fmt, ...)
 	va_list arg;
 	int done;
 	char buf[2048], cmd[2048];
+	int ret;
 
 	va_start(arg, fmt);
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
@@ -47,7 +48,7 @@ static int _output(const char *fmt, ...)
 	printf("<%s@%d> %s", __prg, __pid, buf);
 
 	sprintf(cmd, "echo -n '<%s@%d> %s' >> '%s'", __prg, __pid, buf, "/tmp/lm.out");
-	system(cmd);
+	ret = system(cmd);
 
 	return done;
 }
@@ -172,13 +173,14 @@ static char *get_prog_name()
 {
 	FILE *fp;
 	char path[256], buf[2048];
+	char *ret;
 
 	sprintf(path, "/proc/%d/cmdline", getpid());
 	fp = fopen(path, "rt");
 	if (!fp)
 		return strdup("?");
 
-	fgets(buf, sizeof(buf), fp);
+	ret = fgets(buf, sizeof(buf), fp);
 	fclose(fp);
 	return strdup(basename(buf));
 }

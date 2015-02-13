@@ -10,14 +10,14 @@
 #include <time.h>
 
 #define DALOG_MODU_NAME "NHSQLITE"
-#include <dalog/dalog.h>
+#include <dalog.h>
 
-#define NH_SQLITE
+#define DAGOU_SQLITE
 
 /*-----------------------------------------------------------------------
  * sqlite
  */
-#ifdef NH_SQLITE
+#ifdef DAGOU_SQLITE
 #include <sqlite3.h>
 
 static int is_skip_dalog()
@@ -25,7 +25,7 @@ static int is_skip_dalog()
 	static int skip_dalog = -1;
 
 	if (dagou_unlikely(skip_dalog == -1)) {
-		if (getenv("NH_SQLITE_SKIP"))
+		if (getenv("DAGOU_SQLITE_SKIP"))
 			skip_dalog = 1;
 		else
 			skip_dalog = 0;

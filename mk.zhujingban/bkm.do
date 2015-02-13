@@ -18,7 +18,7 @@ help_and_exit() {
 
 inst_busybox() {
     for applet in `busybox --list`; do
-        ln -s /bin/busybox $BIN_DIR/bin/$applet
+        ln -s /bin/busybox $BIN_DIR/bin/$applet 2> /dev/null
     done
 }
 
@@ -54,13 +54,22 @@ inst_ntvapps() {
     for ntvapp in `cat ntvapp.list`; do
         if [ ! -e ${TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig ]; then
             mv ${TARGET_DIR}/usr/local/bin/${ntvapp} ${TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig
-            cp -f muzei ${TARGET_DIR}/usr/local/bin/${ntvapp}
+            # cp -f muzei ${TARGET_DIR}/usr/local/bin/${ntvapp}
+            ln -s /bin/muzei ${TARGET_DIR}/usr/local/bin/${ntvapp}
         fi
     done
 }
 
 inst_dagou() {
     cp -f libdagou.so ${TARGET_DIR}/lib
+}
+
+inst_logsewer() {
+    cp -f dalogsewer ${TARGET_DIR}/bin
+}
+
+inst_envfile() {
+    cp -f envfile.templ ${TARGET_DIR}/home/ntvroot/daenv
 }
 
 if [ ! -e .bld_type ]; then
@@ -74,6 +83,8 @@ if [ "$1" == "--help" ]; then
     help_and_exit
 fi
 
+inst_envfile
+inst_logsewer
 inst_dagou
 inst_busybox
 inst_ntvapps

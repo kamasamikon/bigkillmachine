@@ -25,7 +25,7 @@
 #include <stdlib.h>
 
 #define DALOG_MODU_NAME "NHDBUS"
-#include <dalog/dalog.h>
+#include <dalog.h>
 #include <nbuf.h>
 
 #define DBUS_INT64_PRINTF_MODIFIER "ll"

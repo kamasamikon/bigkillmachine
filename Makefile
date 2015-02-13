@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: dagou sewer agent ldmon nhlog kong klbench
-clean: dagou.clean sewer.clean agent.clean ldmon.clean nhlog.clean kong.clean klbench.clean
+all: dagou sewer 
+clean: dagou.clean sewer.clean 
 
 -include Makefile.defs
 
@@ -68,11 +68,11 @@ dagou.clean: amust
 #
 .PHONY: sewer
 sewer: amust
-	make -C $(HI_PRJ_ROOT)/klog-sewer
+	make -C $(HI_PRJ_ROOT)/dalogsewer
 
 .PHONY: sewer.clean
 sewer.clean: amust
-	make -C $(HI_PRJ_ROOT)/klog-sewer clean
+	make -C $(HI_PRJ_ROOT)/dalogsewer clean
 
 #########################################################################
 # $(HI_PRJ_ROOT)/klog-agent

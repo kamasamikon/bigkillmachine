@@ -23,7 +23,10 @@ initenv() {
     echo '' >> ${da_ENVFILE}
 }
 
-initenv
+if [ ! -e ${da_ENVFILE} ]; then
+    initenv
+fi
+
 PS1="BKM> " /bin/sh
 
 source ${da_ENVFILE}
@@ -32,6 +35,9 @@ source ${da_ENVFILE}
 ### #####################################################################
 ## Run the real init
 #
+rm -f /tmp/init
+ln -s /sbin/init.otvorig /tmp/init
+
 echo ">>>> WILL CALL REAL INIT, uptime is `uptime`"
-exec /sbin/init.otvorig
+exec /tmp/init
 

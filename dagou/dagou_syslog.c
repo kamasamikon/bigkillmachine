@@ -19,16 +19,16 @@
 #include <syslog.h>
 
 #define DALOG_MODU_NAME "NHSYSLOG"
-#include <dalog/dalog.h>
+#include <dalog.h>
 
-#define NH_SYSLOG
+#define DAGOU_SYSLOG
 
 /*-----------------------------------------------------------------------
  * KLOG
  *
  * Direct to server
  */
-#ifdef NH_SYSLOG
+#ifdef DAGOU_SYSLOG
 
 #include <dalog_setup.h>
 
@@ -39,7 +39,7 @@ void syslog(int __pri, __const char *__fmt, ...)
 	va_list ap;
 
 	if (dagou_unlikely(skip_dalog == -1)) {
-		if (getenv("NH_SYSLOG_SKIP"))
+		if (getenv("DAGOU_SYSLOG_SKIP"))
 			skip_dalog = 1;
 		else
 			skip_dalog = 0;
@@ -83,7 +83,7 @@ void syslog(int __pri, __const char *__fmt, ...)
 void vsyslog(int __pri, const char *__fmt, va_list ap)
 {
 	if (dagou_unlikely(skip_dalog == -1)) {
-		if (getenv("NH_SYSLOG_SKIP"))
+		if (getenv("DAGOU_SYSLOG_SKIP"))
 			skip_dalog = 1;
 		else
 			skip_dalog = 0;

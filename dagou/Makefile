@@ -11,7 +11,7 @@ SUB_OBJS_dagou = \
 				 $(HI_PRJ_ROOT)/dagou/dagou_sqlite.o \
 				 $(HI_PRJ_ROOT)/dagou/dagou_syslog.o \
 				 $(HI_PRJ_ROOT)/dagou/dalog_setup.o \
-				 $(HI_PRJ_ROOT)/dagou/dalog/dalog.o
+				 $(HI_PRJ_ROOT)/dagou/dalog.o
 
 				 # $(HI_PRJ_ROOT)/dagou/dagou_gconf.o \
 
@@ -20,7 +20,6 @@ LOCAL_OUT_LIB = dagou.a
 LOCAL_SHARE_LIB = libdagou.so
 
 CFLAGS += -I$(HI_PRJ_ROOT)/dagou
-CFLAGS += -I$(HI_PRJ_ROOT)/dagou/dalog
 
 CFLAGS += -I$(SYSROOT_DIR)/usr/include
 CFLAGS += -I$(SYSROOT_DIR)/usr/include/glib-2.0
