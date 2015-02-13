@@ -54,6 +54,16 @@ extern "C" {
 	memcpy((out), (addr), (len)); \
 } while (0)
 
+/*-----------------------------------------------------------------------
+ * nflg
+ */
+#define nflg_set(flg, bits)	((flg) |= (bits))
+#define nflg_clr(flg, bits)     ((flg) &= ~(bits))
+#define nflg_chk_bit(flg, bit)  ((flg) & (bit))
+#define nflg_chk_any(flg, bits) ((flg) & (bits))
+#define nflg_chk_all(flg, bits) (((flg) & (bits)) == (bits))
+
+
 #ifdef __cplusplus
 }
 #endif

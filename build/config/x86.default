@@ -7,10 +7,8 @@ BKM_DEBUG := yes
 GCC_PATH +=
 
 INCDIR += -I /usr/include
-INCDIR += -I `echo $$HILDA_INC`
 
 LIBS += -L /usr/lib -lpthread -lrt -ldl
-LIBS += -L `echo $$HILDA_LIB/x86` -lhilda
 
 # DEFINES += -DAAA -DBBB
 DEFINES += -D_REENTRANT -D_LARGEFILE64_SOURCE

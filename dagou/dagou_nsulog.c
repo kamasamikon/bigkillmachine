@@ -41,7 +41,7 @@ void nsulog_touch(void)
 
 int nsulog_touches(void)
 {
-	dalogmon_init();
+	dalog_setup();
 	return dalog_touches();
 }
 
