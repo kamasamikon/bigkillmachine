@@ -32,6 +32,7 @@ static int process_dalog_data(int s, char *buf, int len, FILE *fp)
 {
 	if (len != fwrite(buf, sizeof(char), len, fp))
 		printf("fwrite error: %d\n", errno);
+	fflush(fp);
 	return 0;
 }
 
