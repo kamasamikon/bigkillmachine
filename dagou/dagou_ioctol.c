@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#define DALOG_MODU_NAME "NHIOCTL"
+#define DALOG_MODU_NAME "DAIOCTL"
 #include <dalog.h>
 
 #define MAX_DMP_SIZE 128

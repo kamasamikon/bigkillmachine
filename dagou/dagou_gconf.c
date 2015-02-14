@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#define DALOG_MODU_NAME "NHGCONF"
+#define DALOG_MODU_NAME "DAGCONF"
 #include <dalog.h>
 
 #define DAGOU_GCONF

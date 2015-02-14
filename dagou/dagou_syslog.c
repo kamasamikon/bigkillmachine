@@ -18,7 +18,7 @@
 #include <sys/socket.h>
 #include <syslog.h>
 
-#define DALOG_MODU_NAME "NHSYSLOG"
+#define DALOG_MODU_NAME "DASYSLOG"
 #include <dalog.h>
 
 #define DAGOU_SYSLOG

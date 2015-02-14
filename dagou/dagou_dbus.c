@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#define DALOG_MODU_NAME "NHDBUS"
+#define DALOG_MODU_NAME "DADBUS"
 
 #define DAGOU_DBUS
 
@@ -26,7 +26,6 @@
 void dbus_connection_dispatch_hook(DBusMessage *message);
 void dbus_connection_dispatch_hook(DBusMessage *message)
 {
-	static int print_body = -1;
 	static int skip_dalog = -1;
 
 	if (dagou_unlikely(skip_dalog == -1)) {
@@ -38,15 +37,8 @@ void dbus_connection_dispatch_hook(DBusMessage *message)
 	if (dagou_unlikely(skip_dalog))
 		return;
 
-	if (dagou_unlikely(print_body == -1)) {
-		if (getenv("DAGOU_DBUS_NOBODY"))
-			print_body = 0;
-		else
-			print_body = 1;
-	}
-
 	dalog_setup();
-	print_message(message, 0, print_body);
+	print_message(message);
 }
 
 #endif

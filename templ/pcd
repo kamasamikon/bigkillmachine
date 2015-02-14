@@ -32,9 +32,7 @@ initenv() {
     echo '## LD_PRELOAD="Path for preload nemohook.so etc"' >> ${NMENV}
     echo '## NH_SYSLOG_NOREAL=YES|NO' >> ${NMENV}
     echo '## PCDOUT="Local file to save PCD log"' >> ${NMENV}
-    echo '## NH_DBUS_NOBODY="If defined, dont print dbus message body"' >> ${NMENV}
     echo '' >> ${NMENV}
-    echo '# export NH_DBUS_NOBODY=YES' >> ${NMENV}
     echo '# export NH_DBUS_SKIP=YES' >> ${NMENV}
     echo '# export NH_IOCTL_SKIP=YES' >> ${NMENV}
     echo '# export NH_SQLITE_SKIP=YES' >> ${NMENV}

@@ -9,7 +9,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#define DALOG_MODU_NAME "NHSQLITE"
+#define DALOG_MODU_NAME "DASQLITE"
 #include <dalog.h>
 
 #define DAGOU_SQLITE

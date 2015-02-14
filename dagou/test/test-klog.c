@@ -13,7 +13,7 @@
 #include <hilda/kflg.h>
 #include <hilda/xtcool.h>
 
-#define DALOG_MODU_NAME "NHKLOG"
+#define DALOG_MODU_NAME "DAKLOG"
 #include <dalog.h>
 
 void show_help()
