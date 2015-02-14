@@ -44,13 +44,15 @@ mk.zhujingban:
     - INSTALLED FILES
         - /sbin/init
         - /etc/banner.bkm
+            - 动态生成
         - /bin/muzei
         - /lib/libdagou.so
+            - 手动拷贝
         - /home/ntvroot/dagou.env
             - .nlog.dfcfg?
             - 这个可以不安装
         - /bin/dalogsewer
-
+            - 手动拷贝
 
 套路
 ====
