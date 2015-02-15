@@ -24,6 +24,28 @@
 static void config_socket(int s);
 static void ignore_pipe();
 
+static int __save_log = 0;
+
+static int _output(const char *fmt, ...)
+{
+	va_list arg;
+	int done;
+	char buf[2048], cmd[2048];
+	int ret;
+
+	va_start(arg, fmt);
+	done = vsnprintf(buf, sizeof(buf), fmt, arg);
+	va_end(arg);
+
+	printf("<%s> %s", "LOGSEW", buf);
+
+	if (__save_log) {
+		sprintf(cmd, "echo -n '<%s> %s' >> '%s'", "LOGSEW", buf, "/tmp/dalogsewer.log");
+		ret = system(cmd);
+	}
+
+	return done;
+}
 
 /*-----------------------------------------------------------------------
  * Server
@@ -31,7 +53,7 @@ static void ignore_pipe();
 static int process_dalog_data(int s, char *buf, int len, FILE *fp)
 {
 	if (len != fwrite(buf, sizeof(char), len, fp))
-		printf("fwrite error: %d\n", errno);
+		_output("fwrite error: %d\n", errno);
 	fflush(fp);
 	return 0;
 }
@@ -60,7 +82,7 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 	ignore_pipe();
 
 	if ((s_listen = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		printf("c:%s, e:%s\n", "socket", strerror(errno));
+		_output("c:%s, e:%s\n", "socket", strerror(errno));
 		return NULL;
 	}
 
@@ -71,12 +93,12 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 	my_addr.sin_addr.s_addr = INADDR_ANY;
 	memset(my_addr.sin_zero, '\0', sizeof(my_addr.sin_zero));
 	if (bind(s_listen, (struct sockaddr *) &my_addr, sizeof(my_addr)) == -1) {
-		printf("c:%s, e:%s\n", "bind", strerror(errno));
+		_output("c:%s, e:%s\n", "bind", strerror(errno));
 		return NULL;
 	}
 
 	if (listen(s_listen, BACK_LOG) == -1) {
-		printf("c:%s, e:%s\n", "listen", strerror(errno));
+		_output("c:%s, e:%s\n", "listen", strerror(errno));
 		return NULL;
 	}
 
@@ -98,13 +120,13 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 			if (e->data.fd == s_listen) {
 				sin_size = sizeof(their_addr);
 				if ((new_fd = accept(s_listen, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
-					printf("c:%s, e:%s\n", "accept", strerror(errno));
+					_output("c:%s, e:%s\n", "accept", strerror(errno));
 					continue;
 				}
 
 				unsigned char addr[4];
 				memcpy(addr, &their_addr.sin_addr.s_addr, 4);
-				printf("New connect, addr:%d.%d.%d.%d, port:%d, fd:%d\n",
+				_output("New connect, addr:%d.%d.%d.%d, port:%d, fd:%d\n",
 						addr[0], addr[1], addr[2], addr[3],
 						ntohs(their_addr.sin_port),
 						new_fd);
@@ -117,7 +139,7 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 
 				continue;
 			} else if (!(e->events & EPOLLIN)) {
-				printf("!!! Not EPOLLIN: event is %08x, fd:%d\n", e->events, e->data.fd);
+				_output("!!! Not EPOLLIN: event is %08x, fd:%d\n", e->events, e->data.fd);
 				continue;
 			}
 
@@ -126,14 +148,14 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 					fp = fopen(file, "a+");
 
 				if (!fp) {
-					printf("Open '%s' NG\n", file);
+					_output("Open '%s' NG\n", file);
 					continue;
 				}
 
 				if (process_dalog_data(e->data.fd, buf, n, fp))
 					close_connect(e->data.fd);
 			} else {
-				printf("Remote close socket: %d\n", e->data.fd);
+				_output("Remote close socket: %d\n", e->data.fd);
 				close_connect(e->data.fd);
 
 				/* XXX: Should not put it here */
@@ -173,6 +195,7 @@ static void help(int die)
 {
 	printf("usage: dalogsewer [PORT] [TOFILE]\n");
 	printf("       environ: LOGSEW_PORT LOGSEW_FILE\n");
+	printf("       environ: LOGSEW_SKIP_LOG\n");
 
 	if (die)
 		exit(0);
@@ -183,6 +206,11 @@ int main(int argc, char *argv[])
 	unsigned short port;
 	const char *file;
 	char *env;
+
+	if (getenv("LOGSEW_SKIP_LOG"))
+		__save_log = 0;
+	else
+		__save_log = 1;
 
 	if (argc < 3) {
 		env = getenv("LOGSEW_PORT");

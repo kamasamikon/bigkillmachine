@@ -33,7 +33,7 @@ void nsulog_touch(void)
 
 int nsulog_touches(void)
 {
-	return 0;
+	return -1;
 }
 
 void nsulog_set_default_mask(unsigned int mask)

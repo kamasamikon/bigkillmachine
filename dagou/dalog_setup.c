@@ -34,6 +34,8 @@ static unsigned short __serv_port;
 static pid_t __pid;
 static char *__prg;
 
+static int __save_log = 0;
+
 static int _output(const char *fmt, ...)
 {
 	va_list arg;
@@ -47,8 +49,11 @@ static int _output(const char *fmt, ...)
 
 	printf("<%s@%d> %s", __prg, __pid, buf);
 
-	sprintf(cmd, "echo -n '<%s@%d> %s' >> '%s'", __prg, __pid, buf, "/tmp/lm.out");
-	ret = system(cmd);
+	if (__save_log) {
+		sprintf(cmd, "echo -n '<%s@%d> %s' >> '%s'",
+				__prg, __pid, buf, "/tmp/dalog_setup.log");
+		ret = system(cmd);
+	}
 
 	return done;
 }
@@ -76,7 +81,7 @@ static void load_cfg_file(const char *path)
 	fclose(fp);
 }
 
-static int rlog_serv_from_kernel_cmdline(const char *url, char *serv, unsigned short *port)
+static int dalog_serv_from_kernel_cmdline(const char *url, char *serv, unsigned short *port)
 {
 	int i;
 
@@ -101,20 +106,20 @@ static void config_socket(int s)
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 }
 
-static int connect_rlog_serv(const char *server, unsigned short port, int *retfd)
+static int connect_dalog_serv(const char *server, unsigned short port, int *retfd)
 {
 	int sockfd;
 	struct hostent *he;
 	struct sockaddr_in their_addr;
 
-	_output("connect_rlog_serv: server:<%s>, port:%d\n", server, port);
+	_output("connect_dalog_serv: server:<%s>, port:%d\n", server, port);
 
 	if ((he = gethostbyname(server)) == NULL) {
-		_output("connect_rlog_serv: gethostbyname error: %s.\n", strerror(errno));
+		_output("connect_dalog_serv: gethostbyname error: %s.\n", strerror(errno));
 		return -1;
 	}
 	if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-		_output("connect_rlog_serv: socket error: %s.\n", strerror(errno));
+		_output("connect_dalog_serv: socket error: %s.\n", strerror(errno));
 		return -1;
 	}
 
@@ -124,7 +129,7 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 	if (connect(sockfd, (struct sockaddr *)&their_addr,
 				sizeof their_addr) == -1) {
-		_output("connect_rlog_serv: connect error: %s.\n", strerror(errno));
+		_output("connect_dalog_serv: connect error: %s.\n", strerror(errno));
 		close(sockfd);
 		return -1;
 	}
@@ -132,14 +137,14 @@ static int connect_rlog_serv(const char *server, unsigned short port, int *retfd
 	config_socket(sockfd);
 
 	*retfd = sockfd;
-	_output("connect_rlog_serv: retfd: %d\n", sockfd);
+	_output("connect_dalog_serv: retfd: %d\n", sockfd);
 	return 0;
 }
 
 static void logger_network(char *content, int len)
 {
 	if (__serv_sock == -1)
-		connect_rlog_serv(__serv_addr, __serv_port, &__serv_sock);
+		connect_dalog_serv(__serv_addr, __serv_port, &__serv_sock);
 
 	if (len != send(__serv_sock, content, len, 0)) {
 		_output("logger_wlogf: send error: %s, %d\n", strerror(errno), __serv_sock);
@@ -197,6 +202,11 @@ void dalog_setup()
 	__pid = getpid();
 	__prg = get_prog_name();
 
+	if (getenv("DALOG_SKIP_LOG"))
+		__save_log = 0;
+	else
+		__save_log = 1;
+
 	_output("dalog_setup\n");
 
 	env = getenv("DALOG_TO_LOCAL");
@@ -214,8 +224,8 @@ void dalog_setup()
 		_output("daLog: DALOG_TO_NETWORK opened <%s>\n", env);
 		dalog_add_logger(logger_network);
 
-		if (!rlog_serv_from_kernel_cmdline(env, __serv_addr, &__serv_port))
-			connect_rlog_serv(__serv_addr, __serv_port, &__serv_sock);
+		if (!dalog_serv_from_kernel_cmdline(env, __serv_addr, &__serv_port))
+			connect_dalog_serv(__serv_addr, __serv_port, &__serv_sock);
 	}
 }
 
