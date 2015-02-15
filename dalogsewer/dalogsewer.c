@@ -24,7 +24,8 @@
 static void config_socket(int s);
 static void ignore_pipe();
 
-static int __save_log = 0;
+static int __log_to_file = 1;
+static int __log_to_stdout = 1;
 
 static int _output(const char *fmt, ...)
 {
@@ -37,10 +38,12 @@ static int _output(const char *fmt, ...)
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	printf("<%s> %s", "LOGSEW", buf);
+	if (__log_to_stdout)
+		printf("<%s> %s", "LOGSEW", buf);
 
-	if (__save_log) {
-		sprintf(cmd, "echo -n '<%s> %s' >> '%s'", "LOGSEW", buf, "/tmp/dalogsewer.log");
+	if (__log_to_file) {
+		sprintf(cmd, "echo -n '<%s> %s' >> '%s'",
+				"LOGSEW", buf, "/tmp/dalogsewer.log");
 		ret = system(cmd);
 	}
 
@@ -195,7 +198,8 @@ static void help(int die)
 {
 	printf("usage: dalogsewer [PORT] [TOFILE]\n");
 	printf("       environ: LOGSEW_PORT LOGSEW_FILE\n");
-	printf("       environ: LOGSEW_SKIP_LOG\n");
+	printf("       environ: LOGSEW_NO_LOG_TO_FILE\n");
+	printf("       environ: LOGSEW_NO_LOG_TO_STDOUT\n");
 
 	if (die)
 		exit(0);
@@ -207,10 +211,11 @@ int main(int argc, char *argv[])
 	const char *file;
 	char *env;
 
-	if (getenv("LOGSEW_SKIP_LOG"))
-		__save_log = 0;
-	else
-		__save_log = 1;
+	if (getenv("LOGSEW_NO_LOG_TO_FILE"))
+		__log_to_file = 0;
+
+	if (getenv("LOGSEW_NO_LOG_TO_STDOUT"))
+		__log_to_stdout = 0;
 
 	if (argc < 3) {
 		env = getenv("LOGSEW_PORT");

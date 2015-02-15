@@ -34,7 +34,8 @@ static unsigned short __serv_port;
 static pid_t __pid;
 static char *__prg;
 
-static int __save_log = 0;
+static int __log_to_file = 1;
+static int __log_to_stdout = 1;
 
 static int _output(const char *fmt, ...)
 {
@@ -47,9 +48,10 @@ static int _output(const char *fmt, ...)
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	printf("<%s@%d> %s", __prg, __pid, buf);
+	if (__log_to_stdout)
+		printf("<%s@%d> %s", __prg, __pid, buf);
 
-	if (__save_log) {
+	if (__log_to_file) {
 		sprintf(cmd, "echo -n '<%s@%d> %s' >> '%s'",
 				__prg, __pid, buf, "/tmp/dalog_setup.log");
 		ret = system(cmd);
@@ -202,10 +204,11 @@ void dalog_setup()
 	__pid = getpid();
 	__prg = get_prog_name();
 
-	if (getenv("DALOG_SKIP_LOG"))
-		__save_log = 0;
-	else
-		__save_log = 1;
+	if (getenv("DALOG_NO_LOG_TO_FILE"))
+		__log_to_file = 0;
+
+	if (getenv("DALOG_NO_LOG_TO_STDOUT"))
+		__log_to_stdout = 0;
 
 	_output("dalog_setup\n");
 
