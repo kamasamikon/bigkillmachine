@@ -24,30 +24,32 @@
 static void config_socket(int s);
 static void ignore_pipe();
 
-static int __log_to_file = 1;
-static int __log_to_stdout = 1;
-
-static int _output(const char *fmt, ...)
+static void printlog(const char *fmt, ...)
 {
 	va_list arg;
 	int done;
-	char buf[2048], cmd[2048];
+	char *logto, buf[2048];
 	int ret;
+
+	static FILE *fp = NULL;
 
 	va_start(arg, fmt);
 	done = vsnprintf(buf, sizeof(buf), fmt, arg);
 	va_end(arg);
 
-	if (__log_to_stdout)
-		printf("<%s> %s", "LOGSEW", buf);
+	if (!fp) {
+		logto = getenv("LOGSEW_LOG_TO");
+		if (!logto)
+			logto = "/dev/stdout";
 
-	if (__log_to_file) {
-		sprintf(cmd, "echo -n '<%s> %s' >> '%s'",
-				"LOGSEW", buf, "/tmp/dalogsewer.log");
-		ret = system(cmd);
+		fp = fopen(logto, "a+");
 	}
 
-	return done;
+	if (!fp)
+		return;
+
+	fprintf(fp, "<%s> %s", "LOGSEW", buf);
+	fflush(fp);
 }
 
 /*-----------------------------------------------------------------------
@@ -56,7 +58,7 @@ static int _output(const char *fmt, ...)
 static int process_dalog_data(int s, char *buf, int len, FILE *fp)
 {
 	if (len != fwrite(buf, sizeof(char), len, fp))
-		_output("fwrite error: %d\n", errno);
+		printlog("fwrite error: %d\n", errno);
 	fflush(fp);
 	return 0;
 }
@@ -85,7 +87,7 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 	ignore_pipe();
 
 	if ((s_listen = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		_output("c:%s, e:%s\n", "socket", strerror(errno));
+		printlog("c:%s, e:%s\n", "socket", strerror(errno));
 		return NULL;
 	}
 
@@ -96,12 +98,12 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 	my_addr.sin_addr.s_addr = INADDR_ANY;
 	memset(my_addr.sin_zero, '\0', sizeof(my_addr.sin_zero));
 	if (bind(s_listen, (struct sockaddr *) &my_addr, sizeof(my_addr)) == -1) {
-		_output("c:%s, e:%s\n", "bind", strerror(errno));
+		printlog("c:%s, e:%s\n", "bind", strerror(errno));
 		return NULL;
 	}
 
 	if (listen(s_listen, BACK_LOG) == -1) {
-		_output("c:%s, e:%s\n", "listen", strerror(errno));
+		printlog("c:%s, e:%s\n", "listen", strerror(errno));
 		return NULL;
 	}
 
@@ -123,13 +125,13 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 			if (e->data.fd == s_listen) {
 				sin_size = sizeof(their_addr);
 				if ((new_fd = accept(s_listen, (struct sockaddr *)&their_addr, &sin_size)) == -1) {
-					_output("c:%s, e:%s\n", "accept", strerror(errno));
+					printlog("c:%s, e:%s\n", "accept", strerror(errno));
 					continue;
 				}
 
 				unsigned char addr[4];
 				memcpy(addr, &their_addr.sin_addr.s_addr, 4);
-				_output("New connect, addr:%d.%d.%d.%d, port:%d, fd:%d\n",
+				printlog("New connect, addr:%d.%d.%d.%d, port:%d, fd:%d\n",
 						addr[0], addr[1], addr[2], addr[3],
 						ntohs(their_addr.sin_port),
 						new_fd);
@@ -142,7 +144,7 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 
 				continue;
 			} else if (!(e->events & EPOLLIN)) {
-				_output("!!! Not EPOLLIN: event is %08x, fd:%d\n", e->events, e->data.fd);
+				printlog("!!! Not EPOLLIN: event is %08x, fd:%d\n", e->events, e->data.fd);
 				continue;
 			}
 
@@ -151,14 +153,14 @@ static void *worker_thread_or_server(unsigned short port, const char *file)
 					fp = fopen(file, "a+");
 
 				if (!fp) {
-					_output("Open '%s' NG\n", file);
+					printlog("Open '%s' NG\n", file);
 					continue;
 				}
 
 				if (process_dalog_data(e->data.fd, buf, n, fp))
 					close_connect(e->data.fd);
 			} else {
-				_output("Remote close socket: %d\n", e->data.fd);
+				printlog("Remote close socket: %d\n", e->data.fd);
 				close_connect(e->data.fd);
 
 				/* XXX: Should not put it here */
@@ -210,12 +212,6 @@ int main(int argc, char *argv[])
 	unsigned short port;
 	const char *file;
 	char *env;
-
-	if (getenv("LOGSEW_NO_LOG_TO_FILE"))
-		__log_to_file = 0;
-
-	if (getenv("LOGSEW_NO_LOG_TO_STDOUT"))
-		__log_to_stdout = 0;
 
 	if (argc < 3) {
 		env = getenv("LOGSEW_PORT");

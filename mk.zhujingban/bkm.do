@@ -9,10 +9,13 @@ CFG_TYPE=`cat .cfg_type 2> /dev/null`
 
 BIN_DIR=../${BLD_TYPE}_${CFG_TYPE}/target
 
+bkm_TARGET_DIR=$1
+
 help_and_exit() {
-    echo "bkm.do --help|help|all|bb|otv"
-    echo ".bld_type : put the BUILD_TYPE to this file"
-    echo ".cfg_type : put the CONFIG_TYPE to this file"
+    echo "bkm.do TargetDir"
+    echo "  TargetDir : bld_all_cab/target etc"
+    echo "  .bld_type : put the BUILD_TYPE to this file"
+    echo "  .cfg_type : put the CONFIG_TYPE to this file"
     exit
 }
 
@@ -25,7 +28,7 @@ inst_busybox() {
 gen_banner() {
     echo "Generate banner"
 
-    BANNER=${TARGET_DIR}/etc/banner.bkm
+    BANNER=${bkm_TARGET_DIR}/etc/banner.bkm
 
     figlet -w 5000 "BigKillMachine V0.2" > ${BANNER}
     echo "" >> ${BANNER}
@@ -44,42 +47,39 @@ inst_ntvapps() {
     gen_banner
 
     echo "Replace init"
-    if [ ! -e ${TARGET_DIR}/sbin/init.otvorig ]; then
-        mv ${TARGET_DIR}/sbin/init ${TARGET_DIR}/sbin/init.otvorig
-        cp init ${TARGET_DIR}/sbin/init
+    if [ ! -e ${bkm_TARGET_DIR}/sbin/init.otvorig ]; then
+        mv ${bkm_TARGET_DIR}/sbin/init ${bkm_TARGET_DIR}/sbin/init.otvorig
+        cp init ${bkm_TARGET_DIR}/sbin/init
     fi
 
     echo "Replace normal applications"
-    cp muzei ${TARGET_DIR}/bin/muzei
+    cp muzei ${bkm_TARGET_DIR}/bin/muzei
     for ntvapp in `cat ntvapp.list`; do
-        if [ ! -e ${TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig ]; then
-            mv ${TARGET_DIR}/usr/local/bin/${ntvapp} ${TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig
-            # cp -f muzei ${TARGET_DIR}/usr/local/bin/${ntvapp}
-            ln -s /bin/muzei ${TARGET_DIR}/usr/local/bin/${ntvapp}
+        if [ ! -e ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig ]; then
+            if [ -e ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp} ]; then
+                mv ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp} ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig
+                ln -s /bin/muzei ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}
+            fi
         fi
     done
 }
 
 inst_dagou() {
-    cp -f libdagou.so ${TARGET_DIR}/lib
+    cp -f libdagou.so ${bkm_TARGET_DIR}/lib
 }
 
 inst_logsewer() {
-    cp -f dalogsewer ${TARGET_DIR}/bin
+    cp -f dalogsewer ${bkm_TARGET_DIR}/bin
 }
 
 inst_envfile() {
-    cp -f envfile.templ ${TARGET_DIR}/home/ntvroot/daenv
+    cp -f envfile.templ ${bkm_TARGET_DIR}/home/env.da
 }
 
 if [ ! -e .bld_type ]; then
     help_and_exit
 fi
 if [ ! -e .cfg_type ]; then
-    help_and_exit
-fi
-
-if [ "$1" == "--help" ]; then
     help_and_exit
 fi
 

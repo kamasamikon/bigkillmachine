@@ -37,7 +37,7 @@ static char *__prg;
 static int __log_to_file = 1;
 static int __log_to_stdout = 1;
 
-static int _output(const char *fmt, ...)
+static void printlog(const char *fmt, ...)
 {
 	va_list arg;
 	int done;
@@ -75,7 +75,7 @@ static void load_cfg_file(const char *path)
 		if (line++ < lines_done)
 			continue;
 
-		_output("load_cfg_file: %s", buf);
+		printlog("load_cfg_file: %s", buf);
 		log_rule_add(buf);
 		lines_done++;
 	}
@@ -114,14 +114,14 @@ static int connect_dalog_serv(const char *server, unsigned short port, int *retf
 	struct hostent *he;
 	struct sockaddr_in their_addr;
 
-	_output("connect_dalog_serv: server:<%s>, port:%d\n", server, port);
+	printlog("connect_dalog_serv: server:<%s>, port:%d\n", server, port);
 
 	if ((he = gethostbyname(server)) == NULL) {
-		_output("connect_dalog_serv: gethostbyname error: %s.\n", strerror(errno));
+		printlog("connect_dalog_serv: gethostbyname error: %s.\n", strerror(errno));
 		return -1;
 	}
 	if ((sockfd = socket(PF_INET, SOCK_STREAM, 0)) == -1) {
-		_output("connect_dalog_serv: socket error: %s.\n", strerror(errno));
+		printlog("connect_dalog_serv: socket error: %s.\n", strerror(errno));
 		return -1;
 	}
 
@@ -131,7 +131,7 @@ static int connect_dalog_serv(const char *server, unsigned short port, int *retf
 	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
 	if (connect(sockfd, (struct sockaddr *)&their_addr,
 				sizeof their_addr) == -1) {
-		_output("connect_dalog_serv: connect error: %s.\n", strerror(errno));
+		printlog("connect_dalog_serv: connect error: %s.\n", strerror(errno));
 		close(sockfd);
 		return -1;
 	}
@@ -139,7 +139,7 @@ static int connect_dalog_serv(const char *server, unsigned short port, int *retf
 	config_socket(sockfd);
 
 	*retfd = sockfd;
-	_output("connect_dalog_serv: retfd: %d\n", sockfd);
+	printlog("connect_dalog_serv: retfd: %d\n", sockfd);
 	return 0;
 }
 
@@ -149,7 +149,7 @@ static void logger_network(char *content, int len)
 		connect_dalog_serv(__serv_addr, __serv_port, &__serv_sock);
 
 	if (len != send(__serv_sock, content, len, 0)) {
-		_output("logger_wlogf: send error: %s, %d\n", strerror(errno), __serv_sock);
+		printlog("logger_wlogf: send error: %s, %d\n", strerror(errno), __serv_sock);
 		if (__serv_sock != -1)
 			close(__serv_sock);
 		__serv_sock = -1;
@@ -210,21 +210,21 @@ void dalog_setup()
 	if (getenv("DALOG_NO_LOG_TO_STDOUT"))
 		__log_to_stdout = 0;
 
-	_output("dalog_setup\n");
+	printlog("dalog_setup\n");
 
 	env = getenv("DALOG_TO_LOCAL");
 	if (env) {
-		_output("daLog: DALOG_TO_LOCAL opened <%s>\n", env);
+		printlog("daLog: DALOG_TO_LOCAL opened <%s>\n", env);
 		dalog_add_logger(logger_file);
 	}
 	env = getenv("DALOG_TO_SYSLOG");
 	if (env) {
-		_output("daLog: DALOG_TO_SYSLOG opened <%s>\n", env);
+		printlog("daLog: DALOG_TO_SYSLOG opened <%s>\n", env);
 		dalog_add_logger(logger_syslog);
 	}
 	env = getenv("DALOG_TO_NETWORK");
 	if (env) {
-		_output("daLog: DALOG_TO_NETWORK opened <%s>\n", env);
+		printlog("daLog: DALOG_TO_NETWORK opened <%s>\n", env);
 		dalog_add_logger(logger_network);
 
 		if (!dalog_serv_from_kernel_cmdline(env, __serv_addr, &__serv_port))

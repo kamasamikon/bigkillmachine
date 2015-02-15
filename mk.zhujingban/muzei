@@ -4,7 +4,7 @@
 ## Load environment from file
 #
 
-da_ENVFILE=/home/ntvroot/daenv
+da_ENVFILE=/home/env.da
 
 source ${da_ENVFILE}
 
