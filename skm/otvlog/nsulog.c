@@ -1,6 +1,8 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
+#include <nsulog.h>
 #include <dalog.h>
+#include <dalog_setup.h>
 
 int nsulog_touches(void)
 {

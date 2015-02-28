@@ -3,6 +3,8 @@
 #include <helper.h>
 
 #include <stdio.h>
+#include <ctype.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
@@ -16,6 +18,7 @@
 #include <netdb.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 #include <syslog.h>
 
 /*-----------------------------------------------------------------------
@@ -56,8 +59,6 @@ static void printlog(const char *fmt, ...)
 				__prg, __pid, buf, "/tmp/dalog_setup.log");
 		ret = system(cmd);
 	}
-
-	return done;
 }
 
 static void load_cfg_file(const char *path)
@@ -76,7 +77,7 @@ static void load_cfg_file(const char *path)
 			continue;
 
 		printlog("load_cfg_file: %s", buf);
-		log_rule_add(buf);
+		dalog_rule_add(buf);
 		lines_done++;
 	}
 
@@ -125,10 +126,11 @@ static int connect_dalog_serv(const char *server, unsigned short port, int *retf
 		return -1;
 	}
 
-	their_addr.sin_family = AF_INET;
+	memset((char*)&their_addr, 0, sizeof(their_addr));
+	their_addr.sin_family = he->h_addrtype;
+	memcpy((char*)&their_addr.sin_addr, he->h_addr, he->h_length);
 	their_addr.sin_port = htons(port);
-	their_addr.sin_addr = *((struct in_addr *)he->h_addr);
-	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
+
 	if (connect(sockfd, (struct sockaddr *)&their_addr,
 				sizeof their_addr) == -1) {
 		printlog("connect_dalog_serv: connect error: %s.\n", strerror(errno));
@@ -147,6 +149,8 @@ static void logger_network(char *content, int len)
 {
 	if (__serv_sock == -1)
 		connect_dalog_serv(__serv_addr, __serv_port, &__serv_sock);
+	if (__serv_sock == -1)
+		return;
 
 	if (len != send(__serv_sock, content, len, 0)) {
 		printlog("logger_wlogf: send error: %s, %d\n", strerror(errno), __serv_sock);
@@ -192,6 +196,56 @@ static char *get_prog_name()
 	return strdup(basename(buf));
 }
 
+static void load_dalogrc(char *path)
+{
+	char *line = NULL;
+	size_t len = 0;
+	ssize_t i, bytes;
+
+	FILE *fp;
+
+	fp = fopen(path, "rt");
+	if (!fp) {
+		printf("load_dalogrc: fopen '%s' failed, e:%d\n", path, errno);
+		return;
+	}
+
+	while ((bytes = getline(&line, &len, fp)) != -1) {
+		if (line[bytes] == '\n')
+			line[bytes] = '\0';
+
+		for (i = bytes - 1; i >= 0; i--) {
+			if (isspace(line[i]))
+				continue;
+			line[i + 1] = '\0';
+			break;
+		}
+
+		printf("line: '%s'\n", line);
+
+		if (!strncmp(line, "DALOG_NO_LOG_TO_FILE=", 21)) {
+			printf("func:load_dalogrc:%d\n", __LINE__);
+			setenv("DALOG_NO_LOG_TO_FILE", line + 21, 1);
+		} else if (!strncmp(line, "DALOG_NO_LOG_TO_STDOUT=", 22)) {
+			printf("func:load_dalogrc:%d\n", __LINE__);
+			setenv("DALOG_NO_LOG_TO_STDOUT", line + 22, 1);
+		} else if (!strncmp(line, "DALOG_TO_LOCAL=", 15)) {
+			printf("func:load_dalogrc:%d\n", __LINE__);
+			setenv("DALOG_TO_LOCAL", line + 15, 1);
+		} else if (!strncmp(line, "DALOG_TO_SYSLOG=", 16)) {
+			printf("func:load_dalogrc:%d\n", __LINE__);
+			setenv("DALOG_TO_SYSLOG", line + 16, 1);
+		} else if (!strncmp(line, "DALOG_TO_NETWORK=", 17)) {
+			printf("func:load_dalogrc:%d\n", __LINE__);
+			setenv("DALOG_TO_NETWORK", line + 17, 1);
+		}
+	}
+
+	if (line)
+		free(line);
+	fclose(fp);
+}
+
 void dalog_setup()
 {
 	static int inited = 0;
@@ -204,25 +258,43 @@ void dalog_setup()
 	__pid = getpid();
 	__prg = get_prog_name();
 
-	if (getenv("DALOG_NO_LOG_TO_FILE"))
+	load_dalogrc("/etc/dalogrc");
+	load_dalogrc("/home/ntvroot/dalogrc");
+	load_dalogrc("/tmp/dalogrc");
+
+	env = getenv("DALOG_NO_LOG_TO_FILE");
+	if (env && !strcmp(env, "YES"))
 		__log_to_file = 0;
 
-	if (getenv("DALOG_NO_LOG_TO_STDOUT"))
+	env = getenv("DALOG_NO_LOG_TO_STDOUT");
+	if (env && !strcmp(env, "YES"))
 		__log_to_stdout = 0;
 
 	printlog("dalog_setup\n");
 
 	env = getenv("DALOG_TO_LOCAL");
+	printlog("env('DALOG_TO_LOCAL') = '%s'\n", env);
 	if (env) {
 		printlog("daLog: DALOG_TO_LOCAL opened <%s>\n", env);
 		dalog_add_logger(logger_file);
+	} else {
+		printlog("daLog: force DALOG_TO_LOCAL\n");
+		setenv("DALOG_TO_LOCAL", "/tmp/dalog.output", 1);
+		dalog_add_logger(logger_file);
 	}
+
 	env = getenv("DALOG_TO_SYSLOG");
-	if (env) {
+	printlog("env('DALOG_TO_SYSLOG') = '%s'\n", env);
+	if (env && !strcmp(env, "YES")) {
 		printlog("daLog: DALOG_TO_SYSLOG opened <%s>\n", env);
 		dalog_add_logger(logger_syslog);
+	} else {
+		printlog("daLog: force DALOG_TO_SYSLOG\n");
+		dalog_add_logger(logger_syslog);
 	}
+
 	env = getenv("DALOG_TO_NETWORK");
+	printlog("env('DALOG_TO_NETWORK') = '%s'\n", env);
 	if (env) {
 		printlog("daLog: DALOG_TO_NETWORK opened <%s>\n", env);
 		dalog_add_logger(logger_network);
