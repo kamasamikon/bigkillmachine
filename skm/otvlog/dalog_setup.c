@@ -277,19 +277,12 @@ void dalog_setup()
 	if (env) {
 		printlog("daLog: DALOG_TO_LOCAL opened <%s>\n", env);
 		dalog_add_logger(logger_file);
-	} else {
-		printlog("daLog: force DALOG_TO_LOCAL\n");
-		setenv("DALOG_TO_LOCAL", "/tmp/dalog.output", 1);
-		dalog_add_logger(logger_file);
 	}
 
 	env = getenv("DALOG_TO_SYSLOG");
 	printlog("env('DALOG_TO_SYSLOG') = '%s'\n", env);
 	if (env && !strcmp(env, "YES")) {
 		printlog("daLog: DALOG_TO_SYSLOG opened <%s>\n", env);
-		dalog_add_logger(logger_syslog);
-	} else {
-		printlog("daLog: force DALOG_TO_SYSLOG\n");
 		dalog_add_logger(logger_syslog);
 	}
 
