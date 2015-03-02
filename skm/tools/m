@@ -1,0 +1,70 @@
+#!/bin/sh
+
+### #####################################################################
+## Parse script name
+#
+SCRIPT=`basename $0`
+CMD=`echo ${SCRIPT} | awk -F. ' { print $1 }' | xargs basename`
+BLD=`echo ${SCRIPT} | awk -F. ' { print $2 }'`
+CFG=`echo ${SCRIPT} | awk -F. ' { print $3 }'`
+
+if [ "${CMD}" != "m" ]; then
+    echo "Please ln -s /usr/local/bin/m m.<BLD_TYPE>.<CFG_TYPE>"
+    exit
+fi
+
+if [ -d ${BLD}_${CFG} ]; then
+    ### #####################################################################
+    ## Output BUILDINFO file
+    #
+    gen_buildinfo() {
+        figlet -w 200 "Build  Information" > ${BLD}_${CFG}/target/BUILDINFO
+        echo "    PWD : `pwd`" >> ${BLD}_${CFG}/target/BUILDINFO
+        echo "   TIME : `date -R`" >> ${BLD}_${CFG}/target/BUILDINFO
+        echo "COMMAND : make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD}" >> ${BLD}_${CFG}/target/BUILDINFO
+        echo "" >> ${BLD}_${CFG}/target/BUILDINFO
+    }
+    gen_buildinfo
+
+    ### #####################################################################
+    ## Install ALL busybox applets
+    #
+    inst_busybox() {
+        pushd .
+        cd $1
+
+        for applet in `busybox --list`; do
+            ln -s /bin/busybox $applet 2> /dev/null
+        done
+
+        popd
+    }
+
+    inst_busybox ${BLD}_${CFG}/target/bin
+    # inst_busybox ${BLD}_${CFG}/target/sbin    ## may overwrite /sbin/init
+
+    ### #####################################################################
+    ## Copy SKM Helper
+    #
+    cp ./xxx ${BLD}_${CFG}/target/bin
+    cp ./yyy ${BLD}_${CFG}/target/bin
+
+    # Create dalogrc
+    DALOGRC=${BLD}_${CFG}/home/ntvroot/dalogrc
+    echo "" > ${DALOGRC}
+    echo "DALOG_TO_LOCAL=/tmp/dalog.outpu" >> ${DALOGRC}
+    echo "_DALOG_TO_LOCAL=/dev/stdout" >> ${DALOGRC}
+    echo "_DALOG_TO_LOCAL=/dev/null" >> ${DALOGRC}
+
+    # Create .dalog.cfg
+    DALOGCFG=${BLD}_${CFG}/home/ntvroot/.dalog.cfg
+    echo "" > ${DALOGCFG}
+    echo "mask=facewind-S-x-j" >> ${DALOGCFG}
+fi
+
+### #####################################################################
+## Run the make command
+#
+source ../set_env_bash.sh
+time make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD} MSUR_DEBUG=YES $1 $2 $3 $4 $5 $6 $7 $8 $9
+
