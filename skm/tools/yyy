@@ -1,0 +1,7 @@
+#!/bin/sh
+
+FRDIR=/home/ntvroot/
+
+cp ${FRDIR}/dalogrc /tmp/
+cp ${FRDIR}/.dalog.cfg /tmp/
+
