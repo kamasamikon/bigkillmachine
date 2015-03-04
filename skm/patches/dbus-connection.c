@@ -96,9 +96,12 @@
  * SKM PART: START
  */
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <dlfcn.h>
+#include <unistd.h>
 
 /*-----------------------------------------------------------------------
  * nbuf.h
@@ -585,16 +588,20 @@ static void skm_dump_message (DBusMessage *message)
     nbuf_s nb_head, nb_body;
 
     static void *handou = NULL;
-	static void (*dbus_message_show)(const char *) = NULL;
-	static void (*dbus_message_show_full)(const char *) = NULL;
+	static void (*skmdbus_dump_message_head)(const char *) = NULL;
+	static void (*skmdbus_dump_message_head_body)(const char *, const char *) = NULL;
     if (!handou) {
         handou = dlopen("/usr/local/lib/libutils.so", RTLD_NOW);
         if (handou) {
-            dbus_message_show = dlsym(handou, "dbus_message_show");
-            dbus_message_show_full = dlsym(handou, "dbus_message_show_full");
-        }
+            skmdbus_dump_message_head = dlsym(handou, "skmdbus_dump_message_head");
+            skmdbus_dump_message_head_body = dlsym(handou, "skmdbus_dump_message_head_body");
+
+            printf("skm_dump_message: pid:%d, skmdbus_dump_message_head:%p, skmdbus_dump_message_head_body:%p\n",
+                    getpid(), skmdbus_dump_message_head, skmdbus_dump_message_head_body);
+        } else
+            printf("Open libutils.so faile, error:%s\n", dlerror());
     }
-    if (!handou || !dbus_message_show || !dbus_message_show_full)
+    if (!handou || !skmdbus_dump_message_head || !skmdbus_dump_message_head_body)
         return;
 
     message_type = dbus_message_get_type (message);
@@ -638,8 +645,10 @@ static void skm_dump_message (DBusMessage *message)
         }
     }
 
-    dbus_message_show("%s", nb_head.buf);
-    dbus_message_show_full("%s%s", nb_head.buf, print_body(message, &nb_body));
+    skmdbus_dump_message_head(nb_head.buf);
+
+    print_body(message, &nb_body);
+    skmdbus_dump_message_head_body(nb_head.buf, nb_body.buf);
 
     nbuf_release(&nb_head);
     nbuf_release(&nb_body);

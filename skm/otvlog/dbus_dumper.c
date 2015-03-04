@@ -3,17 +3,17 @@
 #include <helper.h>
 #include <ntvlog.h>
 
-void dbus_message_show(const char *str);
-void dbus_message_show_full(const char *str);
+void skmdbus_dump_message_head(const char *head);
+void skmdbus_dump_message_head_body(const char *head, const char *body);
 
-void dbus_message_show(const char *str)
+void skmdbus_dump_message_head(const char *head)
 {
-	NSULOG_CHK_AND_CALL(NSULOG_INFO,   'I', "DBUS", __FILE__, __func__, __LINE__, "%s", str);
+	NSULOG_CHK_AND_CALL(NSULOG_INFO,   'I', "DBUS", __FILE__, __func__, __LINE__, "%s", head);
 }
 
-void dbus_message_show_full(const char *str)
+void skmdbus_dump_message_head_body(const char *head, const char *body)
 {
-	NSULOG_CHK_AND_CALL(NSULOG_DEBUG,   'D', "DBUS", __FILE__, __func__, __LINE__, "%s", str);
+	NSULOG_CHK_AND_CALL(NSULOG_DEBUG,   'D', "DBUS", __FILE__, __func__, __LINE__, "%s%s", head, body);
 }
 
 
