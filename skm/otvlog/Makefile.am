@@ -39,7 +39,7 @@ libutils_la_SOURCES =	\
 	oshm.c      		\
 	opmutex.c   		\
 	otimer.c    		\
-	dalog.c dalog_setup.c narg.c nsulog.c nbuf.c \
+	dalog.c dalog_setup.c narg.c nsulog.c nbuf.c dbus_dumper.c \
 	otrace.c                \
 	utilsdefs.c		\
 	softdog.c		\

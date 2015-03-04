@@ -50,21 +50,19 @@ if [ -d ${BLD}_${CFG} ]; then
     cp ./yyy ${BLD}_${CFG}/target/bin
 
     # Create dalogrc
-    DALOGRC=${BLD}_${CFG}/home/ntvroot/dalogrc
-    echo "" > ${DALOGRC}
-    echo "DALOG_TO_LOCAL=/tmp/dalog.output" >> ${DALOGRC}
+    DALOGRC=${BLD}_${CFG}/target/home/ntvroot/dalogrc
+    echo "DALOG_TO_LOCAL=/tmp/dalog.output" > ${DALOGRC}
     echo "_DALOG_TO_LOCAL=/dev/console" >> ${DALOGRC}
     echo "_DALOG_TO_LOCAL=/dev/stdout" >> ${DALOGRC}
     echo "_DALOG_TO_LOCAL=/dev/null" >> ${DALOGRC}
     echo "_DALOG_TO_NETWORK=10.12.2.113:9999" >> ${DALOGRC}
 
     # Create .dalog.cfg
-    DALOGCFG=${BLD}_${CFG}/home/ntvroot/.dalog.cfg
-    echo "" > ${DALOGCFG}
-    echo "mask=facewind-S-x-j" >> ${DALOGCFG}
+    DALOGCFG=${BLD}_${CFG}/target/home/ntvroot/.dalog.cfg
+    echo "mask=facewind-S-x-j" > ${DALOGCFG}
 
     # chmod the /dev/console, so that DALOG_TO_LOCAL=/dev/console can work
-    chmod a+rwx DALOGCFG=${BLD}_${CFG}/dev/console
+    chmod a+rwx ${BLD}_${CFG}/target/dev/console
 fi
 
 ### #####################################################################
