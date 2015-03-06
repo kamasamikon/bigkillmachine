@@ -8,5 +8,9 @@ nohup udhcpc -s /tmp/default.script
 # start telnetd
 nohup telnetd
 
+# Show me
 ifconfig
+
+# XXX: the chmod in m.xxx.yyy cannot work
+chmod a+rwx /dev/console
 

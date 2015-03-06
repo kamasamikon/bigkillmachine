@@ -13,56 +13,14 @@ if [ "${CMD}" != "m" ]; then
     exit
 fi
 
-if [ -d ${BLD}_${CFG} ]; then
-    ### #####################################################################
-    ## Output BUILDINFO file
-    #
-    gen_buildinfo() {
-        figlet -w 200 "Build  Information" > ${BLD}_${CFG}/target/BUILDINFO
-        echo "    PWD : `pwd`" >> ${BLD}_${CFG}/target/BUILDINFO
-        echo "   TIME : `date -R`" >> ${BLD}_${CFG}/target/BUILDINFO
-        echo "COMMAND : make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD}" >> ${BLD}_${CFG}/target/BUILDINFO
-        echo "" >> ${BLD}_${CFG}/target/BUILDINFO
-    }
-    gen_buildinfo
-
-    ### #####################################################################
-    ## Install ALL busybox applets
-    #
-    inst_busybox() {
-        pushd .
-        cd $1
-
-        for applet in `busybox --list`; do
-            ln -s /bin/busybox $applet 2> /dev/null
-        done
-
-        popd
-    }
-
-    inst_busybox ${BLD}_${CFG}/target/bin
-    # inst_busybox ${BLD}_${CFG}/target/sbin    ## may overwrite /sbin/init
-
-    ### #####################################################################
-    ## Copy SKM Helper
-    #
-    cp ./xxx ${BLD}_${CFG}/target/bin
-    cp ./yyy ${BLD}_${CFG}/target/bin
-
-    # Create dalogrc
-    DALOGRC=${BLD}_${CFG}/target/home/ntvroot/dalogrc
-    echo "DALOG_TO_LOCAL=/tmp/dalog.output" > ${DALOGRC}
-    echo "_DALOG_TO_LOCAL=/dev/console" >> ${DALOGRC}
-    echo "_DALOG_TO_LOCAL=/dev/stdout" >> ${DALOGRC}
-    echo "_DALOG_TO_LOCAL=/dev/null" >> ${DALOGRC}
-    echo "_DALOG_TO_NETWORK=10.12.2.113:9999" >> ${DALOGRC}
-
-    # Create .dalog.cfg
-    DALOGCFG=${BLD}_${CFG}/target/home/ntvroot/.dalog.cfg
-    echo "mask=facewind-S-x-j" > ${DALOGCFG}
-
-    # chmod the /dev/console, so that DALOG_TO_LOCAL=/dev/console can work
-    chmod a+rwx ${BLD}_${CFG}/target/dev/console
+### #####################################################################
+## Append skmpost.sh to post_process.sh
+#
+grep "skmpost_placeHolder_83264" post_process.sh &> /dev/null
+if [ $? ]; then
+    echo "Already includes skmpost.sh"
+else
+    echo 'echo "skmpost_placeHolder_83264:" &> /dev/null; echo "$WORKING_DIR/skmpost.sh $BUILD_TYPE $CONFIG_TYPE $WORKING_DIR" >> $WORKING_DIR/ntv_customize_fs.txt' >> post_process.sh
 fi
 
 ### #####################################################################
