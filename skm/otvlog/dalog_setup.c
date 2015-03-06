@@ -2,24 +2,22 @@
 
 #include <helper.h>
 
-#include <stdio.h>
+#include <arpa/inet.h>
 #include <ctype.h>
 #include <errno.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <time.h>
-#include <unistd.h>
-#include <sys/inotify.h>
-
-#include <errno.h>
+#include <fcntl.h>
 #include <netdb.h>
 #include <signal.h>
+#include <stdarg.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/inotify.h>
 #include <sys/socket.h>
-#include <arpa/inet.h>
 #include <syslog.h>
+#include <time.h>
+#include <unistd.h>
 
 /*-----------------------------------------------------------------------
  * DALOG
@@ -39,6 +37,16 @@ static char *__prg;
 
 static int __log_to_file = 1;
 static int __log_to_stdout = 1;
+
+#ifdef SEND_NONBLOCK
+#undef SEND_NONBLOCK
+#endif
+
+#ifdef SEND_NONBLOCK
+#define SEND_FLAG MSG_DONTWAIT
+#else
+#define SEND_FLAG 0
+#endif
 
 static void printlog(const char *fmt, ...)
 {
@@ -107,6 +115,10 @@ static void config_socket(int s)
 	lin.l_linger = 0;
 	setsockopt(s, SOL_SOCKET, SO_LINGER, (const char *) &lin, sizeof(lin));
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+
+#ifdef SEND_NONBLOCK
+	fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+#endif
 }
 
 static int connect_dalog_serv(const char *server, unsigned short port, int *retfd)
@@ -152,13 +164,13 @@ static void logger_network(char *content, int len)
 	if (__serv_sock == -1)
 		return;
 
-	if (len != send(__serv_sock, content, len, 0)) {
-		printlog("logger_wlogf: send error: %s, %d\n", strerror(errno), __serv_sock);
+	if (len != send(__serv_sock, content, len, SEND_FLAG)) {
+		printlog("logger_network: send error: %s, %d\n", strerror(errno), __serv_sock);
 		if (__serv_sock != -1)
 			close(__serv_sock);
 		__serv_sock = -1;
 	} else if (content[len - 1] != '\n')
-		send(__serv_sock, "\n", 1, 0);
+		send(__serv_sock, "\n", 1, SEND_FLAG);
 }
 static void logger_file(char *content, int len)
 {

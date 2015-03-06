@@ -21,6 +21,11 @@ if [ "x${OUTPUTDIR}" == "x" ]; then
 fi
 
 ### #####################################################################
+## Show welcome
+#
+figlet -w 200 "Small Kill Machine"
+
+### #####################################################################
 ## Output BUILDINFO file
 #
 gen_buildinfo() {
