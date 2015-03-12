@@ -18,11 +18,11 @@ da_ENVFILE=/tmp/dalogsewer.env
 
 initenv() {
     echo -n "" > ${da_ENVFILE}
-    echo '# export LOGSEW_NO_LOG_TO_FILE=YES' >> ${da_ENVFILE}
-    echo '# export LOGSEW_NO_LOG_TO_STDOUT=YES' >> ${da_ENVFILE}
-    echo '# export LOGSEW_PORT=YES' >> ${da_ENVFILE}
-    echo '# export LOGSEW_PORT=50000' >> ${da_ENVFILE}
-    echo '# export LOGSEW_FILE=/tmp/dalog.sew' >> ${da_ENVFILE}
+    echo '# export DAXIA_NO_LOG_TO_FILE=YES' >> ${da_ENVFILE}
+    echo '# export DAXIA_NO_LOG_TO_STDOUT=YES' >> ${da_ENVFILE}
+    echo '# export DAXIA_PORT=YES' >> ${da_ENVFILE}
+    echo '# export DAXIA_PORT=50000' >> ${da_ENVFILE}
+    echo '# export DAXIA_FILE=/tmp/dalog.sew' >> ${da_ENVFILE}
     echo '' >> ${da_ENVFILE}
 }
 

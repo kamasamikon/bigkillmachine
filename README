@@ -51,7 +51,7 @@ mk.zhujingban:
         - /home/ntvroot/dagou.env
             - .nlog.dfcfg?
             - 这个可以不安装
-        - /bin/dalogsewer
+        - /bin/daxia
             - 手动拷贝
 
 套路
@@ -90,10 +90,10 @@ da_ENVFILE:
                 - 通过网络发送
                 - DALOG_TO_NETWORK=localhost:3333
 
-        - dalogsewer
-            - LOGSEW_PORT
+        - daxia
+            - DAXIA_PORT
                 - Listen port, see DALOG_TO_NETWORK
-            - LOGSEW_FILE
+            - DAXIA_FILE
                 - Where the log will be saved to
 
 GOU:
@@ -108,4 +108,11 @@ MISC:
 PostProcess.sh:
     - bkm.undo
     - bkm.do
+
+命名
+    - dagou : 钩子
+    - daxia : 下水道
+    - dabao : 包装其他进程，并应用da环境变量
+    - dagan : 大干，应用DA
+    - daxiu : 修复，清除DA
 

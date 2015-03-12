@@ -1,6 +1,15 @@
 #!/bin/sh
 
 ### #####################################################################
+## NTV APPLICATION LIST
+#
+NTVAPPS="downloadmgr \
+    measure \
+    snmpmgr \
+     timemgr \
+    auth"
+
+### #####################################################################
 ## Parse args
 #
 BLD=$1
@@ -29,7 +38,7 @@ figlet -w 200 "Small Kill Machine"
 ## Output BUILDINFO file
 #
 gen_buildinfo() {
-    figlet -w 200 "Build  Information" > ${OUTPUTDIR}/${BLD}_${CFG}/target/BUILDINFO
+    figlet -w 200 "Build Information" > ${OUTPUTDIR}/${BLD}_${CFG}/target/BUILDINFO
     echo "    DIR : ${OUTPUTDIR}" >> ${OUTPUTDIR}/${BLD}_${CFG}/target/BUILDINFO
     echo "   TIME : `date -R`" >> ${OUTPUTDIR}/${BLD}_${CFG}/target/BUILDINFO
     echo "COMMAND : make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD}" >> ${OUTPUTDIR}/${BLD}_${CFG}/target/BUILDINFO
@@ -52,14 +61,13 @@ inst_busybox() {
 }
 
 inst_busybox ${OUTPUTDIR}/${BLD}_${CFG}/target/bin
-# inst_busybox ${OUTPUTDIR}/${BLD}_${CFG}/target/sbin    ## may overwrite /sbin/init
 
 ### #####################################################################
 ## Copy SKM Helper
 #
 
 # Start telnet
-gen_telnet_script() {
+gen_telnet_script__xxx() {
     OUTPUT=${OUTPUTDIR}/${BLD}_${CFG}/target/bin/xxx
 
     echo "#!/bin/sh" > ${OUTPUT}
@@ -80,10 +88,10 @@ gen_telnet_script() {
     # XXX: the chmod in m.xxx.yyy cannot work
     chmod a+rwx /dev/console
 }
-gen_telnet_script
+gen_telnet_script__xxx
 
 # Prepare SKM stuff
-gen_skm_stuff() {
+gen_skm_stuff_yyy() {
     OUTPUT=${OUTPUTDIR}/${BLD}_${CFG}/target/bin/yyy
 
     echo "#!/bin/sh" > ${OUTPUT}
@@ -92,10 +100,12 @@ gen_skm_stuff() {
     echo "" >> ${OUTPUT}
     echo "cp /home/ntvroot/dalogrc /tmp/" >> ${OUTPUT}
     echo "cp /home/ntvroot/.dalog.cfg /tmp/" >> ${OUTPUT}
+    echo "" >> ${OUTPUT}
+    echo "cp /home/ntvroot/dabao /tmp/" >> ${OUTPUT}
 
     chmod a+rwx ${OUTPUT}
 }
-gen_skm_stuff
+gen_skm_stuff__yyy
 
 ### #####################################################################
 ## Create dalogrc
@@ -131,4 +141,22 @@ set_lxc_console() {
 }
 
 set_lxc_console
+
+
+### #####################################################################
+## Update the PCD file, /tmp/dabao__xxx -> /usr/local/bin/xxx
+#
+for ntvapp in ${NTVAPPS}; do
+
+
+### #####################################################################
+## Help to log to /dev/console
+#
+install_dabao() {
+    echo "Create dabao for ntvapps"
+    for ntvapp in ${NTVAPPS}; do
+        ln -s /tmp/dabao ${bkm_TARGET_DIR}/usr/local/bin/dabao__${ntvapp}
+    done
+}
+install_dabao
 

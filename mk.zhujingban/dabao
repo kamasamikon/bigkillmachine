@@ -1,0 +1,19 @@
+#!/bin/sh
+
+### #####################################################################
+## Load environment from file
+#
+
+da_ENVFILE=/home/env.da
+
+source ${da_ENVFILE}
+
+### #####################################################################
+## Call the real application 
+#
+EXE=`basename $0 | awk -F'dabao__' '{ print $2 }'`
+
+da_BASEDIR=/usr/local/bin
+
+echo exec ${da_BASEDIR}/${EXE} $@
+
