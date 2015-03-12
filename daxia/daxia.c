@@ -1,5 +1,7 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
+/* DA xiashuidao */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -38,7 +40,7 @@ static void printlog(const char *fmt, ...)
 	va_end(arg);
 
 	if (!fp) {
-		logto = getenv("LOGSEW_LOG_TO");
+		logto = getenv("DAXIA_LOG_TO");
 		if (!logto)
 			logto = "/dev/stdout";
 
@@ -48,7 +50,7 @@ static void printlog(const char *fmt, ...)
 	if (!fp)
 		return;
 
-	fprintf(fp, "<%s> %s", "LOGSEW", buf);
+	fprintf(fp, "<%s> %s", "DAXIA", buf);
 	fflush(fp);
 }
 
@@ -198,10 +200,10 @@ static void ignore_pipe()
 
 static void help(int die)
 {
-	printf("usage: dalogsewer [PORT] [TOFILE]\n");
-	printf("       environ: LOGSEW_PORT LOGSEW_FILE\n");
-	printf("       environ: LOGSEW_NO_LOG_TO_FILE\n");
-	printf("       environ: LOGSEW_NO_LOG_TO_STDOUT\n");
+	printf("usage: daxia [PORT] [TOFILE]\n");
+	printf("       environ: DAXIA_PORT DAXIA_FILE\n");
+	printf("       environ: DAXIA_NO_LOG_TO_FILE\n");
+	printf("       environ: DAXIA_NO_LOG_TO_STDOUT\n");
 
 	if (die)
 		exit(0);
@@ -214,12 +216,12 @@ int main(int argc, char *argv[])
 	char *env;
 
 	if (argc < 3) {
-		env = getenv("LOGSEW_PORT");
+		env = getenv("DAXIA_PORT");
 		if (!env)
 			help(1);
 		port = (unsigned short)atoi(env);
 
-		env = getenv("LOGSEW_FILE");
+		env = getenv("DAXIA_FILE");
 		if (!env)
 			help(1);
 		file = strdup(env);

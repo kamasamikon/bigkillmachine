@@ -44,24 +44,37 @@ inst_ntvapps() {
     #1. Move ntvapp to ntvapp.otvorig
     #2. Copy muzei to ntvapp
 
-    gen_banner
+    # echo "Replace init"
+    # if [ ! -e ${bkm_TARGET_DIR}/sbin/init.otvorig ]; then
+        # mv ${bkm_TARGET_DIR}/sbin/init ${bkm_TARGET_DIR}/sbin/init.otvorig
+        # cp init ${bkm_TARGET_DIR}/sbin/init
+    # fi
 
-    echo "Replace init"
-    if [ ! -e ${bkm_TARGET_DIR}/sbin/init.otvorig ]; then
-        mv ${bkm_TARGET_DIR}/sbin/init ${bkm_TARGET_DIR}/sbin/init.otvorig
-        cp init ${bkm_TARGET_DIR}/sbin/init
-    fi
+    # echo "Replace normal applications"
+    # cp muzei ${bkm_TARGET_DIR}/bin/muzei
+    # for ntvapp in `cat ntvapp.list`; do
+        # if [ ! -e ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig ]; then
+            # if [ -e ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp} ]; then
+                # mv ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp} ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig
+                # ln -s /bin/muzei ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}
+            # fi
+        # fi
+    # done
 
-    echo "Replace normal applications"
-    cp muzei ${bkm_TARGET_DIR}/bin/muzei
+    echo "Create dabao for ntvapps"
+    cp dabao ${bkm_TARGET_DIR}/bin/dabao
     for ntvapp in `cat ntvapp.list`; do
-        if [ ! -e ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig ]; then
+        if [ ! -e ${bkm_TARGET_DIR}/usr/local/bin/dabao__${ntvapp} ]; then
             if [ -e ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp} ]; then
                 mv ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp} ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}.otvorig
                 ln -s /bin/muzei ${bkm_TARGET_DIR}/usr/local/bin/${ntvapp}
             fi
         fi
     done
+}
+
+update_pcd() {
+    # /usr/local/bin/xxx => /usr/local/bin/dabao.xxx
 }
 
 inst_dagou() {
@@ -88,4 +101,5 @@ inst_logsewer
 inst_dagou
 inst_busybox
 inst_ntvapps
+gen_banner
 

@@ -68,11 +68,11 @@ dagou.clean: amust
 #
 .PHONY: sewer
 sewer: amust
-	make -C $(HI_PRJ_ROOT)/dalogsewer
+	make -C $(HI_PRJ_ROOT)/daxia
 
 .PHONY: sewer.clean
 sewer.clean: amust
-	make -C $(HI_PRJ_ROOT)/dalogsewer clean
+	make -C $(HI_PRJ_ROOT)/daxia clean
 
 #########################################################################
 # $(HI_PRJ_ROOT)/klog-agent
