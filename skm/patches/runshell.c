@@ -22,13 +22,14 @@ static void runproc(int wait, const char *arg, ...)
 		argv[argc++] = tmp;
 		tmp = va_arg(ap, char *);
 	}
+    argv[argc] = NULL;
 
 	tmp = va_arg(ap, char *);
 	while (tmp) {
 		envv[envc++] = tmp;
 		tmp = va_arg(ap, char *);
 	}
-	envv[envc++] = NULL;
+	envv[envc] = NULL;
 
 	va_end(ap);
 
@@ -52,6 +53,8 @@ int main(int argc, char *argv[])
 {
 	// runproc(1, "/bin/sh", NULL, "PS1=SKM> ", NULL);
 	// runproc(1, "/bin/sh", NULL, NULL);
+    runproc(1, "/bin/cat", "/BUILDINFO", NULL, NULL);
+    runproc(1, "/bin/sh", NULL, "PS1=SKM>  ", NULL);
 	runproc(1, "/bin/sh", NULL);
 }
 
