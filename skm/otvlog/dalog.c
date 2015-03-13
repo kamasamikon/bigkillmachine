@@ -434,10 +434,8 @@ static void process_cfg(int argc, char *argv[])
 
 	if (!cfg)
 		cfg = getenv("DALOG_RTCFG");
-
 	if (!cfg)
 		cfg = "/tmp/dalog.rtcfg";
-
 	if (cfg) {
 		pthread_t thread;
 		pthread_create(&thread, NULL, thread_monitor_cfgfile, strdup(cfg));

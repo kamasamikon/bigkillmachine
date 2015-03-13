@@ -2,21 +2,22 @@
 
 #include <helper.h>
 
+#include <arpa/inet.h>
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <signal.h>
+#include <stdarg.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
-#include <unistd.h>
-#include <stdint.h>
-#include <time.h>
-#include <unistd.h>
 #include <sys/inotify.h>
-
-#include <errno.h>
-#include <netdb.h>
-#include <signal.h>
 #include <sys/socket.h>
 #include <syslog.h>
+#include <time.h>
+#include <unistd.h>
 
 /*-----------------------------------------------------------------------
  * DALOG
@@ -56,8 +57,6 @@ static void printlog(const char *fmt, ...)
 				__prg, __pid, buf, "/tmp/dalog_setup.log");
 		ret = system(cmd);
 	}
-
-	return done;
 }
 
 static void load_cfg_file(const char *path)
@@ -76,7 +75,7 @@ static void load_cfg_file(const char *path)
 			continue;
 
 		printlog("load_cfg_file: %s", buf);
-		log_rule_add(buf);
+		dalog_rule_add(buf);
 		lines_done++;
 	}
 
@@ -125,10 +124,11 @@ static int connect_dalog_serv(const char *server, unsigned short port, int *retf
 		return -1;
 	}
 
-	their_addr.sin_family = AF_INET;
+	memset((char*)&their_addr, 0, sizeof(their_addr));
+	their_addr.sin_family = he->h_addrtype;
+	memcpy((char*)&their_addr.sin_addr, he->h_addr, he->h_length);
 	their_addr.sin_port = htons(port);
-	their_addr.sin_addr = *((struct in_addr *)he->h_addr);
-	memset(their_addr.sin_zero, '\0', sizeof their_addr.sin_zero);
+
 	if (connect(sockfd, (struct sockaddr *)&their_addr,
 				sizeof their_addr) == -1) {
 		printlog("connect_dalog_serv: connect error: %s.\n", strerror(errno));
@@ -147,9 +147,11 @@ static void logger_network(char *content, int len)
 {
 	if (__serv_sock == -1)
 		connect_dalog_serv(__serv_addr, __serv_port, &__serv_sock);
+	if (__serv_sock == -1)
+		return;
 
 	if (len != send(__serv_sock, content, len, 0)) {
-		printlog("logger_wlogf: send error: %s, %d\n", strerror(errno), __serv_sock);
+		printlog("logger_network: send error: %s, %d\n", strerror(errno), __serv_sock);
 		if (__serv_sock != -1)
 			close(__serv_sock);
 		__serv_sock = -1;

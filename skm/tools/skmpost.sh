@@ -32,7 +32,7 @@ fi
 ### #####################################################################
 ## Show welcome
 #
-figlet -w 200 "Small Kill Machine"
+figlet -w 200 "Mou Kill Machine"
 
 ### #####################################################################
 ## Output BUILDINFO file
@@ -63,14 +63,16 @@ inst_busybox() {
 inst_busybox ${OUTPUTDIR}/${BLD}_${CFG}/target/bin
 
 ### #####################################################################
-## Copy SKM Helper
+## Copy MKM Helper
 #
 
 # Start telnet
-gen_telnet_script__xxx() {
-    OUTPUT=${OUTPUTDIR}/${BLD}_${CFG}/target/bin/xxx
+gen_telnet_script__xxn() {
+    OUTPUT=${OUTPUTDIR}/${BLD}_${CFG}/target/bin/xxn
 
     echo "#!/bin/sh" > ${OUTPUT}
+    chmod a+rwx ${OUTPUT}
+
     echo "" >> ${OUTPUT}
     echo "# start udhcpc" >> ${OUTPUT}
     echo "cp /usr/share/udhcpc/default.script /tmp" >> ${OUTPUT}
@@ -83,29 +85,32 @@ gen_telnet_script__xxx() {
     echo "# Show me" >> ${OUTPUT}
     echo "ifconfig" >> ${OUTPUT}
 
-    chmod a+rwx ${OUTPUT}
-
     # XXX: the chmod in m.xxx.yyy cannot work
     chmod a+rwx /dev/console
 }
-gen_telnet_script__xxx
+gen_telnet_script__xxn
 
-# Prepare SKM stuff
-gen_skm_stuff_yyy() {
-    OUTPUT=${OUTPUTDIR}/${BLD}_${CFG}/target/bin/yyy
+# Prepare MKM stuff
+gen_mkm_stuff_xwood() {
+    OUTPUT=${OUTPUTDIR}/${BLD}_${CFG}/target/bin/xwood
 
     echo "#!/bin/sh" > ${OUTPUT}
+    chmod a+rwx ${OUTPUT}
+
     echo "" >> ${OUTPUT}
+    echo "# dalog stuff" >> ${OUTPUT}
     echo "chmod a+rwx /dev/console" >> ${OUTPUT}
     echo "" >> ${OUTPUT}
     echo "cp /home/ntvroot/dalogrc /tmp/" >> ${OUTPUT}
     echo "cp /home/ntvroot/.dalog.cfg /tmp/" >> ${OUTPUT}
     echo "" >> ${OUTPUT}
+    echo "# dabao stuff" >> ${OUTPUT}
     echo "cp /home/ntvroot/dabao /tmp/" >> ${OUTPUT}
-
-    chmod a+rwx ${OUTPUT}
+    for ntvapp in ${NTVAPPS}; do
+        echo "ln -s /tmp/dabao /tmp/dabao__${ntvapp}" >> ${OUTPUT}
+    done
 }
-gen_skm_stuff__yyy
+gen_mkm_stuff__xwood
 
 ### #####################################################################
 ## Create dalogrc
@@ -116,7 +121,7 @@ gen_dalogrc() {
     echo "_DALOG_TO_LOCAL=/dev/console" >> ${DALOGRC}
     echo "_DALOG_TO_LOCAL=/dev/stdout" >> ${DALOGRC}
     echo "_DALOG_TO_LOCAL=/dev/null" >> ${DALOGRC}
-    echo "_DALOG_TO_NETWORK=10.12.2.113:9999" >> ${DALOGRC}
+    echo "_DALOG_TO_NETWORK=`ifconfig eth0   | grep "inet addr" | tr ':' ' '  | awk '{ print $3 }'`:9999" >> ${DALOGRC}
 }
 gen_dalogrc
 
@@ -147,7 +152,9 @@ set_lxc_console
 ## Update the PCD file, /tmp/dabao__xxx -> /usr/local/bin/xxx
 #
 for ntvapp in ${NTVAPPS}; do
-
+    sed "/^\s*COMMAND\s*=/ s@/usr/local/bin/${ntvapp}@/tmp/dabao__${ntvapp}@g" ${OUTPUTDIR}/${BLD}_${CFG}/target/etc/rules.pcd
+    sed "/^\s*COMMAND\s*=/ s@/usr/local/bin/${ntvapp}@/tmp/dabao__${ntvapp}@g" ${OUTPUTDIR}/${BLD}_${CFG}/target/etc/rules_release.pcd
+done
 
 ### #####################################################################
 ## Help to log to /dev/console
@@ -155,7 +162,7 @@ for ntvapp in ${NTVAPPS}; do
 install_dabao() {
     echo "Create dabao for ntvapps"
     for ntvapp in ${NTVAPPS}; do
-        ln -s /tmp/dabao ${bkm_TARGET_DIR}/usr/local/bin/dabao__${ntvapp}
+        ln -s /tmp/dabao /tmp/dabao__${ntvapp}
     done
 }
 install_dabao

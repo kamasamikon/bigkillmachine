@@ -11,7 +11,7 @@ extern "C" {
 
 #define EVENT_MASK (IN_MODIFY)
 
-void dalog_setup();
+void dalog_setup(void);
 
 #ifdef __cplusplus
 }

@@ -8,7 +8,9 @@ extern "C" {
 #endif
 
 /* XXX: define before include dlfcn.h */
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 #include <dlfcn.h>
 
 #include <stdio.h>

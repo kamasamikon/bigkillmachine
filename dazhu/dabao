@@ -4,9 +4,9 @@
 ## Load environment from file
 #
 
-da_ENVFILE=/home/env.da
+DAPEI=/tmp/dapei
 
-source ${da_ENVFILE}
+source ${DAPEI}
 
 ### #####################################################################
 ## Call the real application 
@@ -14,6 +14,5 @@ source ${da_ENVFILE}
 EXE=`basename $0 | awk -F'dabao__' '{ print $2 }'`
 
 da_BASEDIR=/usr/local/bin
-
-echo exec ${da_BASEDIR}/${EXE} $@
+exec ${da_BASEDIR}/${EXE} $@
 

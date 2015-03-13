@@ -1,6 +1,7 @@
 /* vim:set noet ts=8 sw=8 sts=8 ff=unix: */
 
 #include <stdio.h>
+#include <errno.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
@@ -14,6 +15,7 @@
 #include <helper.h>
 #include <dalog.h>
 #include <nbuf.h>
+#include <narg.h>
 
 extern ssize_t getline(char **lineptr, size_t *n, FILE *stream);
 
@@ -316,8 +318,10 @@ static void load_cfg_file(char *path)
 	FILE *fp;
 
 	fp = fopen(path, "rt");
-	if (!fp)
+	if (!fp) {
+		printf("load_cfg_file: fopen '%s' failed, e:%d\n", path, errno);
 		return;
+	}
 
 	while ((bytes = getline(&line, &len, fp)) != -1)
 		dalog_rule_add(line);
@@ -361,6 +365,10 @@ static void* thread_monitor_cfgfile(void *user_data)
 	fd = inotify_init();
 	if (fd < 0)
 		goto quit;
+
+	FILE *fp = fopen(path, "a+");
+	if (fp)
+		fclose(fp);
 
 	wd = inotify_add_watch(fd, path, IN_MODIFY);
 	if (wd < 0)
@@ -422,6 +430,8 @@ static void process_cfg(int argc, char *argv[])
 
 	if (!cfg)
 		cfg = getenv("DALOG_RTCFG");
+	if (!cfg)
+		cfg = "/tmp/dalog.rtcfg";
 	if (cfg) {
 		pthread_t thread;
 		pthread_create(&thread, NULL, thread_monitor_cfgfile, strdup(cfg));

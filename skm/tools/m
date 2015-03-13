@@ -14,18 +14,21 @@ if [ "${CMD}" != "m" ]; then
 fi
 
 ### #####################################################################
-## Append skmpost.sh to post_process.sh
+## Append mkmpost.sh to post_process.sh
 #
-grep "skmpost_placeHolder_83264" post_process.sh &> /dev/null
-if [ $? ]; then
-    echo "Already includes skmpost.sh"
-else
-    echo 'echo "skmpost_placeHolder_83264:" &> /dev/null; echo "$WORKING_DIR/skmpost.sh $BUILD_TYPE $CONFIG_TYPE $WORKING_DIR" >> $WORKING_DIR/ntv_customize_fs.txt' >> post_process.sh
-fi
+sed -i "/mkmpost_placeHolder_83264/d" post_process.sh
+sed -i "/mkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
+
+echo 'echo "${WORKING_DIR}/dazhu/mkmpost.sh ${BUILD_TYPE} ${CONFIG_TYPE} ${WORKING_DIR} mkmpost_placeHolder_83264" >> ${OUTPUT_DIR}/ntv_customize_fs.txt' >> post_process.sh
 
 ### #####################################################################
 ## Run the make command
 #
 source ../set_env_bash.sh
-time make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD} MSUR_DEBUG=YES $1 $2 $3 $4 $5 $6 $7 $8 $9
+TM_B=`date +%s`
+make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD} MSUR_DEBUG=YES $1 $2 $3 $4 $5 $6 $7 $8 $9
+TM_A=`date +%s`
+DIFF=`expr ${TM_A} - ${TM_B}`
+
+echo "Build cost: " `fmtTime.py ${DIFF}`
 
