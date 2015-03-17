@@ -1,20 +1,31 @@
 # THIS IS THE DA PEI ZHI WEN JIAN
+
+### #####################################################################
+## DALOG_SETUP
 #
-# export NH_DBUS_SKIP=YES
-# export NH_IOCTL_SKIP=YES
-# export NH_SQLITE_SKIP=YES
-# export NH_SYSLOG_SKIP=YES
+# export DALOG_NO_LOG_TO_FILE=YES
+# export DALOG_NO_LOG_TO_STDOUT=YES
 
-export DALOG_DFCFG=/home/dalog.dfcfg
-export DALOG_RTCFG=/home/dalog.rtcfg
-
-# export DALOG_TO_LOCAL=/tmp/dalog.log
 # export DALOG_TO_LOCAL=/dev/null
-export DALOG_TO_LOCAL=/dev/stdout
+# export DALOG_TO_LOCAL=/dev/stdout
+# export DALOG_TO_LOCAL=/dev/console
+export DALOG_TO_LOCAL=/tmp/dalog.output
 
-# export DALOG_TO_NETWORK=127.0.0.1:55555
+export DALOG_TO_NETWORK=HOSTIP:9999
+# export DALOG_TO_NETWORK=127.0.0.1:9999
 
 # export DALOG_TO_SYSLOG=YES
+
+### #####################################################################
+## DAGOU
+#
+# export DAGOU_DBUS_SKIP=YES
+# export DAGOU_IOCTL_SKIP=YES
+# export DAGOU_SQLITE_SKIP=YES
+# export DAGOU_SYSLOG_SKIP=YES
+
+export DALOG_DFCFG=/tmp/dalog.dfcfg
+export DALOG_RTCFG=/tmp/dalog.rtcfg
 
 # export LD_PRELOAD=/lib/libdagou.so
 

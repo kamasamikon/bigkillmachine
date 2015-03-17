@@ -2,7 +2,7 @@
 
 # DA Runtime Configure
 
-if [ "$1" != "" ]; then
+if [ x"$1" != x"" ]; then
     echo "$1" >> /tmp/dalog.rtcfg
 fi
 

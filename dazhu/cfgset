@@ -1,0 +1,4 @@
+#!/bin/sh
+
+dbus-send --address=unix:path=/tmp/ConfigCenter --print-reply /com/nemotv/ConfigCenter com.nemotv.ConfigCenter.setValue string:$1 variant:$2
+
