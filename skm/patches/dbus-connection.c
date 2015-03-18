@@ -578,7 +578,7 @@ static char *print_body(DBusMessage *message, nbuf_s *nb_body)
     return nb_body->buf;
 }
 
-static void skm_dump_message (DBusMessage *message)
+static void dagou_dump_dbus_message (DBusMessage *message)
 {
     const char *sender;
     const char *destination;
@@ -596,7 +596,7 @@ static void skm_dump_message (DBusMessage *message)
             skmdbus_dump_message_head = dlsym(handou, "skmdbus_dump_message_head");
             skmdbus_dump_message_head_body = dlsym(handou, "skmdbus_dump_message_head_body");
 
-            printf("skm_dump_message: pid:%d, skmdbus_dump_message_head:%p, skmdbus_dump_message_head_body:%p\n",
+            printf("dagou_dump_dbus_message: pid:%d, skmdbus_dump_message_head:%p, skmdbus_dump_message_head_body:%p\n",
                     getpid(), skmdbus_dump_message_head, skmdbus_dump_message_head_body);
         } else
             printf("Open libutils.so faile, error:%s\n", dlerror());
@@ -654,6 +654,9 @@ static void skm_dump_message (DBusMessage *message)
     nbuf_release(&nb_body);
 }
 
+static void dagou_dump_dbus_message1 (DBusMessage *message)
+{
+}
 /*-----------------------------------------------------------------------
  * SKM PART: END
  */
@@ -2659,7 +2662,7 @@ _dbus_connection_send_and_unlock (DBusConnection *connection,
       return FALSE;
     }
 
-  skm_dump_message(message);
+  dagou_dump_dbus_message(message);
   _dbus_connection_send_preallocated_and_unlock (connection,
 						 preallocated,
 						 message,
@@ -5126,7 +5129,7 @@ dbus_connection_dispatch (DBusConnection *connection)
     }
 
   message = message_link->data;
-  skm_dump_message(message);
+  dagou_dump_dbus_message(message);
   _dbus_verbose (" dispatching message %p (%s %s %s '%s')\n",
                  message,
                  dbus_message_type_to_string (dbus_message_get_type (message)),

@@ -23,8 +23,8 @@
 
 #include "dbus-print-message.h"
 
-void dbus_connection_dispatch_hook(DBusMessage *message);
-void dbus_connection_dispatch_hook(DBusMessage *message)
+void dagou_dump_dbus_message(DBusMessage *message);
+void dagou_dump_dbus_message(DBusMessage *message)
 {
 	static int skip_dalog = -1;
 
