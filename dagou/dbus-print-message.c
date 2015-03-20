@@ -369,8 +369,8 @@ void print_message (DBusMessage *message)
     sender = dbus_message_get_sender (message);
     destination = dbus_message_get_destination (message);
 
-    nbuf_init(&nb_head, 0);
-    nbuf_init(&nb_body, 0);
+    nbuf_init(&nb_head, 4096);
+    nbuf_init(&nb_body, 4096);
 
     {
         nbuf_addf (&nb_head, "%s [%s -> %s]",

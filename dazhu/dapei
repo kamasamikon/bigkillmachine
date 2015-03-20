@@ -9,7 +9,7 @@
 # export DALOG_TO_LOCAL=/dev/null
 # export DALOG_TO_LOCAL=/dev/stdout
 # export DALOG_TO_LOCAL=/dev/console
-export DALOG_TO_LOCAL=/tmp/dalog.output
+# export DALOG_TO_LOCAL=/tmp/dalog.output
 
 export DALOG_TO_NETWORK=HOSTIP:9999
 # export DALOG_TO_NETWORK=127.0.0.1:9999
@@ -27,5 +27,5 @@ export DALOG_TO_NETWORK=HOSTIP:9999
 export DALOG_DFCFG=/tmp/dalog.dfcfg
 export DALOG_RTCFG=/tmp/dalog.rtcfg
 
-# export LD_PRELOAD=/lib/libdagou.so
+export LD_PRELOAD=/lib/libdagou.so
 

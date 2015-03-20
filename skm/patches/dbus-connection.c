@@ -654,7 +654,7 @@ static void dagou_dump_dbus_message (DBusMessage *message)
     nbuf_release(&nb_body);
 }
 
-static void dagou_dump_dbus_message1 (DBusMessage *message)
+void dagou_dump_dbus_message (DBusMessage *message)
 {
 }
 /*-----------------------------------------------------------------------
