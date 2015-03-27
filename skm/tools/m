@@ -32,3 +32,6 @@ DIFF=`expr ${TM_A} - ${TM_B}`
 
 echo "Build cost: " `fmtTime.py ${DIFF}`
 
+sed -i "/mkmpost_placeHolder_83264/d" post_process.sh
+sed -i "/mkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
+
