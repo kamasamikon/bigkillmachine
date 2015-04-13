@@ -10,6 +10,7 @@ extern "C" {
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #ifndef nsulog_likely
 #define nsulog_likely(x)      __builtin_expect(!!(x), 1)
@@ -134,16 +135,17 @@ static char __attribute__((unused)) *__nsul_prog_name = NULL;
 #define nsulog_info(fmt, ...)        NSULOG_CHK_AND_CALL(NSULOG_INFO,    'I', NSULOG_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 #define nsulog_debug(fmt, ...)       NSULOG_CHK_AND_CALL(NSULOG_DEBUG,   'D', NSULOG_MODU_NAME, __FILE__, __func__, __LINE__, fmt, ##__VA_ARGS__)
 
-#define nsulog_assert(_x_) do { \
-	if (!(_x_)) { \
+#define nsulog_assert(expr) do { \
+	if (!(expr)) { \
 		NSULOG_INNER_VAR_DEF(); \
 		if (__nsul_ver_get > __nsul_ver_sav) { \
 			__nsul_ver_sav = __nsul_ver_get; \
 			NSULOG_SETUP_NAME(NSULOG_MODU_NAME, __FILE__, __func__); \
 		} \
 		nsulog_f('!', NSULOG_ALL, __nsul_prog_name, NSULOG_MODU_NAME, __nsul_file_name, (char*)__FUNCTION__, __LINE__, \
-				"\n\tASSERT NG: \"%s\"\n\n", #_x_); \
+				"\n\tASSERT NG: \"%s\"\n\n", #expr); \
 	} \
+	assert(expr); \
 } while (0)
 
 /*-----------------------------------------------------------------------

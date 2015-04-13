@@ -26,7 +26,7 @@ echo 'echo "${WORKING_DIR}/dazhu/mkmpost.sh ${BUILD_TYPE} ${CONFIG_TYPE} ${WORKI
 #
 source ../set_env_bash.sh
 TM_B=`date +%s`
-make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD} MSUR_DEBUG=YES $1 $2 $3 $4 $5 $6 $7 $8 $9
+make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD} $1 $2 $3 $4 $5 $6 $7 $8 $9
 TM_A=`date +%s`
 DIFF=`expr ${TM_A} - ${TM_B}`
 

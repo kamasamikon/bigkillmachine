@@ -19,7 +19,6 @@ extern "C" {
 #include <nsulog.h>
 /* --- EMBED NSULOG --- */
 
-#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -38,19 +37,11 @@ void o_log_assert_trap(void);
 /* --- JUNK PART --- */
 
 
-#if !defined(NDEBUG)
 #define O_ASSERT                        nsulog_assert
 #define O_WARN                          nsulog_assert
 #define ASSERT                          nsulog_assert
 #define O_DEBUG_ASSERT                  nsulog_assert
 #define WARN                            nsulog_assert
-#else
-#define O_WARN(cond)                    ((void)0)
-#define O_ASSERT(cond)                  ((void)0)
-#define WARN(cond)                      ((void)0)
-#define ASSERT(cond)                    ((void)0)
-#define O_DEBUG_ASSERT(cond)            ((void)0)
-#endif
 
 #define O_FATAL                         0
 #define O_ERROR                         3
@@ -124,8 +115,8 @@ void o_log_assert_trap(void);
 #define O_LOG_EXIT(fmt, ...)            nsulog_debug("Exit:" fmt, ##__VA_ARGS__)
 #endif
 
-#define REQUIRE(...)                    ((void)0)
-#define ENSURE(...)                     ((void)0)
+#define REQUIRE(cond)                   nsulog_assert(cond)
+#define ENSURE(cond)                    nsulog_assert(cond)
 #define LOOP_INVARIANT_INIT(...)        ((void)0)
 #define LOOP_INVARIANT_TEST(...)        ((void)0)
 
