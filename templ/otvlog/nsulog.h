@@ -148,6 +148,18 @@ static char __attribute__((unused)) *__nsul_prog_name = NULL;
 	assert(expr); \
 } while (0)
 
+#define nsulog_ensure(expr) do { \
+	if (!(expr)) { \
+		NSULOG_INNER_VAR_DEF(); \
+		if (__nsul_ver_get > __nsul_ver_sav) { \
+			__nsul_ver_sav = __nsul_ver_get; \
+			NSULOG_SETUP_NAME(NSULOG_MODU_NAME, __FILE__, __func__); \
+		} \
+		nsulog_f('!', NSULOG_ALL, __nsul_prog_name, NSULOG_MODU_NAME, __nsul_file_name, (char*)__FUNCTION__, __LINE__, \
+				"\n\tENSURE NG: \"%s\"\n\n", #expr); \
+	} \
+} while (0)
+
 /*-----------------------------------------------------------------------
  * Functions:
  */

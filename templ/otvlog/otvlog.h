@@ -38,10 +38,10 @@ void o_log_assert_trap(void);
 
 
 #define O_ASSERT                        nsulog_assert
-#define O_WARN                          nsulog_assert
+#define O_WARN                          nsulog_ensure
 #define ASSERT                          nsulog_assert
 #define O_DEBUG_ASSERT                  nsulog_assert
-#define WARN                            nsulog_assert
+#define WARN                            nsulog_ensure
 
 #define O_FATAL                         0
 #define O_ERROR                         3
