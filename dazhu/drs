@@ -1,0 +1,76 @@
+#!/usr/bin/env python
+
+# DR can support Short swich format
+
+import os, sys
+
+def gen_switch():
+    switch = {}
+
+    for argv in sys.argv:
+        if argv.startswith("prog="):
+            switch["prog"] = argv[5:]
+        elif argv.startswith("P:"):
+            switch["prog"] = argv[2:]
+
+        elif argv.startswith("modu="):
+            switch["modu"] = argv[5:]
+        elif argv.startswith("M:"):
+            switch["modu"] = argv[2:]
+
+        elif argv.startswith("file="):
+            switch["file"] = argv[5:]
+        elif argv.startswith("F:"):
+            switch["file"] = argv[2:]
+
+        elif argv.startswith("func="):
+            switch["func"] = argv[5:]
+        elif argv.startswith("H:"):
+            switch["func"] = argv[2:]
+
+        elif argv.startswith("line="):
+            switch["line"] = argv[5:]
+        elif argv.startswith("L:"):
+            switch["line"] = argv[2:]
+
+        elif argv.startswith("mask="):
+            switch["mask"] = argv[5:]
+        else:
+            switch["mask"] = argv
+
+    return switch
+
+def gen_command(switch):
+    command = "echo "
+
+    if switch.has_key("prog"):
+        command += "%s=%s," % ("prog", switch["prog"])
+
+    if switch.has_key("modu"):
+        command += "%s=%s," % ("modu", switch["modu"])
+
+    if switch.has_key("file"):
+        command += "%s=%s," % ("file", switch["file"])
+
+    if switch.has_key("func"):
+        command += "%s=%s," % ("func", switch["func"])
+
+    if switch.has_key("line"):
+        command += "%s=%s," % ("line", switch["line"])
+
+    if switch.has_key("mask"):
+        command += "%s=%s" % ("mask", switch["mask"])
+
+    command += " >> /tmp/dalog.rtcfg"
+
+    return command
+
+if __name__ == "__main__":
+    try:
+        command = gen_command(gen_switch())
+        
+        print command 
+        os.system(command);
+    except:
+        pass
+

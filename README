@@ -12,6 +12,13 @@ precondition:
     - DEBUG_INIT=1
         - 所以能支持脚本
 
+如何使用
+=======
+    - cd ntvtgt/shit
+    - ln -s daxia .
+    - ln -s bkm/tools/m m.bld.tf
+    - ./m.bld.tf
+
 klog-agent:
 ===========
     - telnet方式的远程控制接口，远程通过在telnet中输入命令还控制klog的输出。
