@@ -654,9 +654,6 @@ static void dagou_dump_dbus_message (DBusMessage *message)
     nbuf_release(&nb_body);
 }
 
-void dagou_dump_dbus_message (DBusMessage *message)
-{
-}
 /*-----------------------------------------------------------------------
  * SKM PART: END
  */
@@ -777,6 +774,10 @@ void dagou_dump_dbus_message (DBusMessage *message)
  *
  * @{
  */
+
+void dagou_dump_dbus_message (DBusMessage *message)
+{
+}
 
 /**
  * Internal struct representing a message filter function

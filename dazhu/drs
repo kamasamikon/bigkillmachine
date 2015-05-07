@@ -6,37 +6,55 @@ import os, sys
 
 def gen_switch():
     switch = {}
+    switch["mask"] = []
 
-    for argv in sys.argv:
+    for argv in sys.argv[1:]:
         if argv.startswith("prog="):
             switch["prog"] = argv[5:]
         elif argv.startswith("P:"):
+            switch["prog"] = argv[2:]
+        elif argv.startswith("p:"):
             switch["prog"] = argv[2:]
 
         elif argv.startswith("modu="):
             switch["modu"] = argv[5:]
         elif argv.startswith("M:"):
             switch["modu"] = argv[2:]
+        elif argv.startswith("m:"):
+            switch["modu"] = argv[2:]
 
         elif argv.startswith("file="):
             switch["file"] = argv[5:]
         elif argv.startswith("F:"):
+            switch["file"] = argv[2:]
+        elif argv.startswith("f:"):
             switch["file"] = argv[2:]
 
         elif argv.startswith("func="):
             switch["func"] = argv[5:]
         elif argv.startswith("H:"):
             switch["func"] = argv[2:]
+        elif argv.startswith("h:"):
+            switch["func"] = argv[2:]
 
         elif argv.startswith("line="):
             switch["line"] = argv[5:]
         elif argv.startswith("L:"):
             switch["line"] = argv[2:]
+        elif argv.startswith("l:"):
+            switch["line"] = argv[2:]
 
         elif argv.startswith("mask="):
-            switch["mask"] = argv[5:]
+            switch["mask"].append(argv[5:])
         else:
-            switch["mask"] = argv
+            if argv.endswith("()"):
+                switch["func"] = argv[:-2]
+            elif argv.isdigit():
+                switch["line"] = argv[:]
+            elif argv.endswith(".c") or argv.endswith(".cpp"):
+                switch["file"] = argv[:]
+            else:
+                switch["mask"].append(argv)
 
     return switch
 
@@ -59,7 +77,7 @@ def gen_command(switch):
         command += "%s=%s," % ("line", switch["line"])
 
     if switch.has_key("mask"):
-        command += "%s=%s" % ("mask", switch["mask"])
+        command += "%s=%s" % ("mask", "".join(switch["mask"]))
 
     command += " >> /tmp/dalog.rtcfg"
 
