@@ -53,6 +53,10 @@ def gen_switch():
                 switch["line"] = argv[:]
             elif argv.endswith(".c") or argv.endswith(".cpp"):
                 switch["file"] = argv[:]
+            elif argv == 'ALL':
+                switch["mask"].append('facewind')
+            elif argv == '-ALL':
+                switch["mask"].append('-f-a-c-e-w-i-n-d')
             else:
                 switch["mask"].append(argv)
 
