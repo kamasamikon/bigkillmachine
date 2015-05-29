@@ -36,12 +36,19 @@ void o_log_assert_trap(void);
 /* --- JUNK PART --- */
 /* --- JUNK PART --- */
 
-
+#ifndef NDEBUG
 #define O_ASSERT                        nsulog_assert
 #define O_WARN                          nsulog_ensure
 #define ASSERT                          nsulog_assert
 #define O_DEBUG_ASSERT                  nsulog_assert
 #define WARN                            nsulog_ensure
+#else
+#define O_WARN(cond)                    ((void)0)
+#define O_ASSERT(cond)                  ((void)0)
+#define WARN(cond)                      ((void)0)
+#define ASSERT(cond)                    ((void)0)
+#define O_DEBUG_ASSERT(cond)            ((void)0)
+#endif
 
 #define O_FATAL                         0
 #define O_ERROR                         3
