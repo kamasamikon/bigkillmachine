@@ -386,19 +386,23 @@ NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
             case 'e':
             case 'E':
                 NSULOG_CHK_AND_CALL(NSULOG_ERR, 'L', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                break;
 
             case 'w':
             case 'W':
                 NSULOG_CHK_AND_CALL(NSULOG_WARNING, 'W', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                break;
 
             case 'd':
             case 'D':
                 NSULOG_CHK_AND_CALL(NSULOG_DEBUG, 'D', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                break;
 
             case 'i':
             case 'I':
             default:
                 NSULOG_CHK_AND_CALL(NSULOG_INFO, 'I', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                break;
             }
 
             NPN_MemFree(utf8name);
