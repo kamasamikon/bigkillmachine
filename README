@@ -123,3 +123,30 @@ PostProcess.sh:
     - dagan : 大干，应用DA
     - daxiu : 修复，清除DA
 
+其他修改
+    - nemotv/src/network/Makefile.am
+        - Add:
+            - dhclientscript_LDADD += -lutils
+            - dhclientscript_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib
+
+    - otvutils
+        - meld bigkillmachine/templ/ntvlog
+
+    - BKM
+        - ln -s bigkillmachine/dazhu .
+        - ln -s /usr/local/bin/m m.bld.tf
+
+    - DBUS
+        - meld bigkillmachine/skm/patches/dbus-connection.c bld_tf/build/...
+        - rm .stamp_built .stamp_staging_installed .stamp_target_installed 
+
+    - rcS:
+        - Before pcd
+            - cd /root
+            - PS1="BKM>  " /bin/sh
+
+    - UI:
+        - bigkillmachine/patch/ui/ccomx/
+        - bigkillmachine/patch/ui/js/ 
+
+

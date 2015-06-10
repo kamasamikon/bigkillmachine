@@ -1,0 +1,12 @@
+#!/bin/sh
+
+BLD=$1                  # BUILD_TYPE
+CFG=$2                  # CONFIG_TYPE
+OUT=$3                  # sam7231_uclibc_bc, dazhu also in this dir
+
+mv ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit.exe
+
+echo "#!/bin/sh" > ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit 
+echo "source /tmp/dapei" >> ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit 
+echo 'exec /usr/local/bin/ntvwebkit.exe $@' >> ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit 
+

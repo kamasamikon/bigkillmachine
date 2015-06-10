@@ -64,8 +64,25 @@ var $N = $N || {};
 				type = "debug";
 			}
 
-			if (window.XCOM && XCOM.klog) {
-				XCOM.klog("JS# " + moduleContext + "[" + classContext + "." + method + "] " + message);
+			if (window.XCOM && XCOM.dalog) {
+                switch (type) {
+                case "error":
+                    XCOM.dalog('E', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
+                    break;
+
+                case "warn":
+                    XCOM.dalog('W', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
+                    break;
+
+                case "debug":
+                    XCOM.dalog('D', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
+                    break;
+
+                case "info":
+                default:
+                    XCOM.dalog('I', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
+                    break;
+                }
 				return;
 			}
 

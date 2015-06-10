@@ -22,6 +22,8 @@ namespace ccomx {
 int32_t NpObj::m_uniqueHandle = 0;
 int32_t NpObj::m_uniqueEventHandlerID = 0;
 
+#define __USE_DALOG__ 1
+
 #ifdef LOG_NTVNP_OBJECTS
 map<string,NpObj::OtvNP_RTInfo> NpObj::m_all_objs;
 unsigned int NpObj::m_totalNumObjs = 0;
@@ -255,17 +257,6 @@ NpObj::HasMethod(NPObject *npobj, NPIdentifier name)
         node = node->next;
     }
 
-#ifdef __K_NHLOG_H__
-    if ("nemo_use_klog") {
-        char *utf8name = (char*)NPN_UTF8FromIdentifier(name);
-        if (utf8name && !strcmp(utf8name, "klog")) {
-            NPN_MemFree(utf8name);
-            return true;
-        }
-        if (utf8name)
-            NPN_MemFree(utf8name);
-    }
-#endif
     return false;
 }
 
@@ -349,6 +340,17 @@ NpObj::NPInvalidate(NPObject *npobj)
 bool
 NpObj::NPHasMethod(NPObject *npobj, NPIdentifier name)
 {
+#ifdef __USE_DALOG__
+    if ("NEMO_BKM_DALOG") {
+        char *utf8name = (char*)NPN_UTF8FromIdentifier(name);
+        if (utf8name && !strcmp(utf8name, "dalog")) {
+            NPN_MemFree(utf8name);
+            return true;
+        }
+        if (utf8name)
+            NPN_MemFree(utf8name);
+    }
+#endif
     if( ((NPObjectExt*)npobj)->pNpObj )
         return ((NPObjectExt*)npobj)->pNpObj->HasMethod(npobj, name);
     else
@@ -363,18 +365,45 @@ NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
                       const NPVariant *args, uint32_t argCount,
                       NPVariant *result)
 {
-#ifdef __K_NHLOG_H__
-    if ("nemo_use_klog") {
+#ifdef __USE_DALOG__
+    if ("NEMO_BKM_DALOG") {
+        /* dalog(int type, char *moduleName, char *message) */
         char *utf8name = (char*)NPN_UTF8FromIdentifier(name);
-        if (utf8name && !strcmp(utf8name, "klog")) {
-            int stringlen = (int)NPVARIANT_TO_STRING(*args).UTF8Length;
-            char *handlerName = new(std::nothrow)char[stringlen + 1];
-            memcpy(handlerName,(char *)(NPVARIANT_TO_STRING(*args).UTF8Characters),stringlen);
-            handlerName[stringlen] = 0;
+        if (utf8name && !strcmp(utf8name, "dalog")) {
+            char type = ((char*)(NPVARIANT_TO_STRING(args[0]).UTF8Characters))[0];
 
-            NHLOG_CHK_AND_CALL(NHLOG_INFO, 'L', "UI", __FILE__, __func__, __LINE__, "%s\n", handlerName);
+            int moduleNameLen = (int)NPVARIANT_TO_STRING(args[1]).UTF8Length;
+            char *moduleName = new(std::nothrow)char[moduleNameLen + 1];
+            memcpy(moduleName, (char*)(NPVARIANT_TO_STRING(args[1]).UTF8Characters), moduleNameLen);
+            moduleName[moduleNameLen] = 0;
+
+            int messageLen = (int)NPVARIANT_TO_STRING(args[2]).UTF8Length;
+            char *message = new(std::nothrow)char[messageLen + 1];
+            memcpy(message, (char*)(NPVARIANT_TO_STRING(args[2]).UTF8Characters), messageLen);
+            message[messageLen] = 0;
+
+            switch (type) {
+            case 'e':
+            case 'E':
+                NSULOG_CHK_AND_CALL(NSULOG_ERR, 'L', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+
+            case 'w':
+            case 'W':
+                NSULOG_CHK_AND_CALL(NSULOG_WARNING, 'W', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+
+            case 'd':
+            case 'D':
+                NSULOG_CHK_AND_CALL(NSULOG_DEBUG, 'D', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+
+            case 'i':
+            case 'I':
+            default:
+                NSULOG_CHK_AND_CALL(NSULOG_INFO, 'I', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+            }
 
             NPN_MemFree(utf8name);
+            NPN_MemFree(moduleName);
+            NPN_MemFree(message);
             return true;
         }
         if (utf8name)
@@ -466,18 +495,6 @@ NpObj::NPInvokeDefault(NPObject *npobj, const NPVariant *args,
 NpObj::NPHasProperty(NPObject * npobj, NPIdentifier name)
 {
     bool rc = false;
-
-#ifdef __K_NHLOG_H__
-    if ("nemo_use_klog") {
-        char *utf8name = (char*)NPN_UTF8FromIdentifier(name);
-        if (utf8name && !strcmp(utf8name, "klog")) {
-            NPN_MemFree(utf8name);
-            return false;
-        }
-        if (utf8name)
-            NPN_MemFree(utf8name);
-    }
-#endif
 
     if( ((NPObjectExt*)npobj)->pNpObj )
     {
@@ -772,24 +789,6 @@ NpObj::Invoke(NPObject *npobj, NPIdentifier name,
 
     O_LOG_ENTER("Calling %s with %d args\n",(const char*)NPIdentifierStr(name), argCount);
 
-#ifdef __K_NHLOG_H__
-    if ("nemo_use_klog") {
-        char *utf8name = (char*)NPN_UTF8FromIdentifier(name);
-        if (utf8name && !strcmp(utf8name, "klog")) {
-            int stringlen = (int)NPVARIANT_TO_STRING(*args).UTF8Length;
-            char *handlerName = new(std::nothrow)char[stringlen + 1];
-            memcpy(handlerName,(char *)(NPVARIANT_TO_STRING(*args).UTF8Characters),stringlen);
-            handlerName[stringlen] = 0;
-
-            NHLOG_CHK_AND_CALL(NHLOG_INFO, 'L', "UI", __FILE__, __func__, __LINE__, "%s\n", handlerName);
-
-            NPN_MemFree(utf8name);
-            return;
-        }
-        if (utf8name)
-            NPN_MemFree(utf8name);
-    }
-#endif
 
     if (!NPN_IdentifierIsString(name)) {
         O_LOG_ERROR("Invoke method name not string!\n");
