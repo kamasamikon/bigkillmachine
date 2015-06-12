@@ -4,9 +4,20 @@ BLD=$1                  # BUILD_TYPE
 CFG=$2                  # CONFIG_TYPE
 OUT=$3                  # sam7231_uclibc_bc, dazhu also in this dir
 
-mv ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit.exe
+if [ -f ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit.exe ]; then
+    echo "ntvwebkit.exe already exists"
+    exit
+fi
 
-echo "#!/bin/sh" > ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit 
-echo "source /tmp/dapei" >> ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit 
-echo 'exec /usr/local/bin/ntvwebkit.exe $@' >> ${OUT}/${BLD}_${CFG}/target/bin/ntvwebkit 
+echo "Copy ntvwebkit t ntvwebkit.exe"
+mv ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit.exe
+
+echo "Create ntvwebkit script file"
+echo "#!/bin/sh" > ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit 
+echo "" > ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit 
+echo "source /tmp/dapei" >> ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit 
+echo 'exec /usr/local/bin/ntvwebkit.exe $@' >> ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit 
+
+chmod a+x ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit 
+ls -al ${OUT}/${BLD}_${CFG}/target/usr/local/bin/ntvwebkit 
 
