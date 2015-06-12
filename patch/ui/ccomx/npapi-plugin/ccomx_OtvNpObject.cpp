@@ -385,7 +385,7 @@ NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
             switch (type) {
             case 'e':
             case 'E':
-                NSULOG_CHK_AND_CALL(NSULOG_ERR, 'L', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_ERR, 'E', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
 
             case 'w':
