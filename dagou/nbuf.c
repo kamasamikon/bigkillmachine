@@ -104,7 +104,7 @@ void nbuf_vaddf(nbuf_s *nb, const char *fmt, va_list ap)
 	va_copy(cp, ap);
 	len = vsnprintf(nb->buf + nb->len, nb->alloc - nb->len, fmt, cp);
 	va_end(cp);
-	if (len <= 0) {
+	if (len < 0) {
 		fprintf(stderr, "fatal when vsnprintf\n");
 		exit(-1);
 	}
