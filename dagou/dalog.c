@@ -11,6 +11,7 @@
 #include <pthread.h>
 #include <sys/inotify.h>
 #include <sys/time.h>
+#include <sys/sysinfo.h>
 
 #include <helper.h>
 #include <dalog.h>
@@ -183,14 +184,16 @@ int dalog_del_rlogger(DAL_RLOGGER logger)
  */
 static void dalog_parse_mask(char *mask, unsigned int *set, unsigned int *clr);
 
-static uint64_t current_time()
+static uint64_t os_uptime()
 {
-	uint64_t ms;
+	struct sysinfo info;
 	struct timeval tv;
+	uint64_t ms;
 
+	sysinfo(&info);
 	gettimeofday(&tv,NULL);
 
-	ms = tv.tv_sec;
+	ms = (uint64_t)info.uptime;
 	ms *= 1000;
 	ms += tv.tv_usec / 1000;
 
@@ -556,7 +559,7 @@ int dalog_vf(unsigned char type, unsigned int mask, char *prog, char *modu,
 	time_t t;
 	struct tm *tmp;
 
-	unsigned long tick = 0;
+	unsigned long uptime = 0;
 
 	for (i = 0; i < cc->rlogger_cnt; i++)
 		if (cc->rloggers[i]) {
@@ -569,7 +572,7 @@ int dalog_vf(unsigned char type, unsigned int mask, char *prog, char *modu,
 		return 0;
 
 	if (mask & (DALOG_RTM | DALOG_ATM))
-		tick = current_time();
+		uptime = os_uptime();
 
 	ofs = 0;
 
@@ -579,12 +582,12 @@ int dalog_vf(unsigned char type, unsigned int mask, char *prog, char *modu,
 
 	/* Time */
 	if (mask & DALOG_RTM)
-		ofs += sprintf(bufptr + ofs, "s:%lu|", tick);
+		ofs += sprintf(bufptr + ofs, "s:%lu|", uptime);
 	if (mask & DALOG_ATM) {
 		t = time(NULL);
 		tmp = localtime(&t);
 		strftime(tmbuf, sizeof(tmbuf), "%Y/%m/%d %H:%M:%S", tmp);
-		ofs += sprintf(bufptr + ofs, "S:%s.%03d|", tmbuf, (unsigned int)(tick % 1000));
+		ofs += sprintf(bufptr + ofs, "S:%s.%03d|", tmbuf, (unsigned int)(uptime % 1000));
 	}
 
 	/* ID */
