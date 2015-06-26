@@ -100,7 +100,7 @@ static char __attribute__((unused)) *__nsul_prog_name = NULL;
 		} \
 	} \
 	if (__nsul_mask) { \
-		nsulog_f(indi, __nsul_mask, __nsul_prog_name, modu, __nsul_file_name, (char*)func, line, fmt, ##__VA_ARGS__); \
+		nsulog_f(indi, __nsul_mask, __nsul_prog_name, __nsul_modu_name, __nsul_file_name, (char*)__nsul_func_name, line, fmt, ##__VA_ARGS__); \
 	} \
 } while (0)
 
@@ -115,7 +115,7 @@ static char __attribute__((unused)) *__nsul_prog_name = NULL;
 		} \
 	} \
 	if (__nsul_mask) { \
-		nsulog_vf(indi, __nsul_mask, __nsul_prog_name, modu, __nsul_file_name, (char*)func, line, fmt, ap); \
+		nsulog_vf(indi, __nsul_mask, __nsul_prog_name, __nsul_modu_name, __nsul_file_name, (char*)__nsul_func_name, line, fmt, ap); \
 	} \
 } while (0)
 

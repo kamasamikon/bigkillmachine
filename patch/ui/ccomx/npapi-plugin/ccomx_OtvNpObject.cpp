@@ -367,47 +367,86 @@ NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
 {
 #ifdef __USE_DALOG__
     if ("NEMO_BKM_DALOG") {
-        /* dalog(int type, char *moduleName, char *message) */
+        /* dalog(type, modu, file, func, line, message) */
         char *utf8name = (char*)NPN_UTF8FromIdentifier(name);
         if (utf8name && !strcmp(utf8name, "dalog")) {
-            char type = ((char*)(NPVARIANT_TO_STRING(args[0]).UTF8Characters))[0];
+            NPString arg_modu = NPVARIANT_TO_STRING(args[1]);
+            char modu[256];
+            uint32_t moduLen = (uint32_t)arg_modu.UTF8Length;
+            moduLen = (moduLen > sizeof(modu) - 1) ? sizeof(modu) - 1 : moduLen;
+            memcpy(modu, (char*)(arg_modu.UTF8Characters), moduLen);
+            modu[moduLen] = 0;
 
-            int moduleNameLen = (int)NPVARIANT_TO_STRING(args[1]).UTF8Length;
-            char *moduleName = new(std::nothrow)char[moduleNameLen + 1];
-            memcpy(moduleName, (char*)(NPVARIANT_TO_STRING(args[1]).UTF8Characters), moduleNameLen);
-            moduleName[moduleNameLen] = 0;
+            NPString arg_file = NPVARIANT_TO_STRING(args[2]);
+            char file[256];
+            uint32_t fileLen = (uint32_t)arg_file.UTF8Length;
+            fileLen = (fileLen > sizeof(file) - 1) ? sizeof(file) - 1 : fileLen;
+            memcpy(file, (char*)(arg_file.UTF8Characters), fileLen);
+            file[fileLen] = 0;
 
-            int messageLen = (int)NPVARIANT_TO_STRING(args[2]).UTF8Length;
-            char *message = new(std::nothrow)char[messageLen + 1];
-            memcpy(message, (char*)(NPVARIANT_TO_STRING(args[2]).UTF8Characters), messageLen);
-            message[messageLen] = 0;
+            NPString arg_func = NPVARIANT_TO_STRING(args[3]);
+            char func[256];
+            uint32_t funcLen = (uint32_t)arg_func.UTF8Length;
+            funcLen = (funcLen > sizeof(func) - 1) ? sizeof(func) - 1 : funcLen;
+            memcpy(func, (char*)(arg_func.UTF8Characters), funcLen);
+            func[funcLen] = 0;
 
-            switch (type) {
+            uint32_t line = NPVARIANT_TO_INT32(args[4]);
+
+            NPString arg_mesg = NPVARIANT_TO_STRING(args[5]);
+            char mesg[4096], *message = mesg;
+            uint32_t mesgLen = (uint32_t)arg_mesg.UTF8Length;
+            if (mesgLen > sizeof(mesg) - 1)
+                message = new(std::nothrow)char[mesgLen + 1];
+            memcpy(mesg, (char*)(arg_mesg.UTF8Characters), mesgLen);
+            mesg[mesgLen] = 0;
+
+            NPString arg_type = NPVARIANT_TO_STRING(args[0]);
+            switch (((char*)(arg_type.UTF8Characters))[0]) {
+            case 'f':
+            case 'F':
+                NSULOG_CHK_AND_CALL(NSULOG_FATAL, 'F', modu, file, func, line, "%s\n", message);
+                break;
+
+            case 'a':
+            case 'A':
+                NSULOG_CHK_AND_CALL(NSULOG_ALERT, 'A', modu, file, func, line, "%s\n", message);
+                break;
+
+            case 'c':
+            case 'C':
+                NSULOG_CHK_AND_CALL(NSULOG_CRIT, 'C', modu, file, func, line, "%s\n", message);
+                break;
             case 'e':
             case 'E':
-                NSULOG_CHK_AND_CALL(NSULOG_ERR, 'E', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_ERR, 'E', modu, file, func, line, "%s\n", message);
                 break;
 
             case 'w':
             case 'W':
-                NSULOG_CHK_AND_CALL(NSULOG_WARNING, 'W', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
-                break;
-
-            case 'd':
-            case 'D':
-                NSULOG_CHK_AND_CALL(NSULOG_DEBUG, 'D', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_WARNING, 'W', modu, file, func, line, "%s\n", message);
                 break;
 
             case 'i':
             case 'I':
+                NSULOG_CHK_AND_CALL(NSULOG_INFO, 'I', modu, file, func, line, "%s\n", message);
+                break;
+
+            case 'n':
+            case 'N':
+                NSULOG_CHK_AND_CALL(NSULOG_NOTICE, 'N', modu, file, func, line, "%s\n", message);
+                break;
+
+            case 'd':
+            case 'D':
             default:
-                NSULOG_CHK_AND_CALL(NSULOG_INFO, 'I', moduleName, __FILE__, __func__, __LINE__, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_DEBUG, 'D', modu, file, func, line, "%s\n", message);
                 break;
             }
 
             NPN_MemFree(utf8name);
-            NPN_MemFree(moduleName);
-            NPN_MemFree(message);
+            if (message != mesg)
+                NPN_MemFree(message);
             return true;
         }
         if (utf8name)
