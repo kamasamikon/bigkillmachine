@@ -67,20 +67,20 @@ var $N = $N || {};
 			if (window.XCOM && XCOM.dalog) {
                 switch (type) {
                 case "error":
-                    XCOM.dalog('E', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
+                    XCOM.dalog('E', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
                     break;
 
                 case "warn":
-                    XCOM.dalog('W', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
-                    break;
-
-                case "debug":
-                    XCOM.dalog('D', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
+                    XCOM.dalog('W', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
                     break;
 
                 case "info":
+                    XCOM.dalog('I', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+                    break;
+
+                case "debug":
                 default:
-                    XCOM.dalog('I', "UI." + moduleContext, "[" + classContext + "." + method + "] " + message);
+                    XCOM.dalog('D', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
                     break;
                 }
 				return;

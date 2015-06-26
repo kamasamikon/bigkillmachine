@@ -367,33 +367,11 @@ NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
 {
 #ifdef __USE_DALOG__
     if ("NEMO_BKM_DALOG") {
-        /* dalog(type, modu, file, func, line, message) */
+        /* dalog(type, message) */
         char *utf8name = (char*)NPN_UTF8FromIdentifier(name);
         if (utf8name && !strcmp(utf8name, "dalog")) {
-            NPString arg_modu = NPVARIANT_TO_STRING(args[1]);
-            char modu[256];
-            uint32_t moduLen = (uint32_t)arg_modu.UTF8Length;
-            moduLen = (moduLen > sizeof(modu) - 1) ? sizeof(modu) - 1 : moduLen;
-            memcpy(modu, (char*)(arg_modu.UTF8Characters), moduLen);
-            modu[moduLen] = 0;
 
-            NPString arg_file = NPVARIANT_TO_STRING(args[2]);
-            char file[256];
-            uint32_t fileLen = (uint32_t)arg_file.UTF8Length;
-            fileLen = (fileLen > sizeof(file) - 1) ? sizeof(file) - 1 : fileLen;
-            memcpy(file, (char*)(arg_file.UTF8Characters), fileLen);
-            file[fileLen] = 0;
-
-            NPString arg_func = NPVARIANT_TO_STRING(args[3]);
-            char func[256];
-            uint32_t funcLen = (uint32_t)arg_func.UTF8Length;
-            funcLen = (funcLen > sizeof(func) - 1) ? sizeof(func) - 1 : funcLen;
-            memcpy(func, (char*)(arg_func.UTF8Characters), funcLen);
-            func[funcLen] = 0;
-
-            uint32_t line = NPVARIANT_TO_INT32(args[4]);
-
-            NPString arg_mesg = NPVARIANT_TO_STRING(args[5]);
+            NPString arg_mesg = NPVARIANT_TO_STRING(args[1]);
             char mesg[4096], *message = mesg;
             uint32_t mesgLen = (uint32_t)arg_mesg.UTF8Length;
             if (mesgLen > sizeof(mesg) - 1)
@@ -405,42 +383,42 @@ NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
             switch (((char*)(arg_type.UTF8Characters))[0]) {
             case 'f':
             case 'F':
-                NSULOG_CHK_AND_CALL(NSULOG_FATAL, 'F', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_FATAL, 'F', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
 
             case 'a':
             case 'A':
-                NSULOG_CHK_AND_CALL(NSULOG_ALERT, 'A', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_ALERT, 'A', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
 
             case 'c':
             case 'C':
-                NSULOG_CHK_AND_CALL(NSULOG_CRIT, 'C', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_CRIT, 'C', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
             case 'e':
             case 'E':
-                NSULOG_CHK_AND_CALL(NSULOG_ERR, 'E', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_ERR, 'E', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
 
             case 'w':
             case 'W':
-                NSULOG_CHK_AND_CALL(NSULOG_WARNING, 'W', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_WARNING, 'W', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
 
             case 'i':
             case 'I':
-                NSULOG_CHK_AND_CALL(NSULOG_INFO, 'I', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_INFO, 'I', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
 
             case 'n':
             case 'N':
-                NSULOG_CHK_AND_CALL(NSULOG_NOTICE, 'N', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_NOTICE, 'N', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
 
             case 'd':
             case 'D':
             default:
-                NSULOG_CHK_AND_CALL(NSULOG_DEBUG, 'D', modu, file, func, line, "%s\n", message);
+                NSULOG_CHK_AND_CALL(NSULOG_DEBUG, 'D', "UI", __FILE__, __func__, __LINE__, "%s\n", message);
                 break;
             }
 
