@@ -26,6 +26,7 @@
 #include <string.h>
 #include <dbus/dbus.h>
 
-void print_message (DBusMessage *message);
+void print_message_head (DBusMessage *message);
+void print_message_body (DBusMessage *message);
 
 #endif /* DBUS_PRINT_MESSAGE_H */

@@ -38,7 +38,8 @@ void dagou_dump_dbus_message(DBusMessage *message)
 		return;
 
 	dalog_setup();
-	print_message(message);
+	print_message_head(message);
+	print_message_full(message);
 }
 
 #endif

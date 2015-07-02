@@ -357,59 +357,135 @@ static char *print_body(DBusMessage *message, nbuf_s *nb_body)
     return nb_body->buf;
 }
 
-void print_message (DBusMessage *message)
+void print_message_head (DBusMessage *message)
 {
     const char *sender;
     const char *destination;
     int message_type;
 
-    nbuf_s nb_head, nb_body;
+    nbuf_s nb;
+    const int line = __LINE__;
 
-    message_type = dbus_message_get_type (message);
-    sender = dbus_message_get_sender (message);
-    destination = dbus_message_get_destination (message);
-
-    nbuf_init(&nb_head, 4096);
-    nbuf_init(&nb_body, 4096);
-
-    {
-        nbuf_addf (&nb_head, "%s [%s -> %s]",
-                type_to_name (message_type),
-                sender ? sender : "(NUL)",
-                destination ? destination : "(NUL)");
-
-        switch (message_type)
-        {
-        case DBUS_MESSAGE_TYPE_METHOD_CALL:
-        case DBUS_MESSAGE_TYPE_SIGNAL:
-            nbuf_addf (&nb_head, " SN=%u PATH=%s; IF=%s; MEM=%s\n",
-                    dbus_message_get_serial (message),
-                    dbus_message_get_path (message),
-                    dbus_message_get_interface (message),
-                    dbus_message_get_member (message));
-            break;
-
-        case DBUS_MESSAGE_TYPE_METHOD_RETURN:
-            nbuf_addf (&nb_head, " R-SN=%u\n",
-                    dbus_message_get_reply_serial (message));
-            break;
-
-        case DBUS_MESSAGE_TYPE_ERROR:
-            nbuf_addf (&nb_head, " ERROR=%s R-SN=%u\n",
-                    dbus_message_get_error_name (message),
-                    dbus_message_get_reply_serial (message));
-            break;
-
-        default:
-            nbuf_addf (&nb_head, "\n");
-            break;
+    DALOG_INNER_VAR_DEF();
+    if (dalog_unlikely(__dal_ver_get > __dal_ver_sav)) {
+        __dal_ver_sav = __dal_ver_get;
+        DALOG_SETUP_NAME(DALOG_MODU_NAME, __FILE__, __func__);
+        __dal_mask = dalog_calc_mask(__dal_prog_name, __dal_modu_name, __dal_file_name, __dal_func_name, line);
+        if (!(__dal_mask & (DALOG_DEBUG))) {
+            __dal_mask = 0;
         }
     }
 
-    dalog_info("%s", nb_head.buf);
-    dalog_debug("%s%s", nb_head.buf, print_body(message, &nb_body));
+    if (__dal_mask) {
+        message_type = dbus_message_get_type (message);
+        sender = dbus_message_get_sender (message);
+        destination = dbus_message_get_destination (message);
 
-    nbuf_release(&nb_head);
-    nbuf_release(&nb_body);
+        nbuf_init(&nb, 4096);
+
+        {
+            nbuf_addf (&nb, "%s [%s -> %s]",
+                    type_to_name (message_type),
+                    sender ? sender : "(NUL)",
+                    destination ? destination : "(NUL)");
+
+            switch (message_type)
+            {
+            case DBUS_MESSAGE_TYPE_METHOD_CALL:
+            case DBUS_MESSAGE_TYPE_SIGNAL:
+                nbuf_addf (&nb, " SN=%u PATH=%s; IF=%s; MEM=%s\n",
+                        dbus_message_get_serial (message),
+                        dbus_message_get_path (message),
+                        dbus_message_get_interface (message),
+                        dbus_message_get_member (message));
+                break;
+
+            case DBUS_MESSAGE_TYPE_METHOD_RETURN:
+                nbuf_addf (&nb, " R-SN=%u\n",
+                        dbus_message_get_reply_serial (message));
+                break;
+
+            case DBUS_MESSAGE_TYPE_ERROR:
+                nbuf_addf (&nb, " ERROR=%s R-SN=%u\n",
+                        dbus_message_get_error_name (message),
+                        dbus_message_get_reply_serial (message));
+                break;
+
+            default:
+                nbuf_addf (&nb, "\n");
+                break;
+            }
+        }
+
+        dalog_f('D', __dal_mask, __dal_prog_name, DALOG_MODU_NAME, __dal_file_name, (char*)__func__, line, "%s", nb.buf);
+
+        nbuf_release(&nb);
+    }
+}
+
+void print_message_full (DBusMessage *message)
+{
+    const char *sender;
+    const char *destination;
+    int message_type;
+
+    nbuf_s nb;
+    const int line = __LINE__;
+
+    DALOG_INNER_VAR_DEF();
+    if (dalog_unlikely(__dal_ver_get > __dal_ver_sav)) {
+        __dal_ver_sav = __dal_ver_get;
+        DALOG_SETUP_NAME(DALOG_MODU_NAME, __FILE__, __func__);
+        __dal_mask = dalog_calc_mask(__dal_prog_name, __dal_modu_name, __dal_file_name, __dal_func_name, line);
+        if (!(__dal_mask & (DALOG_DEBUG))) {
+            __dal_mask = 0;
+        }
+    }
+
+    if (__dal_mask) {
+        message_type = dbus_message_get_type (message);
+        sender = dbus_message_get_sender (message);
+        destination = dbus_message_get_destination (message);
+
+        nbuf_init(&nb, 4096);
+
+        {
+            nbuf_addf (&nb, "%s [%s -> %s]",
+                    type_to_name (message_type),
+                    sender ? sender : "(NUL)",
+                    destination ? destination : "(NUL)");
+
+            switch (message_type)
+            {
+            case DBUS_MESSAGE_TYPE_METHOD_CALL:
+            case DBUS_MESSAGE_TYPE_SIGNAL:
+                nbuf_addf (&nb, " SN=%u PATH=%s; IF=%s; MEM=%s\n",
+                        dbus_message_get_serial (message),
+                        dbus_message_get_path (message),
+                        dbus_message_get_interface (message),
+                        dbus_message_get_member (message));
+                break;
+
+            case DBUS_MESSAGE_TYPE_METHOD_RETURN:
+                nbuf_addf (&nb, " R-SN=%u\n",
+                        dbus_message_get_reply_serial (message));
+                break;
+
+            case DBUS_MESSAGE_TYPE_ERROR:
+                nbuf_addf (&nb, " ERROR=%s R-SN=%u\n",
+                        dbus_message_get_error_name (message),
+                        dbus_message_get_reply_serial (message));
+                break;
+
+            default:
+                nbuf_addf (&nb, "\n");
+                break;
+            }
+        }
+
+        dalog_f('D', __dal_mask, __dal_prog_name, DALOG_MODU_NAME, __dal_file_name, (char*)__func__, line, "%s%s", nb.buf, print_body(message, &nb));
+
+        nbuf_release(&nb);
+    }
 }
 

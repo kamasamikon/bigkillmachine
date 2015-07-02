@@ -21,7 +21,6 @@
 #ifdef DAGOU_GCONF
 #include <gconf/gconf-client.h>
 
-/* Return buf, if ret != buf, should call free(ret) */
 static char *entry_value(const GConfValue *val, char *buf, int len)
 {
 	const char *tmp;
@@ -31,9 +30,7 @@ static char *entry_value(const GConfValue *val, char *buf, int len)
 		tmp = gconf_value_get_string(val);
 		if (!tmp)
 			return NULL;
-		if (strlen(tmp) >= len)
-			return strdup(tmp);
-		strcpy(buf, tmp);
+		strncpy(buf, tmp, len);
 		return buf;
 
 	case GCONF_VALUE_INT:
@@ -61,7 +58,7 @@ static char *entry_value(const GConfValue *val, char *buf, int len)
 void gconf_client_set(GConfClient* client, const gchar* key,
 		const GConfValue* val, GError** err)
 {
-	char buf[256], *vstr;
+	char buf[4096];
 
 	static void *(*realfunc)(GConfClient*, const gchar*, const GConfValue*, GError**) = NULL;
 	if (!realfunc)
@@ -70,15 +67,14 @@ void gconf_client_set(GConfClient* client, const gchar* key,
 	dalog_setup();
 	realfunc(client, key, val, err);
 
-	vstr = entry_value(val, buf, sizeof(buf));
-	dalog_info("NEMOHOOK: gconf_sources_query_value: key: <%s>, vstr:<%s>\n", key, vstr);
+	dalog_info("key: <%s>, vstr:<%s>\n", key, entry_value(val, buf, sizeof(buf)));
 	if (vstr != buf)
 		free(vstr);
 }
 
 GConfValue* gconf_client_get(GConfClient* client, const gchar* key, GError** err)
 {
-	char buf[256], *val;
+	char buf[4096];
 
 	static GConfValue *(*realfunc)(GConfClient*, const gchar*, GError**) = NULL;
 	if (!realfunc)
@@ -87,13 +83,9 @@ GConfValue* gconf_client_get(GConfClient* client, const gchar* key, GError** err
 	dalog_setup();
 	GConfValue *ret = realfunc(client, key, err);
 
-	val = entry_value(ret, buf, sizeof(buf));
-	dalog_info("NEMOHOOK: gconf_client_get: key: <%s>, val:<%s>\n", key, val);
-	if (val != buf)
-		free(val);
+	dalog_info("key: <%s>, val:<%s>\n", key, entry_value(ret, buf, sizeof(buf)));
 
 	return ret;
 }
-
 #endif
 
