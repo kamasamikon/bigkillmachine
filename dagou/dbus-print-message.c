@@ -371,7 +371,7 @@ void print_message_head (DBusMessage *message)
         __dal_ver_sav = __dal_ver_get;
         DALOG_SETUP_NAME(DALOG_MODU_NAME, __FILE__, __func__);
         __dal_mask = dalog_calc_mask(__dal_prog_name, __dal_modu_name, __dal_file_name, __dal_func_name, line);
-        if (!(__dal_mask & (DALOG_DEBUG))) {
+        if (!(__dal_mask & (DALOG_INFO))) {
             __dal_mask = 0;
         }
     }
@@ -417,7 +417,7 @@ void print_message_head (DBusMessage *message)
             }
         }
 
-        dalog_f('D', __dal_mask, __dal_prog_name, DALOG_MODU_NAME, __dal_file_name, (char*)__func__, line, "%s", nb.buf);
+        dalog_f('I', __dal_mask, __dal_prog_name, DALOG_MODU_NAME, __dal_file_name, (char*)__func__, line, "%s", nb.buf);
 
         nbuf_release(&nb);
     }
