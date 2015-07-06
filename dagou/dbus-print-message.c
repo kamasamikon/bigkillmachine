@@ -483,7 +483,8 @@ void print_message_full (DBusMessage *message)
             }
         }
 
-        dalog_f('D', __dal_mask, __dal_prog_name, DALOG_MODU_NAME, __dal_file_name, (char*)__func__, line, "%s%s", nb.buf, print_body(message, &nb));
+        print_body(message, &nb);
+        dalog_f('D', __dal_mask, __dal_prog_name, DALOG_MODU_NAME, __dal_file_name, (char*)__func__, line, "%s", nb.buf);
 
         nbuf_release(&nb);
     }

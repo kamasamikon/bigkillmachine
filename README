@@ -140,7 +140,7 @@ PostProcess.sh:
         - meld bigkillmachine/skm/patches/dbus-connection.c bld_tf/build/...
         - rm .stamp_built .stamp_staging_installed .stamp_target_installed 
 
-    - rcS:
+    - rcS 或者 sysinit:
         - Before pcd
             - cd /root
             - PS1="BKM>  " /bin/sh
