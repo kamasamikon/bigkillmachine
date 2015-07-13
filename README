@@ -134,7 +134,7 @@ PostProcess.sh:
 
     - BKM
         - ln -s bigkillmachine/dazhu .
-        - ln -s /usr/local/bin/m m.bld.tf
+        - ln -s bigkillmachine/dazhu/m m.bld.tf
 
     - DBUS
         - meld bigkillmachine/skm/patches/dbus-connection.c bld_tf/build/...

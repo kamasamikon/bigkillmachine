@@ -1,5 +1,0 @@
-#!/bin/sh
-
-# link the patch to buildroot
-ln -s /home/auv/eoe/xyz/ ${CLOSETV_PRJ}/xsdfasdf
-
