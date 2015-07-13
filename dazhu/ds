@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [ $# -lt 3 ]; then
+    echo " INPUT : dr unix:path=/tmp/cfgMgr ConfigCenter setValue strings:key variant:value"
+    echo "OUTPUT : dbus-send --address=unix:path=/tmp/cfgMgr --print-reply /com/nemotv/ConfigCenter com.nemotv.ConfigCenter.setValue string:key variant:value"
+    exit
+fi
+
+echo
+echo dbus-send --address=$1 --print-reply /com/nemotv/$2 com.nemotv.$2.$3 $4 $5
+
+dbus-send --address=$1 --print-reply /com/nemotv/$2 com.nemotv.$2.$3 $4 $5 $6 $7 $8 
+
+

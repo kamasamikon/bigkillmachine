@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: dagou sewer 
-clean: dagou.clean sewer.clean 
+all: dagou daxia dr
+clean: dagou.clean daxia.clean dr.clean
 
 -include Makefile.defs
 
@@ -64,70 +64,26 @@ dagou.clean: amust
 	make -C $(HI_PRJ_ROOT)/dagou clean
 
 #########################################################################
-# $(HI_PRJ_ROOT)/klog-sewer
+# $(HI_PRJ_ROOT)/daxia
 #
-.PHONY: sewer
-sewer: amust
+.PHONY: daxia
+daxia: amust
 	make -C $(HI_PRJ_ROOT)/daxia
 
-.PHONY: sewer.clean
-sewer.clean: amust
+.PHONY: daxia.clean
+daxia.clean: amust
 	make -C $(HI_PRJ_ROOT)/daxia clean
 
 #########################################################################
-# $(HI_PRJ_ROOT)/klog-agent
+# $(HI_PRJ_ROOT)/dr
 #
-.PHONY: agent
-agent: amust
-	make -C $(HI_PRJ_ROOT)/klog-agent
+.PHONY: dr
+dr: amust
+	make -C $(HI_PRJ_ROOT)/dr
 
-.PHONY: agent.clean
-agent.clean: amust
-	make -C $(HI_PRJ_ROOT)/klog-agent clean
-
-#########################################################################
-# $(HI_PRJ_ROOT)/klog-bench
-#
-.PHONY: klbench
-klbench: amust
-	make -C $(HI_PRJ_ROOT)/klog-bench
-
-.PHONY: klbench.clean
-klbench.clean: amust
-	make -C $(HI_PRJ_ROOT)/klog-bench clean
-
-#########################################################################
-# $(HI_PRJ_ROOT)/load-monitor
-#
-.PHONY: ldmon
-ldmon: amust
-	make -C $(HI_PRJ_ROOT)/load-monitor
-
-.PHONY: ldmon.clean
-ldmon.clean: amust
-	make -C $(HI_PRJ_ROOT)/load-monitor clean
-
-#########################################################################
-# $(HI_PRJ_ROOT)/nhlog
-#
-.PHONY: nhlog
-nhlog: amust
-	make -C $(HI_PRJ_ROOT)/nhlog
-
-.PHONY: nhlog.clean
-nhlog.clean: amust
-	make -C $(HI_PRJ_ROOT)/nhlog clean
-
-#########################################################################
-# $(HI_PRJ_ROOT)/kong
-#
-.PHONY: kong
-kong: amust
-	make -C $(HI_PRJ_ROOT)/kong
-
-.PHONY: kong.clean
-kong.clean: amust
-	make -C $(HI_PRJ_ROOT)/kong clean
+.PHONY: dr.clean
+dr.clean: amust
+	make -C $(HI_PRJ_ROOT)/dr clean
 
 #########################################################################
 # Target::install
