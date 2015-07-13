@@ -5,29 +5,26 @@
 #include <errno.h>
 #include <string.h>
 
-//
-// dr P:appman main.c 3242 ALL
-//
 #define SZ 2048
 
 static void help()
 {
 	printf("drs switches\n");
 	printf("switches:\n");
-	printf("  Prog: prog=??? P:??? p:???\n");
-	printf("  Modu: modu=??? M:??? m:???\n");
-	printf("  File: file=??? F:??? f:??? ???.c ???.cpp ???.cxx\n");
-	printf("  Func: func=??? H:??? h:???\n");
-	printf("  Line: line=??? L:??? l:??? <digital>\n");
-	printf("  Mask: mask=??? ALL -ALL or none-prog-modu-file-func-line\n");
+	printf("    Prog: prog=??? P:??? p:???\n");
+	printf("    Modu: modu=??? M:??? m:???\n");
+	printf("    File: file=??? F:??? f:??? ???.[c|cpp|cxx]\n");
+	printf("    Func: func=??? H:??? h:???\n");
+	printf("    Line: line=??? L:??? l:??? <digital>\n");
+	printf("    Mask: mask=??? ALL -ALL or [^PMFHL]\n");
 	printf("\n");
 	printf("Masks:\n");
-	printf("  f=fatal a=alert c=critial e=error\n");
-	printf("  w=warning i=info n=notice d=debug\n");
+	printf("    f=fatal a=alert c=critial e=error\n");
+	printf("    w=warning i=info n=notice d=debug\n");
 	printf("\n");
 	printf("Marks:\n");
-	printf("  P=prog M=modu F=file H=func N=line\n");
-	printf("  s=RTM S=ATM j=PID x=TID\n");
+	printf("    P=prog M=modu F=file H=func N=line\n");
+	printf("    s=RTM S=ATM j=PID x=TID\n");
 }
 
 int main(int argc, char *argv[])
@@ -40,6 +37,8 @@ int main(int argc, char *argv[])
 	static char prog[SZ], modu[SZ], file[SZ], func[SZ], line[SZ], mask[SZ];
 	static char cfgline[SZ];
 
+	FILE *fp;
+
 	for (i = 1; i < argc; i++) {
 		args = argv[i];
 		argl = strlen(args);
@@ -48,12 +47,14 @@ int main(int argc, char *argv[])
 			help();
 			exit(1);
 
+
 		} else if (!strncmp("prog=", args, 5)) {
 			strcpy(prog, &args[5]);
 		} else if (!strncmp("P:", args, 2)) {
 			strcpy(prog, &args[2]);
 		} else if (!strncmp("p:", args, 2)) {
 			strcpy(prog, &args[2]);
+
 
 		} else if (!strncmp("modu=", args, 5)) {
 			strcpy(modu, &args[5]);
@@ -69,6 +70,7 @@ int main(int argc, char *argv[])
 			strcpy(file, &args[2]);
 		} else if (!strncmp("f:", args, 2)) {
 			strcpy(file, &args[2]);
+
 
 		} else if (!strncmp("func=", args, 5)) {
 			strcpy(func, &args[5]);
@@ -89,6 +91,7 @@ int main(int argc, char *argv[])
 		} else if (!strncmp("mask=", args, 5)) {
 			strcat(mask, &args[5]);
 
+
 		} else if ((argl > 2) && !strncmp(".c", &args[argl - 2], 2)) {
 			strcpy(file, args);
 		} else if ((argl > 4) && !strncmp(".cpp", &args[argl - 4], 4)) {
@@ -96,10 +99,12 @@ int main(int argc, char *argv[])
 		} else if ((argl > 4) && !strncmp(".cxx", &args[argl - 4], 4)) {
 			strcpy(file, args);
 
+
 		} else if (!strcmp("ALL", args)) {
 			strcat(mask, "facewind");
 		} else if (!strcmp("-ALL", args)) {
 			strcat(mask, "-f-a-c-e-w-i-n-d");
+
 
 		} else if (args[0] >= '0' && args[0] <= '9') {
 			errno = 0;
@@ -149,7 +154,14 @@ int main(int argc, char *argv[])
 	strcat(cfgline, "mask=");
 	strcat(cfgline, mask);
 
-	printf("cfgline:'%s'\n", cfgline);
+	printf("%s\n", cfgline);
+
+	fp = fopen("/tmp/dalog.rtcfg", "a");
+	if (!fp) {
+		printf("Open /tmp/dalog.rtcfg failed, errno: %d\n", errno);
+	}
+
+	fprintf(fp, "%s\n", cfgline);
 
 	return 0;
 }
