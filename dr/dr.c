@@ -9,8 +9,9 @@
 
 static void help()
 {
-	printf("drs switches\n");
-	printf("switches:\n");
+	printf("usage: dr switches ... \n");
+	printf("\n");
+	printf("Switches:\n");
 	printf("    Prog: prog=??? P:??? p:???\n");
 	printf("    Modu: modu=??? M:??? m:???\n");
 	printf("    File: file=??? F:??? f:??? ???.[c|cpp|cxx]\n");
@@ -100,9 +101,9 @@ int main(int argc, char *argv[])
 			strcpy(file, args);
 
 
-		} else if (!strcmp("ALL", args)) {
+		} else if (!strcasecmp("ALL", args)) {
 			strcat(mask, "facewind");
-		} else if (!strcmp("-ALL", args)) {
+		} else if (!strcasecmp("-ALL", args)) {
 			strcat(mask, "-f-a-c-e-w-i-n-d");
 
 
