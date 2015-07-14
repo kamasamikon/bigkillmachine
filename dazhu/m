@@ -14,12 +14,12 @@ if [ "${CMD}" != "m" ]; then
 fi
 
 ### #####################################################################
-## Append mkmpost.sh to post_process.sh
+## Append bkmpost.sh to post_process.sh
 #
-sed -i "/mkmpost_placeHolder_83264/d" post_process.sh
-sed -i "/mkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
+sed -i "/bkmpost_placeHolder_83264/d" post_process.sh
+sed -i "/bkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
 
-echo 'echo "${WORKING_DIR}/dazhu/mkmpost.sh ${BUILD_TYPE} ${CONFIG_TYPE} ${WORKING_DIR} mkmpost_placeHolder_83264" >> ${OUTPUT_DIR}/ntv_customize_fs.txt' >> post_process.sh
+echo 'echo "${WORKING_DIR}/dazhu/bkmpost.sh ${BUILD_TYPE} ${CONFIG_TYPE} ${WORKING_DIR} bkmpost_placeHolder_83264" >> ${OUTPUT_DIR}/ntv_customize_fs.txt' >> post_process.sh
 
 ### #####################################################################
 ## Run the make command
@@ -33,6 +33,6 @@ DIFF=`expr ${TM_A} - ${TM_B}`
 
 echo "Build cost: " `fmtTime.py ${DIFF}`
 
-sed -i "/mkmpost_placeHolder_83264/d" post_process.sh
-sed -i "/mkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
+sed -i "/bkmpost_placeHolder_83264/d" post_process.sh
+sed -i "/bkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
 
