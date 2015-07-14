@@ -117,17 +117,22 @@ PostProcess.sh:
     - bkm.do
 
 命名
+    -    dr : change runtime configure
     - dagou : 钩子
     - daxia : 下水道
     - dabao : 包装其他进程，并应用da环境变量
     - dagan : 大干，应用DA
     - daxiu : 修复，清除DA
+    - daben : 大奔，bench-mark tool
+    - muzei : 木贼，偷梁换柱之用
 
 其他修改
     - nemotv/src/network/Makefile.am
         - Add:
             - dhclientscript_LDADD += -lutils
             - dhclientscript_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib
+        - Or:
+            - meld nemotv/src/network/Makefile.am bigkillmachine/patch/network_Makefile.am
 
     - otvutils
         - meld bigkillmachine/templ/ntvlog
@@ -135,9 +140,11 @@ PostProcess.sh:
     - BKM
         - ln -s bigkillmachine/dazhu .
         - ln -s bigkillmachine/dazhu/m m.bld.tf
+            - bld : build type is bld
+            - tf : configure type is tf, telefonica
 
     - DBUS
-        - meld bigkillmachine/skm/patches/dbus-connection.c bld_tf/build/...
+        - meld bigkillmachine/patch/dbus-connection.c bld_tf/build/...
         - rm .stamp_built .stamp_staging_installed .stamp_target_installed 
 
     - rcS 或者 sysinit:

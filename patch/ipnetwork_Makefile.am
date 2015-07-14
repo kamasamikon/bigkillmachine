@@ -1,0 +1,124 @@
+if ENABLE_TEST
+SUBDIRS = . test
+endif
+
+IP_NETWORK_PC=network.pc
+pkgconfigdir = $(libdir)/pkgconfig
+pkgconfig_DATA = $(IP_NETWORK_PC)
+
+AM_CPPFLAGS =                                      \
+	$(BUILD_CFLAGS)                            \
+	-I$(top_srcdir)                            \
+	-I$(top_builddir)                          \
+	$(IP_CFLAGS)                               \
+	$(IPNETWORK_CFLAGS)                             
+
+BUILD_ERR = -Werror=shadow -Werror=undef -Werror=uninitialized -Werror=implicit -Werror=missing-prototypes
+BUILD_WARN = -Wall -Wunreachable-code -Wparentheses -Wswitch -Wcast-align
+AM_CFLAGS = $(BUILD_WARN) $(BUILD_ERR)
+
+bin_PROGRAMS = network 
+
+bin_PROGRAMS += dhclientscript
+dhclientscript_SOURCES = dhclient_script/script.c
+
+dhclientscript_LDADD =                     \
+	-lglib-2.0                         \
+        -lrt 
+
+dhclientscript_LDADD += -lutils
+dhclientscript_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib
+
+network_SOURCES =                            \
+	network.h                            \
+	network.c                            \
+	ip_interface.h                         \
+	ip_interface.c                         \
+	network_controller.c                 \
+	network_controller.h                 \
+	network_mgr.c                        \
+	network_mgr.h                        \
+	network_server.h                     \
+	network_process.h                    \
+	network_process.c                    \
+	network_configman.h                  \
+	network_configman.c                  \
+	network_devices.h                    \
+	network_devices.c                    \
+	network_state.h                      \
+	network_state.c                      \
+	network_linux.h                      \
+	network_linux.c                      \
+	network_lpm.h                        \
+	network_lpm.c                        \
+	network_dhcp.h                        \
+	network_dhcp.c                        \
+	network_global.h		       \
+	ipc_client_stb.c		       \
+	ipc_define.h
+
+network_LDADD =                              \
+	-lresolv                               \
+	-ldevproxy                             \
+	-lrt                                   \
+	$(IPNETWORK_LIBS)
+
+dbus_sources =                                  \
+	network_server.h			\
+	network_client.h          \
+	network_native_server.h   \
+	network_native_client.h			
+
+marshal_sources =                               \
+	network_marshal.h                     \
+	network_marshal.c
+	
+	
+lib_LTLIBRARIES = libnetwork.la
+libnetwork_la_SOURCES =                    \
+                          $(marshal_sources) \
+                          $(dbus_sources)    \
+                          network_client.c \
+                          network_client.h
+                          
+                          
+libnetwork_la_LIBADD = $(IPNETWORK_LIBS)
+libnetwork_ladir =  $(includedir)/network
+libnetwork_la_HEADERS = network.h network_global.h
+	
+
+
+network_marshal.h: network_marshal.list
+	$(AM_V_GEN)$(GLIB_GENMARSHAL) $< --prefix=network_marshal --header > $@
+
+network_marshal.c: network_marshal.list
+	$(AM_V_GEN)echo "#include \"network_marshal.h\"" > $@ && \
+		$(GLIB_GENMARSHAL) $< --prefix=network_marshal --body >> $@
+
+network_server.h: $(top_srcdir)/network.xml
+	$(AM_V_GEN)$(DBUSBINDINGTOOL) --mode=glib-server --output=$@ --prefix=network_service $^
+
+network_client.h: $(top_srcdir)/network.xml
+	$(AM_V_GEN)$(DBUSBINDINGTOOL) --mode=glib-client --output=$@ --prefix=network_service $^
+	
+network_native_server.h: $(top_srcdir)/network_native.xml
+	$(AM_V_GEN)$(DBUSBINDINGTOOL) --mode=glib-server --output=$@ --prefix=network_native_service $^
+
+network_native_client.h: $(top_srcdir)/network_native.xml
+	$(AM_V_GEN)$(DBUSBINDINGTOOL) --mode=glib-client --output=$@ --prefix=network_native_service $^
+
+network-stripped.xml: network.xml
+	$(AM_V_GEN) cat $^ | sed '/<!--.*-->/d' | sed '/<!--/,/-->/d' > $@
+	
+networkintrospectdir = ${prefix}/dbus-xml
+networkintrospect_DATA = network-stripped.xml 
+
+BUILT_SOURCES =                                        \
+	$(dbus_sources)                                \
+	$(marshal_sources)
+	
+
+
+CLEANFILES = $(BUILT_SOURCES)
+
+EXTRA_DIST = network_marshal.list $(networkintrospect_DATA)

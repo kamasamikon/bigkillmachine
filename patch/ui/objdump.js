@@ -72,6 +72,8 @@ function showbt() {
         .replace(/^\s+at\s+/gm, '')
         .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
         .split('\n');
+
+    XCOM.dalog("e", "BT:" + e.stack);
     alert(e.stack);
 }
 
