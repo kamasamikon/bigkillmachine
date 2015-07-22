@@ -1,0 +1,10 @@
+#!/usr/bin/env python
+
+import os, sys
+from xml.sax.saxutils import escape
+
+if __name__ == "__main__":
+    msgLine = open(sys.argv[1], "rt").readlines()[-1].strip()
+    content = "<message id='myplugin' osd_fake_translucent_bg='on' osd_vposition='center' animations='on' hide_timeout='5000' osd_halignment='left'>%s</message>" % escape(msgLine)
+    os.system('gnome-osd-client -f "%s"' % content)
+
