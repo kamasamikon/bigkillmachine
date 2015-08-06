@@ -3,8 +3,8 @@ export HI_PRJ_ROOT := $(CURDIR)
 
 .PHONY: all clean
 
-all: dagou daxia dr
-clean: dagou.clean daxia.clean dr.clean
+all: dagou daxia dr inotdo
+clean: dagou.clean daxia.clean dr.clean inotdo.clean
 
 -include Makefile.defs
 
@@ -84,6 +84,17 @@ dr: amust
 .PHONY: dr.clean
 dr.clean: amust
 	make -C $(HI_PRJ_ROOT)/dr clean
+
+#########################################################################
+# $(HI_PRJ_ROOT)/inotdo
+#
+.PHONY: inotdo
+inotdo: amust
+	make -C $(HI_PRJ_ROOT)/inotdo
+
+.PHONY: inotdo.clean
+inotdo.clean: amust
+	make -C $(HI_PRJ_ROOT)/inotdo clean
 
 #########################################################################
 # Target::install

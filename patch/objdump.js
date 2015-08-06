@@ -67,13 +67,17 @@ function dumpObj(obj, name, indent, depth) {
 }
 
 function showbt() {
-    var e = new Error('dummy');
-    var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '')
-        .replace(/^\s+at\s+/gm, '')
-        .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
-        .split('\n');
+    try {
+        shit.shit.shit = 'sd';
+    }
+    catch (e) {
+        var stack = e.stack.replace(/^[^\(]+?[\n$]/gm, '')
+            .replace(/^\s+at\s+/gm, '')
+            .replace(/^Object.<anonymous>\s*\(/gm, '{anonymous}()@')
+            .split('\n');
 
-    XCOM.dalog("e", "BT:" + e.stack);
-    alert(e.stack);
+        XCOM.dalog("e", "BT:" + e.stack);
+        alert(e.stack);
+    }
 }
 
