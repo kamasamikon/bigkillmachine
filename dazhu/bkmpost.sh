@@ -99,6 +99,13 @@ inst_dr() {
 }
 inst_dr
 
+inst_inotdo() {
+    echo "inst_inotdo"
+    # DA Runtime Configure
+    cp -f ${OUT}/dazhu/inotdo ${OUT}/${BLD}_${CFG}/target/bin
+}
+inst_inotdo
+
 inst_dabao() {
     echo "inst_dabao"
     # BaoGuoChengXu

@@ -5,6 +5,44 @@
     - LXC中console被关闭了，dazhu/bkmpost.sh中set\_lxc\_console将其重新打开了。
     - 网络也被关闭了，如果需要Log通过网络输出到别的机器上，需要把网络打开。
 
+# 目录结构
+- Root/
+    - konfigure
+        - '''Generate Makefile?'''
+        - konfigure targets
+        - konfigure target name
+        - konfigure platforms
+        - konfigure platform name
+    - Makefile
+        - ''' 利用他的自动完成 '''
+        - make target nameX
+            - ln mk.targets/mk.target.nameX mk.target/mk.targets.now
+        - make
+            - Make by order of mk.targets.now/deps
+    - Makefile.defs
+    - Makefile.rules
+    - README.md
+    - mk.targets/
+        - _mk.target.now_^
+            - '''Current used, link to mk.target.nameX'''
+        - mk.target.nameA/
+            - '''Link the make directory to here'''
+            - _deps_
+                - '''Make order'''
+            - aaa^
+            - bbb^
+        - mk.target.nameB/
+    - dirA
+        - README.md
+            - '''README for this (dirA)'''
+            - Makefile
+                - all
+                - clean
+                - install
+                - uninstall
+    - dirB
+
+
 # 大杀器的编译:
 - 编译相关的东西
     - build/config:
