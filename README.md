@@ -37,21 +37,13 @@
     - dirB
 
 
-# 大杀器的编译:
-- 编译相关的东西
-    - build/config:
-        - 编译目标平台的配置，比如 make arch.x86
-    - build/install:
-        - 生成的结果放到这里
-
 # 命名
 - dr : change runtime configure
-- inotdo : 我不干，监视文件变化，并调用命令。
+- inotdo : 我不干，当文件变化时调用命令。
 - dagou : 钩子
 - daxia : 下水道
 - dabao : 包装其他进程，并应用da环境变量
-- dagan : 大干，应用DA
-- daben : 大奔，bench-mark tool
+- daben : 大奔，奔驰马克工具
 - muzei : 木贼，偷梁换柱之用
 
 
@@ -106,32 +98,48 @@
 > `./m.bld.tf all image V=1`
 
 ## 深入工程内部的其他修改
+### 用*dalog*替换*utils*中的系列*ntvlog*宏。
+
+使用如下命令覆盖*Makefile.am*之外的文件，
+*Makefile.am*需要合并一下（仅仅是为了保险起见）。
+- `meld ../../nemotv/src/utils dazhu/ntvlog`
+
+### 使大杀器能打印DBUS的活动
+
+注意：
+1. 这个操作在dbus工程编译成功后，再进行。
+1. 以下以*bld_tf*目录为例。
+
+输入如下命令：
+- `meld dazhu/patch/dbus-connection.c bld_tf/build/dbus-1.4.16/dbus/dbus-connection.c`
+- `rm .stamp\_built .stamp\_staging\_installed .stamp\_target\_installed`
+- `./m.bld.tf`
+
+### 在UI中使用*dalog*:
+
+仅仅合并`__USE_DALOG__`宏包起来的部分即可。
+- `meld dazhu/patch/ccomx_NpObj.cpp ../../nemotv/src/ccomx/npinf-plugin/ccomx_NpObj.cpp`
+
+在UI中使用*dalog*：
+- `meld dazhu/patch/Log.js ../../netcfg/???/mars/client/fw/apps/core/Log.js`
+
+### 启动的时候停一下，为了有机会配置一下大杀器：
+
+1. 非*Release*的工程，修改　`/etc/init.d/rcS`，在调用*pcd*之前，加上如下行：
+    > `PS1="BKM> " /bin/sh`
+1. *Release*版本，在sysinit调用*pcd*前，调用阻塞式的子进程来启动*/bin/sh*。
+    1. 使用 `patch/spawn_with_env.c` 来启动Shell（参加该文件开头的说明）。
+    1. 使用 `init_run` 函数调用*/bin/sh*，这个函数的问题是不能传递环境变量。
+
 ### nemotv/src/network/Makefile.am
 这个是为了能在network下调用的子进程中可以打印输出。
 
-- Add:
-    - dhclientscript\_LDADD += -lutils
-    - dhclientscript\_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib
-- Or:
-    - meld nemotv/src/network/Makefile.am bigkillmachine/patch/network\_Makefile.am
+1. 直接修改*Makefile.am*，在相应的位置增加如下两行：
+    - `dhclientscript_LDADD += -lutils`
+    - `dhclientscript_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib`
+1. 合并已经修改后的*Makefile.am*：
+    - `meld ../../nemotv/src/network/Makefile.am dazhu/patch/network_Makefile.am`
 
-### otvutils
-- meld bigkillmachine/templ/ntvlog
-
-### DBUS
-- meld bigkillmachine/patch/dbus-connection.c bld\_tf/build/...
-- rm .stamp\_built .stamp\_staging\_installed .stamp\_target\_installed 
-
-### rcS 或者 sysinit:
-- rcS
-    - Before pcd
-        - cd /root
-        - PS1="BKM>  " /bin/sh
-- sysinit
-    - 使用 patch/spawn\_with\_env.c 来启动Shell。
-
-### UI:
-- bigkillmachine/patch/ui/ccomx/
-- bigkillmachine/patch/ui/js/ 
-
+### nemotv/external/ntvwebkit/Source/WebKit/gtk/webkit/webkitwebview.cpp
+修改 *NTV_WEBKITVIEW_LOG* 宏为 `#define NTV_WEBKITVIEW_LOG nsulog_info` 即可。
 
