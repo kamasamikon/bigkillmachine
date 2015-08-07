@@ -1,9 +1,3 @@
-# NOTE:
-- 工具链：
-    - NEMOBUILD的工具链把**LD\_PRELOAD**干掉了，要用老的ld-uClibc-??? 才可以。
-- Release版本的问题:
-    - LXC中console被关闭了，dazhu/bkmpost.sh中set\_lxc\_console将其重新打开了。
-    - 网络也被关闭了，如果需要Log通过网络输出到别的机器上，需要把网络打开。
 
 # 目录结构
 - Root/
@@ -51,20 +45,14 @@
         - 生成的结果放到这里
 
 # 命名
--    dr : change runtime configure
+- dr : change runtime configure
+- inotdo : 我不干，监视文件变化，并调用命令。
 - dagou : 钩子
 - daxia : 下水道
 - dabao : 包装其他进程，并应用da环境变量
 - dagan : 大干，应用DA
-- daxiu : 修复，清除DA
 - daben : 大奔，bench-mark tool
 - muzei : 木贼，偷梁换柱之用
-
-# 如何使用
-- `cd ntvtgt/shit`
-- `ln -s daxia .`
-- `ln -s bkm/tools/m m.bld.tf`    # 注：bld对应BUILD\_TYPE, tf对应CONFIG\_TYPE
-- `./m.bld.tf`
 
 
 # 大杀器环境变量
@@ -91,38 +79,59 @@
     - DAXIA\_FILE
         - Where the log will be saved to
 
+# 如何使用
 
-# 其他修改
-- nemotv/src/network/Makefile.am
-    - Add:
-        - dhclientscript_LDADD += -lutils
-        - dhclientscript_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib
-    - Or:
-        - meld nemotv/src/network/Makefile.am bigkillmachine/patch/network_Makefile.am
+## 特别注意
+1. 工具链问题
+    - NEMOBUILD的工具链把**LD\_PRELOAD**干掉了，要用老的**ld-uClibc-???**替换到当前使用的才可以。
+1. Release版本的问题
+    - 网络也被关闭了，如果需要Log通过网络输出到别的机器上（参考 DALOG\_TO\_NETWORK)，需要把网络打开。
 
-- otvutils
-    - meld bigkillmachine/templ/ntvlog
+## 构造环境
+所有的需要的文件都在`dazhu`里，需要把这个文件拷贝到某个Target目录下。 
+>    `cp <xyz>/dazhu <XYZ>/ntvtgt/<SHIT>/ -frvL`
 
-- BKM
-    - ln -s bigkillmachine/dazhu .
-    - ln -s bigkillmachine/dazhu/m m.bld.tf
-        - bld : build type is bld
-        - tf : configure type is tf, telefonica
+因为大杀器要对编译做些手脚，所以，需要使用特殊的编译脚本。 这里bld对应BUILD\_TYPE, tf对应CONFIG\_TYPE
+> `cd <XYZ>/ntvtgt/<SHIT>`<br/>
+> `ln -s dazhu/m m.<BUILD\_TYPE>.<CONFIG\_TYPE>`   
 
-- DBUS
-    - meld bigkillmachine/patch/dbus-connection.c bld_tf/build/...
-    - rm .stamp_built .stamp_staging_installed .stamp_target_installed 
+比如：
+> `ln -s dazhu/m m.bld.tf`   
 
-- rcS 或者 sysinit:
-    - rcS
-        - Before pcd
-            - cd /root
-            - PS1="BKM>  " /bin/sh
-    - sysinit
-        - 使用 patch/spawn_with_env.c 来启动Shell。
 
-- UI:
-    - bigkillmachine/patch/ui/ccomx/
-    - bigkillmachine/patch/ui/js/ 
+编译过程和直接使用*make*类似，区别是使用*m.bld.tf*替换到*make*即可。
+> `./m.bld.tf <其他make的参数>`
+
+比如：
+> `./m.bld.tf all image V=1`
+
+## 深入工程内部的其他修改
+### nemotv/src/network/Makefile.am
+这个是为了能在network下调用的子进程中可以打印输出。
+
+- Add:
+    - dhclientscript\_LDADD += -lutils
+    - dhclientscript\_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib
+- Or:
+    - meld nemotv/src/network/Makefile.am bigkillmachine/patch/network\_Makefile.am
+
+### otvutils
+- meld bigkillmachine/templ/ntvlog
+
+### DBUS
+- meld bigkillmachine/patch/dbus-connection.c bld\_tf/build/...
+- rm .stamp\_built .stamp\_staging\_installed .stamp\_target\_installed 
+
+### rcS 或者 sysinit:
+- rcS
+    - Before pcd
+        - cd /root
+        - PS1="BKM>  " /bin/sh
+- sysinit
+    - 使用 patch/spawn\_with\_env.c 来启动Shell。
+
+### UI:
+- bigkillmachine/patch/ui/ccomx/
+- bigkillmachine/patch/ui/js/ 
 
 
