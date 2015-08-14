@@ -322,7 +322,7 @@ static void load_cfg_file(char *path)
 
 	fp = fopen(path, "rt");
 	if (!fp) {
-		printf("load_cfg_file: fopen '%s' failed, e:%d\n", path, errno);
+		fprintf(stderr, "load_cfg_file: fopen '%s' failed, e:%d\n", path, errno);
 		return;
 	}
 
