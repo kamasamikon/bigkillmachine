@@ -1,0 +1,150 @@
+#!/usr/bin/env python
+
+import os
+import sys
+
+# kfg set key value
+# kfg get key
+
+# kfg renew
+
+# set
+# get
+
+# kfg set >> Help: kfg set aaa bbb ccc ALL
+# kfg get >> Help: kfg get aaa bbb ccc ALL
+
+# Everything is a dict
+
+# Set will cause Makefile been updated
+
+# SET:
+#   target platform
+
+# What:
+    # kfg: Manipulate Makefile
+
+# kfg set target 
+
+# BUILD
+# CONFIG
+# 
+
+# ROOT
+#   - kfg
+#       - # This file, used to generate the Makefile
+#   - Makefile.defs
+#   - Makefile.rules
+#   - PLATFORMS
+#       - # GCC: x86, 7231, 7356
+#       - CURRENT
+#           - # LINK (link -s) to current PLATFORM
+#   - BUILDS
+#       - CURRENT
+#           - # LINK (link -s) to current BUILD
+#       - BUILD_NAME_A
+#       - BUILD_NAME_B
+#   - SRCS
+#       - SRC_DIR_NAME_A
+#           - README.md
+#           - Makefile
+#           - xxx.c
+#       - SRC_DIR_NAME_B
+
+
+DIR_PLATFORMS = "PLATFORMS"
+DIR_BUILDS = "BUILDS"
+DIR_SRCS = "SRCS"
+
+FILE_CURRENT = "CURRENT"
+FILE_MAKEFILE_DEFS = "Makefile.defs"
+FILE_MAKEFILE_RULES = "Makefile.rules"
+
+PWD = os.getcwd()
+
+def get_link_target(name):
+    return os.path.basename(os.path.realpath(name))
+
+def get_platforms():
+    l = os.listdir(DIR_PLATFORMS)
+    if FILE_CURRENT in l:
+        l.remove(FILE_CURRENT)
+    return l
+
+def get_platform_current():
+    return get_link_target(os.path.join(PWD, DIR_PLATFORMS, FILE_CURRENT))
+
+def get_builds():
+    l = os.listdir(DIR_BUILDS)
+    if FILE_CURRENT in l:
+        l.remove(FILE_CURRENT)
+    return l
+
+def get_build_current():
+    return get_link_target(os.path.join(PWD, DIR_BUILDS, FILE_CURRENT))
+
+def get_srcs_from_build(build_dir):
+    print build_dir
+    srcs = os.listdir(build_dir) or []
+    srcs.sort()
+    return [ src[4:] for src in srcs ]
+ 
+def load_Makefile_defs():
+    return open(os.path.join(PWD, FILE_MAKEFILE_DEFS)).read()
+
+def output_makefile():
+    platform_current = get_platform_current()
+    build_current = get_build_current()
+
+    buff = ""
+
+    buff += "export HI_PRJ_ROOT := $(CURDIR)"
+    buff += "\n"
+
+    buff += "export HI_PLATFORM := '%s'" % platform_current
+    buff += "\n"
+
+    buff += "export HI_BUILD := '%s'" % build_current
+    buff += "\n"
+
+    buff += "\n"
+
+    buff += "#########################################################################\n"
+    buff += "## %s\n" % os.path.join(PWD, FILE_MAKEFILE_DEFS)
+    buff += "#\n";
+    buff += load_Makefile_defs()
+    buff += "\n"
+
+    buff += ".PHONY: all clean install uninstall"
+    buff += "\n"
+
+    srcs = get_srcs_from_build(os.path.join(PWD, DIR_BUILDS, build_current))
+
+
+    buff += "all: %s" % " ".join(srcs)
+    buff += "\n"
+
+    for src in srcs:
+        buff += "#########################################################################\n"
+        buff += "## %s\n" % src
+        buff += "#\n"
+
+        for pat in [ "all", "clean", "install", "uninstall"]:
+
+            buff += "%s: %s.%s" % (pat, src, pat)
+            buff += "\n"
+
+            buff += "%s.%s:" % (src, pat)
+            buff += "\n"
+            buff += "\t@echo make -C %s %s" % (os.path.join(PWD, DIR_SRCS, src), pat)
+            buff += "\n"
+            buff += "\n"
+
+    print buff
+
+    makefile = open(os.path.join(PWD, "Makefile"), "w")
+    makefile.write(buff)
+    makefile.close()
+
+if __name__ == "__main__":
+    output_makefile()

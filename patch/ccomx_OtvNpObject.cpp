@@ -1,13 +1,13 @@
 /**
  * @file     ccomx_NPObject.cpp
- * @author   OS-PresEngine@opentv.com
+ * @author   OS-PresEngine@nemotv.com
  * @date     Aug 22, 2011
- * @brief	 CCOMX CNPNObject class - base class for all scriptable NP Objects.
- * @defgroup CCOMX CNPNObject
- * @ingroup  CCOMX
+ * @brief	 XCOMX CNPNObject class - base class for all scriptable NP Objects.
+ * @defgroup XCOMX CNPNObject
+ * @ingroup  XCOMX
  */
 
-#include "ccomx_OtvNpObject.h"
+#include "ccomx_NpObj.h"
 #include "ccomx_npn_funcs.h"
 #include "ccomx_utils.h"
 #include "ccomx_NPPPlugin.h"
@@ -19,34 +19,34 @@
 #define REMOVE_EVENT_LISTENER_ERROR_EVENT_NOT_REGISTERED    4
 namespace ccomx {
 
-int32_t OtvNpObject::m_uniqueHandle = 0;
-int32_t OtvNpObject::m_uniqueEventHandlerID = 0;
+int32_t NpObj::m_uniqueHandle = 0;
+int32_t NpObj::m_uniqueEventHandlerID = 0;
 
 #define __USE_DALOG__ 1
 
-#ifdef LOG_OTVNP_OBJECTS
-map<string,OtvNpObject::OtvNP_RTInfo> OtvNpObject::m_all_objs;
-unsigned int OtvNpObject::m_totalNumObjs = 0;
+#ifdef LOG_NTVNP_OBJECTS
+map<string,NpObj::OtvNP_RTInfo> NpObj::m_all_objs;
+unsigned int NpObj::m_totalNumObjs = 0;
 #endif
 
-NPClass OtvNpObject::m_NPClass =
+NPClass NpObj::m_NPClass =
 {
     NP_CLASS_STRUCT_VERSION,	/* uint32_t structVersion; */
-    OtvNpObject::NPAllocate,		/*NPAllocateFunctionPtr allocate; */
-    OtvNpObject::NPDeallocate,	/*NPDeallocateFunctionPtr deallocate;*/
-    OtvNpObject::NPInvalidate,	/*NPInvalidateFunctionPtr invalidate;*/
-    OtvNpObject::NPHasMethod,		/*NPHasMethodFunctionPtr hasMethod;*/
-    OtvNpObject::NPInvoke,		/*NPInvokeFunctionPtr invoke;*/
-    OtvNpObject::NPInvokeDefault,	/*NPInvokeDefaultFunctionPtr invokeDefault;*/
-    OtvNpObject::NPHasProperty,	/*NPHasPropertyFunctionPtr hasProperty;*/
-    OtvNpObject::NPGetProperty,	/*NPGetPropertyFunctionPtr getProperty;*/
-    OtvNpObject::NPSetProperty,	/*NPSetPropertyFunctionPtr setProperty;*/
-    OtvNpObject::NPRemoveProperty,/*NPRemovePropertyFunctionPtr removeProperty;*/
+    NpObj::NPAllocate,		/*NPAllocateFunctionPtr allocate; */
+    NpObj::NPDeallocate,	/*NPDeallocateFunctionPtr deallocate;*/
+    NpObj::NPInvalidate,	/*NPInvalidateFunctionPtr invalidate;*/
+    NpObj::NPHasMethod,		/*NPHasMethodFunctionPtr hasMethod;*/
+    NpObj::NPInvoke,		/*NPInvokeFunctionPtr invoke;*/
+    NpObj::NPInvokeDefault,	/*NPInvokeDefaultFunctionPtr invokeDefault;*/
+    NpObj::NPHasProperty,	/*NPHasPropertyFunctionPtr hasProperty;*/
+    NpObj::NPGetProperty,	/*NPGetPropertyFunctionPtr getProperty;*/
+    NpObj::NPSetProperty,	/*NPSetPropertyFunctionPtr setProperty;*/
+    NpObj::NPRemoveProperty,/*NPRemovePropertyFunctionPtr removeProperty;*/
     NULL,						/*NPEnumerationFunctionPtr enumerate;*/
     NULL						/* NPConstructFunctionPtr construct;*/
 };
 
-OtvNpObject::OtvNpObject(NPP nppInst,const char* otvClassName):
+NpObj::NpObj(NPP nppInst,const char* otvClassName):
     m_NPP(nppInst),
     m_OtvClassName(otvClassName)
 {
@@ -64,11 +64,11 @@ OtvNpObject::OtvNpObject(NPP nppInst,const char* otvClassName):
 
     m_signal_handler_list_total = 0;
 
-    /* Calling NPN_CreateObject() will effectively call OtvNpObject::NPAllocate() */
+    /* Calling NPN_CreateObject() will effectively call NpObj::NPAllocate() */
     m_NPObject = (NPObjectExt *)NPN_CreateObject(m_NPP, &m_NPClass);
-    m_NPObject->pOtvNpObject = this;
+    m_NPObject->pNpObj = this;
 
-#ifdef LOG_OTVNP_OBJECTS
+#ifdef LOG_NTVNP_OBJECTS
     m_totalNumObjs++;
     map<string,OtvNP_RTInfo>::iterator it;
     it = m_all_objs.find(m_OtvClassName);
@@ -89,9 +89,9 @@ OtvNpObject::OtvNpObject(NPP nppInst,const char* otvClassName):
 #endif
 }
 
-#ifdef LOG_OTVNP_OBJECTS
+#ifdef LOG_NTVNP_OBJECTS
 void
-OtvNpObject::logAllObjects()
+NpObj::logAllObjects()
 {
     O_LOG_STATUS_AND_PRINT("-------------[ ccomx run-time object table ]--------------\n");
     O_LOG_STATUS_AND_PRINT("    class         active objects     total objects\n");
@@ -109,7 +109,7 @@ OtvNpObject::logAllObjects()
 #endif
 
 
-void OtvNpObject::CleanupSignalHanderList(void)
+void NpObj::CleanupSignalHanderList(void)
 {
     while (signal_handler_list_head)
     {
@@ -126,7 +126,7 @@ void OtvNpObject::CleanupSignalHanderList(void)
     m_signal_handler_list_total = 0;
 }
 
-void OtvNpObject::CleanupSignalList(void)
+void NpObj::CleanupSignalList(void)
 {
     while (signal_list_head)
     {
@@ -143,7 +143,7 @@ void OtvNpObject::CleanupSignalList(void)
 
 }
 
-void OtvNpObject::CleanupMethodList(void)
+void NpObj::CleanupMethodList(void)
 {
     while (method_list_head)
     {
@@ -160,7 +160,7 @@ void OtvNpObject::CleanupMethodList(void)
 
 }
 
-void OtvNpObject::CleanupPropertyList(void)
+void NpObj::CleanupPropertyList(void)
 {
     while (property_list_head)
     {
@@ -172,14 +172,14 @@ void OtvNpObject::CleanupPropertyList(void)
     property_list_tail = NULL;
 }
 
-OtvNpObject::~OtvNpObject(void)
+NpObj::~NpObj(void)
 {
     /* The destructor must always be called on the Browser thread since it is accessing m_NPObject object
-       which is also accessed by the Browser in OtvNpObject::NPDeallocate() call */
-    O_LOG_TRACE("OtvNpObject::~OtvNpObject(\"%s\")\n",NPIdentifierStr(getJSObjectName()).c_str());
+       which is also accessed by the Browser in NpObj::NPDeallocate() call */
+    O_LOG_TRACE("NpObj::~NpObj(\"%s\")\n",NPIdentifierStr(getJSObjectName()).c_str());
 
     if(m_NPObject)
-        m_NPObject->pOtvNpObject = NULL; /* if we are deleting ourselves, we need to NULL the pointer to this object in
+        m_NPObject->pNpObj = NULL; /* if we are deleting ourselves, we need to NULL the pointer to this object in
                                           the NPObject struct */
 
     /* NOTE: there is no NPN_ReleaseObject(m_NPObject) here since the ownership of refcount is handled by the users of the object*/
@@ -189,7 +189,7 @@ OtvNpObject::~OtvNpObject(void)
     CleanupMethodList();
     CleanupPropertyList();
 
-#ifdef LOG_OTVNP_OBJECTS
+#ifdef LOG_NTVNP_OBJECTS
     map<string,OtvNP_RTInfo>::iterator it;
     it = m_all_objs.find(m_OtvClassName);
 
@@ -205,13 +205,13 @@ OtvNpObject::~OtvNpObject(void)
 }
 
 void
-OtvNpObject::Invalidate(NPObject *npobj)
+NpObj::Invalidate(NPObject *npobj)
 {
     UNUSED_PARAM(npobj);
 }
 
 bool
-OtvNpObject::InvokeDefault(NPObject *npobj,
+NpObj::InvokeDefault(NPObject *npobj,
                            const NPVariant *args,
                            uint32_t argCount,
                            NPVariant *result)
@@ -221,20 +221,20 @@ OtvNpObject::InvokeDefault(NPObject *npobj,
     UNUSED_PARAM(argCount);
     UNUSED_PARAM(result);
 
-    O_LOG_WARNING("OtvNpObject::InvokeDefault is called for %s\n", NPIdentifierStr(getJSObjectName()).c_str());
+    O_LOG_WARNING("NpObj::InvokeDefault is called for %s\n", NPIdentifierStr(getJSObjectName()).c_str());
 
     return false;
 }
 
 bool
-OtvNpObject::RemoveProperty(NPIdentifier name)
+NpObj::RemoveProperty(NPIdentifier name)
 {
     UNUSED_PARAM(name);
     return false;
 }
 
 bool
-OtvNpObject::HasMethod(NPObject *npobj, NPIdentifier name)
+NpObj::HasMethod(NPObject *npobj, NPIdentifier name)
 {
     UNUSED_PARAM(npobj);
 
@@ -250,7 +250,7 @@ OtvNpObject::HasMethod(NPObject *npobj, NPIdentifier name)
     while (node) {
         if (node->method == name) {
 #ifndef NDEBUG
-            O_LOG_TRACE("OtvNpObject::HasMethod returning true\n");
+            O_LOG_TRACE("NpObj::HasMethod returning true\n");
 #endif
             return true;
         }
@@ -261,7 +261,7 @@ OtvNpObject::HasMethod(NPObject *npobj, NPIdentifier name)
 }
 
 bool
-OtvNpObject::HasProperty(NPIdentifier name)
+NpObj::HasProperty(NPIdentifier name)
 {
     _o_atom_property_t *node = property_list_head;
 
@@ -285,7 +285,7 @@ OtvNpObject::HasProperty(NPIdentifier name)
 
 
 NPObject*
-OtvNpObject::NPAllocate(NPP npp, NPClass *aClass)
+NpObj::NPAllocate(NPP npp, NPClass *aClass)
 {
     UNUSED_PARAM(npp);
     UNUSED_PARAM(aClass);
@@ -304,41 +304,41 @@ OtvNpObject::NPAllocate(NPP npp, NPClass *aClass)
 * Destroys unerlying OtvNPObject
 */
 void
-OtvNpObject::NPDeallocate(NPObject *npobj)
+NpObj::NPDeallocate(NPObject *npobj)
 {
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
+    if( ((NPObjectExt*)npobj)->pNpObj )
     {
-        O_LOG_TRACE("OtvNpObject::NPDeallocate(%p) - deallocating NPObject before OtvNpObject destructor\n", npobj);
+        O_LOG_TRACE("NpObj::NPDeallocate(%p) - deallocating NPObject before NpObj destructor\n", npobj);
 
-        /* Since we are deleting the npobj structure attached to OtvNpObject via m_NPObject data member,
-           we need to set it to NULL to notify the  OtvNpObject */
-        ((NPObjectExt*)npobj)->pOtvNpObject->m_NPObject = NULL;
+        /* Since we are deleting the npobj structure attached to NpObj via m_NPObject data member,
+           we need to set it to NULL to notify the  NpObj */
+        ((NPObjectExt*)npobj)->pNpObj->m_NPObject = NULL;
 
         // delete the underlying OtvNPObject
-        if(((NPObjectExt*)npobj)->pOtvNpObject->ScheduleForDelete())
+        if(((NPObjectExt*)npobj)->pNpObj->ScheduleForDelete())
         {
-            O_LOG_TRACE("OtvNpObject::NPDeallocate() - the OtvNpObject is scheduled to be destroyed\n");
+            O_LOG_TRACE("NpObj::NPDeallocate() - the NpObj is scheduled to be destroyed\n");
         }
         else
-            delete ((NPObjectExt*)npobj)->pOtvNpObject; /* OtvNPObject does not require a delayed deletion so we simply delete it */
+            delete ((NPObjectExt*)npobj)->pNpObj; /* OtvNPObject does not require a delayed deletion so we simply delete it */
     }
     else
     {
         // underlying OtvNPObject has already been deleted so nothing to do
-        O_LOG_TRACE("OtvNpObject::NPDeallocate(%p) - deallocating an NPObject after OtvNpObject destructor\n", npobj);
+        O_LOG_TRACE("NpObj::NPDeallocate(%p) - deallocating an NPObject after NpObj destructor\n", npobj);
     }
     delete npobj;
 }
 
 void
-OtvNpObject::NPInvalidate(NPObject *npobj)
+NpObj::NPInvalidate(NPObject *npobj)
 {
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
-        ((NPObjectExt*)npobj)->pOtvNpObject->Invalidate(npobj);
+    if( ((NPObjectExt*)npobj)->pNpObj )
+        ((NPObjectExt*)npobj)->pNpObj->Invalidate(npobj);
 }
 
 bool
-OtvNpObject::NPHasMethod(NPObject *npobj, NPIdentifier name)
+NpObj::NPHasMethod(NPObject *npobj, NPIdentifier name)
 {
 #ifdef __USE_DALOG__
     if ("NEMO_BKM_DALOG") {
@@ -351,17 +351,17 @@ OtvNpObject::NPHasMethod(NPObject *npobj, NPIdentifier name)
             NPN_MemFree(utf8name);
     }
 #endif
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
-        return ((NPObjectExt*)npobj)->pOtvNpObject->HasMethod(npobj, name);
+    if( ((NPObjectExt*)npobj)->pNpObj )
+        return ((NPObjectExt*)npobj)->pNpObj->HasMethod(npobj, name);
     else
     {
-        O_LOG_WARNING("OtvNpObject::NPHasMethod is called for deleted OtvNpObject\n");
+        O_LOG_WARNING("NpObj::NPHasMethod is called for deleted NpObj\n");
         return false;
     }
 }
 
 bool
-OtvNpObject::NPInvoke(NPObject *npobj, NPIdentifier name,
+NpObj::NPInvoke(NPObject *npobj, NPIdentifier name,
                       const NPVariant *args, uint32_t argCount,
                       NPVariant *result)
 {
@@ -432,16 +432,16 @@ OtvNpObject::NPInvoke(NPObject *npobj, NPIdentifier name,
     }
 #endif
 
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
+    if( ((NPObjectExt*)npobj)->pNpObj )
     {
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object methods since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object methods since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
-            O_LOG_CCOMX_API("%-25s%s.%s(%s)\n", "[CCOMX API Method Start]",
-                    NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+            O_LOG_XCOMX_API("%-25s%s.%s(%s)\n", "[XCOMX API Method Start]",
+                    NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                     NPIdentifierStr(name).c_str(),
-                    NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, args, argCount));
+                    NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, args, argCount));
 #endif
         if (!result)
         {
@@ -450,118 +450,118 @@ OtvNpObject::NPInvoke(NPObject *npobj, NPIdentifier name,
             return false;
         }
         VOID_TO_NPVARIANT(*result);
-        ((NPObjectExt*)npobj)->pOtvNpObject->Invoke(npobj,
+        ((NPObjectExt*)npobj)->pNpObj->Invoke(npobj,
             name,
             args,
             argCount,
             result);
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object methods since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object methods since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
-            O_LOG_CCOMX_API("%-25s%s.%s(%s)\n", "[CCOMX API Method End]",
-                    NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+            O_LOG_XCOMX_API("%-25s%s.%s(%s)\n", "[XCOMX API Method End]",
+                    NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                     NPIdentifierStr(name).c_str(),
-                    NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, args, argCount));
+                    NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, args, argCount));
 #endif
 
         return true;
     }
     else
     {
-        O_LOG_WARNING("OtvNpObject::NPInvoke is called for deleted OtvNpObject\n");
+        O_LOG_WARNING("NpObj::NPInvoke is called for deleted NpObj\n");
         return false;
     }
 }
 
     bool
-OtvNpObject::NPInvokeDefault(NPObject *npobj, const NPVariant *args,
+NpObj::NPInvokeDefault(NPObject *npobj, const NPVariant *args,
         uint32_t argCount, NPVariant *result)
 {
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
+    if( ((NPObjectExt*)npobj)->pNpObj )
     {
         bool retval;
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
-            O_LOG_CCOMX_API("%-25s%s.%s(%s)\n", "[CCOMX API Method Start]",
-                    NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+            O_LOG_XCOMX_API("%-25s%s.%s(%s)\n", "[XCOMX API Method Start]",
+                    NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                     "InvokeDefault",
-                    NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, args, argCount));
+                    NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, args, argCount));
 #endif
-        retval = ((NPObjectExt*)npobj)->pOtvNpObject->InvokeDefault(npobj,
+        retval = ((NPObjectExt*)npobj)->pNpObj->InvokeDefault(npobj,
                 args,
                 argCount,
                 result);
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
-            O_LOG_CCOMX_API("%-25s%s.%s(%s)\n", "[CCOMX API Method End]",
-                    NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+            O_LOG_XCOMX_API("%-25s%s.%s(%s)\n", "[XCOMX API Method End]",
+                    NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                     "InvokeDefault",
-                    NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, args, argCount));
+                    NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, args, argCount));
 #endif
         return retval;
     }
     else
     {
-        O_LOG_WARNING("OtvNpObject::NPInvokeDefault is called for deleted OtvNpObject\n");
+        O_LOG_WARNING("NpObj::NPInvokeDefault is called for deleted NpObj\n");
         return false;
     }
 }
 
     bool
-OtvNpObject::NPHasProperty(NPObject * npobj, NPIdentifier name)
+NpObj::NPHasProperty(NPObject * npobj, NPIdentifier name)
 {
     bool rc = false;
 
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
+    if( ((NPObjectExt*)npobj)->pNpObj )
     {
-#ifdef LOG_CCOMX_API
+#ifdef LOG_XCOMX_API
         int32_t index;
 
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_TRACE("%-25s%s.%s\n","[CCOMX API HasProperty Start] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_TRACE("%-25s%s.%s\n","[XCOMX API HasProperty Start] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str());
             }
             else
             {
-                O_LOG_TRACE("%-25s%s.[%d]\n","[CCOMX API HasProperty Start] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_TRACE("%-25s%s.[%d]\n","[XCOMX API HasProperty Start] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index);
             }
         }
 #endif
-        if ((rc = ((NPObjectExt*)npobj)->pOtvNpObject->HasProperty(name)) == false)
+        if ((rc = ((NPObjectExt*)npobj)->pNpObj->HasProperty(name)) == false)
         {
             O_LOG_TRACE("[NO PROPERTY] Failed to has the property '%s' for %s with error=%s\n",
                     NPIdentifierStr(name).c_str(),
-                    NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                    NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                     "UnknownError");
         }
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_TRACE("%-25s%s.%s\n","[CCOMX API HasProperty End] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_TRACE("%-25s%s.%s\n","[XCOMX API HasProperty End] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str());
             }
             else
             {
-                O_LOG_TRACE("%-25s%s.[%d]\n","[CCOMX API HasProperty End] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_TRACE("%-25s%s.[%d]\n","[XCOMX API HasProperty End] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index);
             }
         }
@@ -569,66 +569,66 @@ OtvNpObject::NPHasProperty(NPObject * npobj, NPIdentifier name)
     }
     else
     {
-        O_LOG_WARNING("OtvNpObject::NPHasProperty is called for deleted OtvNpObject\n");
+        O_LOG_WARNING("NpObj::NPHasProperty is called for deleted NpObj\n");
     }
     return rc;
 }
 
     bool
-OtvNpObject::NPGetProperty(NPObject *npobj, NPIdentifier name,
+NpObj::NPGetProperty(NPObject *npobj, NPIdentifier name,
         NPVariant *result)
 {
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
+    if( ((NPObjectExt*)npobj)->pNpObj )
     {
-#ifdef LOG_CCOMX_API
+#ifdef LOG_XCOMX_API
         int32_t index;
 
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_CCOMX_API("%-25s%s.%s\n","[CCOMX API GetProperty Start] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.%s\n","[XCOMX API GetProperty Start] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str());
             }
             else
             {
-                O_LOG_CCOMX_API("%-25s%s.[%d]\n","[CCOMX API GetProperty Start] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.[%d]\n","[XCOMX API GetProperty Start] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index);
             }
         }
 #endif
         if (result)
             VOID_TO_NPVARIANT(*result);
-        if (((NPObjectExt*)npobj)->pOtvNpObject->GetProperty(name,result) == false)
+        if (((NPObjectExt*)npobj)->pNpObj->GetProperty(name,result) == false)
         {
             O_LOG_ERROR("Failed to get the property '%s' for %s with error=%s\n",
                     NPIdentifierStr(name).c_str(),
-                    NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                    NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                     "UnknownError");
-            ((NPObjectExt*)npobj)->pOtvNpObject->SetException("UnknownError");
+            ((NPObjectExt*)npobj)->pNpObj->SetException("UnknownError");
         }
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_CCOMX_API("%-25s%s.%s = %s\n","[CCOMX API GetProperty End] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.%s = %s\n","[XCOMX API GetProperty End] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str(),
-                        NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, result, 1));
+                        NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, result, 1));
             }
             else
             {
-                O_LOG_CCOMX_API("%-25s%s.[%d] = %s\n","[CCOMX API GetProperty End] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.[%d] = %s\n","[XCOMX API GetProperty End] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index,
-                        NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, result, 1));
+                        NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, result, 1));
             }
         }
 #endif
@@ -636,66 +636,66 @@ OtvNpObject::NPGetProperty(NPObject *npobj, NPIdentifier name,
     }
     else
     {
-        O_LOG_WARNING("OtvNpObject::NPGetProperty is called for deleted OtvNpObject\n");
+        O_LOG_WARNING("NpObj::NPGetProperty is called for deleted NpObj\n");
         return false;
     }
 }
 
     bool
-OtvNpObject::NPSetProperty(NPObject *npobj, NPIdentifier name,
+NpObj::NPSetProperty(NPObject *npobj, NPIdentifier name,
         const NPVariant *value)
 {
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
+    if( ((NPObjectExt*)npobj)->pNpObj )
     {
-#ifdef LOG_CCOMX_API
+#ifdef LOG_XCOMX_API
         int32_t index;
 
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_CCOMX_API("%-25s%s.%s = %s\n","[CCOMX API Property Set Start] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.%s = %s\n","[XCOMX API Property Set Start] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str(),
-                        NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, value, 1));
+                        NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, value, 1));
             }
             else
             {
-                O_LOG_CCOMX_API("%-25s%s.[%d] = %s\n","[CCOMX API Property Set Start] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.[%d] = %s\n","[XCOMX API Property Set Start] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index,
-                        NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, value, 1));
+                        NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, value, 1));
             }
         }
 #endif
-        if (((NPObjectExt*)npobj)->pOtvNpObject->SetProperty(name,value) == false)
+        if (((NPObjectExt*)npobj)->pNpObj->SetProperty(name,value) == false)
         {
             O_LOG_ERROR("Failed to set the property '%s' for %s with error=%s\n",
                     NPIdentifierStr(name).c_str(),
-                    NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                    NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                     "UnknownError");
-            ((NPObjectExt*)npobj)->pOtvNpObject->SetException("UnknownError");
+            ((NPObjectExt*)npobj)->pNpObj->SetException("UnknownError");
         }
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_CCOMX_API("%-25s%s.%s = %s\n","[CCOMX API Property Set End] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.%s = %s\n","[XCOMX API Property Set End] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str(),
-                        NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, value, 1));
+                        NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, value, 1));
             }
             else
             {
-                O_LOG_CCOMX_API("%-25s%s.[%d] = %s\n","[CCOMX API Property Set End] ",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.[%d] = %s\n","[XCOMX API Property Set End] ",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index,
-                        NPVariantSprintf(((NPObjectExt*)npobj)->pOtvNpObject->m_NPP, value, 1));
+                        NPVariantSprintf(((NPObjectExt*)npobj)->pNpObj->m_NPP, value, 1));
             }
         }
 #endif
@@ -703,58 +703,58 @@ OtvNpObject::NPSetProperty(NPObject *npobj, NPIdentifier name,
     }
     else
     {
-        O_LOG_WARNING("OtvNpObject::NPSetProperty is called for deleted OtvNpObject\n");
+        O_LOG_WARNING("NpObj::NPSetProperty is called for deleted NpObj\n");
         return false;
     }
 }
 
     bool
-OtvNpObject::NPRemoveProperty(NPObject *npobj, NPIdentifier name)
+NpObj::NPRemoveProperty(NPObject *npobj, NPIdentifier name)
 {
-    if( ((NPObjectExt*)npobj)->pOtvNpObject )
+    if( ((NPObjectExt*)npobj)->pNpObj )
     {
         bool retval;
-#ifdef LOG_CCOMX_API
+#ifdef LOG_XCOMX_API
         int32_t index;
 
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_CCOMX_API("%-25s%s.%s\n","[CCOMX API Property Remove Start]",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.%s\n","[XCOMX API Property Remove Start]",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str());
 
             }
             else
             {
-                O_LOG_CCOMX_API("%-25s%s.[%d]\n","[CCOMX API Property Remove Start]",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.[%d]\n","[XCOMX API Property Remove Start]",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index);
             }
         }
 #endif
 
-        retval =  ((NPObjectExt*)npobj)->pOtvNpObject->RemoveProperty(name);
+        retval =  ((NPObjectExt*)npobj)->pNpObj->RemoveProperty(name);
 
-#ifdef LOG_CCOMX_API
-        /* don't log 'CCOM' object properties since they just expose singletons and do not present
+#ifdef LOG_XCOMX_API
+        /* don't log 'XCOM' object properties since they just expose singletons and do not present
            any useful info */
-        if(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
+        if(((NPObjectExt*)npobj)->pNpObj->getJSObjectName() != NPID(MAIN_PLUGIN_OBJECT_NAME_ID))
         {
             if((index = NPGetArrayIndexFromNPIdentifier(name)) == -1)
             {
-                O_LOG_CCOMX_API("%-25s%s.%s\n","[CCOMX API Property Remove End]",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.%s\n","[XCOMX API Property Remove End]",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         NPIdentifierStr(name).c_str());
 
             }
             else
             {
-                O_LOG_CCOMX_API("%-25s%s.[%d]\n","[CCOMX API Property Remove End]",
-                        NPIdentifierStr(((NPObjectExt*)npobj)->pOtvNpObject->getJSObjectName()).c_str(),
+                O_LOG_XCOMX_API("%-25s%s.[%d]\n","[XCOMX API Property Remove End]",
+                        NPIdentifierStr(((NPObjectExt*)npobj)->pNpObj->getJSObjectName()).c_str(),
                         index);
             }
         }
@@ -763,13 +763,13 @@ OtvNpObject::NPRemoveProperty(NPObject *npobj, NPIdentifier name)
     }
     else
     {
-        O_LOG_WARNING("OtvNpObject::NPRemoveProperty is called for deleted OtvNpObject\n");
+        O_LOG_WARNING("NpObj::NPRemoveProperty is called for deleted NpObj\n");
         return false;
     }
 }
 
     bool
-OtvNpObject::GetProperty(NPIdentifier name, NPVariant *result)
+NpObj::GetProperty(NPIdentifier name, NPVariant *result)
 {
     _o_atom_property_t *node = property_list_head;
 
@@ -794,7 +794,7 @@ OtvNpObject::GetProperty(NPIdentifier name, NPVariant *result)
 }
 
     bool
-OtvNpObject::SetProperty(NPIdentifier name, const NPVariant *value)
+NpObj::SetProperty(NPIdentifier name, const NPVariant *value)
 {
     UNUSED_PARAM(name);
     UNUSED_PARAM(value);
@@ -802,7 +802,7 @@ OtvNpObject::SetProperty(NPIdentifier name, const NPVariant *value)
 }
 
     void
-OtvNpObject::Invoke(NPObject *npobj, NPIdentifier name,
+NpObj::Invoke(NPObject *npobj, NPIdentifier name,
         const NPVariant *args, uint32_t argCount,
         NPVariant *result)
 {
@@ -890,7 +890,7 @@ OtvNpObject::Invoke(NPObject *npobj, NPIdentifier name,
 }
 
     void
-OtvNpObject::InvokeSync( NPIdentifier    name,
+NpObj::InvokeSync( NPIdentifier    name,
         const NPVariant*  args,
         uint32_t          argCount,
         NPVariant*        result)
@@ -902,7 +902,7 @@ OtvNpObject::InvokeSync( NPIdentifier    name,
 }
 
     void
-OtvNpObject::InvokeAsync( NPIdentifier   name,
+NpObj::InvokeAsync( NPIdentifier   name,
         const NPVariant* args,
         uint32_t         argCount,
         const int32_t    invoke_handle)
@@ -914,7 +914,7 @@ OtvNpObject::InvokeAsync( NPIdentifier   name,
 }
 
 bool
-OtvNpObject::get_handler(char *event, _o_atom_event_t **iter) {
+NpObj::get_handler(char *event, _o_atom_event_t **iter) {
 
     while (*iter != NULL) {
         //        O_LOG_TRACE("iter event %s, event %s, id = %d\n",(*iter)->event.c_str(),event, (*iter)->handlerId);
@@ -943,7 +943,7 @@ OtvNpObject::get_handler(char *event, _o_atom_event_t **iter) {
  */
 
 void
-OtvNpObject::addEventHandler(char *name, NPObject *handler) {
+NpObj::addEventHandler(char *name, NPObject *handler) {
     _o_atom_event_t *newHandler;
     NPVariant npVarEHId;
     _o_atom_event_t* iter = getEventHandlers();
@@ -955,7 +955,7 @@ OtvNpObject::addEventHandler(char *name, NPObject *handler) {
         if (!get_handler(name,&iter))
         {
             // This is the case when JavaScript is registering a listener for an event which has no listeners registered
-            // for it yet. This listener object might have been already registered for some other CCOM event, in which
+            // for it yet. This listener object might have been already registered for some other XCOM event, in which
             // case we need to use its existing  handler ID for associating it with the internal handler entry that will
             // be created for this event.
             if( NPN_HasProperty(m_NPP, handler, NPID(EVENT_HANDLER_PROP_ID)) &&
@@ -994,7 +994,7 @@ OtvNpObject::addEventHandler(char *name, NPObject *handler) {
                         }
                     }
                     else
-                        O_LOG_ERROR("Unexpected event handler pointer passed when registering '%s' handler for object 'CCOM.%s\n",
+                        O_LOG_ERROR("Unexpected event handler pointer passed when registering '%s' handler for object 'XCOM.%s\n",
                                 name, NPIdentifierStr(getJSObjectName()).c_str());
                     NPN_ReleaseVariantValue(&npVarEHId);
                 }
@@ -1031,7 +1031,7 @@ OtvNpObject::addEventHandler(char *name, NPObject *handler) {
         }
         else
         {
-            // create unique CCOM handler ID property to allow registering multiple listeners
+            // create unique XCOM handler ID property to allow registering multiple listeners
             // for the same event.
             newHandler->handlerId = GetUniqueEventHandlerID();
             INT32_TO_NPVARIANT(newHandler->handlerId, npVarEHId);
@@ -1051,7 +1051,7 @@ OtvNpObject::addEventHandler(char *name, NPObject *handler) {
         if (signal_handler_list_head && signal_handler_list_tail)
             O_LOG_TRACE("New handler %p, Id %d, list head %p, list tail %p. TOTAL: %d\n", handler, newHandler->handlerId, signal_handler_list_head, signal_handler_list_tail, m_signal_handler_list_total);
 
-        if(m_signal_handler_list_total >= CCOMX_MAX_EVENTS_WARNING_THRESHOLD)
+        if(m_signal_handler_list_total >= XCOMX_MAX_EVENTS_WARNING_THRESHOLD)
             O_LOG_WARNING("Registering '%s' handler for object '%s'. Total handlers for this this object = %d!! Application should not be adding unlimited amount of handlers without removing unused ones to avoid memory leak.\n",
                     name, NPIdentifierStr(getJSObjectName()).c_str(), m_signal_handler_list_total);
 
@@ -1062,12 +1062,12 @@ OtvNpObject::addEventHandler(char *name, NPObject *handler) {
 }
 
 /*
- * This function synchronously removes an event handler from the OtvNpObject's signal handler list.
+ * This function synchronously removes an event handler from the NpObj's signal handler list.
  * It first checks that the handler exists within the signal list. If so, it removes
  * it from the list and notifies its derived objects.
  */
 int32_t
-OtvNpObject::removeEventHandler(char *name, NPObject *handler) {
+NpObj::removeEventHandler(char *name, NPObject *handler) {
     _o_atom_event_t *eventHandler;
     _o_atom_event_t *prevHandler = NULL;
     NPVariant npVarEHId;
@@ -1094,7 +1094,7 @@ OtvNpObject::removeEventHandler(char *name, NPObject *handler) {
                         removeHandler = true;
                 }
                 else
-                    O_LOG_ERROR("Unexpected event handler pointer passed when unregistering '%s' handler for object 'CCOM.%s'\n",
+                    O_LOG_ERROR("Unexpected event handler pointer passed when unregistering '%s' handler for object 'XCOM.%s'\n",
                             eventHandler->event.c_str(), NPIdentifierStr(getJSObjectName()).c_str());
                 NPN_ReleaseVariantValue(&npVarEHId);
             }
@@ -1151,7 +1151,7 @@ OtvNpObject::removeEventHandler(char *name, NPObject *handler) {
 }
 
 void
-OtvNpObject::add_to_event_list(NPIdentifier       event_name,
+NpObj::add_to_event_list(NPIdentifier       event_name,
         _o_atom_signal_arg_t *args,
         int                  num_args) {
     _o_atom_signal_t *newSignal;
@@ -1200,7 +1200,7 @@ OtvNpObject::add_to_event_list(NPIdentifier       event_name,
 }
 
 void
-OtvNpObject::add_method_ret_event(NPIdentifier       event_name,
+NpObj::add_method_ret_event(NPIdentifier       event_name,
         _o_atom_signal_arg_t *args,
         int                  num_args) {
     _o_atom_signal_t *newSignal;
@@ -1248,7 +1248,7 @@ OtvNpObject::add_method_ret_event(NPIdentifier       event_name,
 }
 
 void
-OtvNpObject::add_to_property_list(NPIdentifier property_name,
+NpObj::add_to_property_list(NPIdentifier property_name,
         const char *type,
         NP_PROPERTY_TYPE property_type /* NP_PROPERTY_RW*/,
         NPVariant* property_val /*NULL*/) {
@@ -1291,7 +1291,7 @@ OtvNpObject::add_to_property_list(NPIdentifier property_name,
 }
 
     uint32_t
-OtvNpObject::getNumInputArgs(const _o_atom_method_arg_t* args, const uint32_t& num_args)
+NpObj::getNumInputArgs(const _o_atom_method_arg_t* args, const uint32_t& num_args)
 {
     if(args && num_args > 0)
     {
@@ -1308,11 +1308,11 @@ OtvNpObject::getNumInputArgs(const _o_atom_method_arg_t* args, const uint32_t& n
 }
 
     void
-OtvNpObject::add_to_method_list( NPIdentifier        method_name,
+NpObj::add_to_method_list( NPIdentifier        method_name,
         _o_atom_method_arg_t* args,
         int                   num_args,
         bool                  sync, /*true*/
-        int                   timeoutMS /* CCOMX_TIMEOUT_INFINITE */)
+        int                   timeoutMS /* XCOMX_TIMEOUT_INFINITE */)
 {
     _o_atom_method_t *newMethod;
 
@@ -1415,7 +1415,7 @@ OtvNpObject::add_to_method_list( NPIdentifier        method_name,
 }
 
 bool
-OtvNpObject::has_signal(const char* name) {
+NpObj::has_signal(const char* name) {
     _o_atom_signal_t *node = signal_list_head;
 
     while (node) {
@@ -1431,7 +1431,7 @@ OtvNpObject::has_signal(const char* name) {
 }
 
 _o_atom_method_t*
-OtvNpObject::get_method_info(NPIdentifier method_name) {
+NpObj::get_method_info(NPIdentifier method_name) {
     _o_atom_method_t *node = method_list_head;
 
     while (node) {
@@ -1444,7 +1444,7 @@ OtvNpObject::get_method_info(NPIdentifier method_name) {
 }
 
 _o_atom_signal_t*
-OtvNpObject::get_signal_info(char *signal_name) {
+NpObj::get_signal_info(char *signal_name) {
     _o_atom_signal_t *node = signal_list_head;
 
     while (node) {
@@ -1457,7 +1457,7 @@ OtvNpObject::get_signal_info(char *signal_name) {
 }
 
 const char*
-OtvNpObject::get_property_type(const char *prop_name) {
+NpObj::get_property_type(const char *prop_name) {
     _o_atom_property_t *node = property_list_head;
 
     NPIdentifier name = NPN_GetStringIdentifier(prop_name);
@@ -1472,7 +1472,7 @@ OtvNpObject::get_property_type(const char *prop_name) {
 }
 
     void
-OtvNpObject::DispatchEvent(NPIdentifier eventName,
+NpObj::DispatchEvent(NPIdentifier eventName,
         NPVariant*   argsArr,
         uint32_t     argsArrSize)
 {
@@ -1536,7 +1536,7 @@ OtvNpObject::DispatchEvent(NPIdentifier eventName,
 }
 
     void
-OtvNpObject::DispatchMethodOK(NPIdentifier methodName,
+NpObj::DispatchMethodOK(NPIdentifier methodName,
         NPVariant*   argsArr,
         uint32_t     argsArrSize,
         uint32_t     invoke_handle)
@@ -1621,7 +1621,7 @@ OtvNpObject::DispatchMethodOK(NPIdentifier methodName,
 }
 
     void
-OtvNpObject::DispatchMethodFailed(NPIdentifier methodName,
+NpObj::DispatchMethodFailed(NPIdentifier methodName,
         const std::string name,
         const std::string message,
         const std::string domain,
@@ -1702,7 +1702,7 @@ OtvNpObject::DispatchMethodFailed(NPIdentifier methodName,
     }
 }
 
-void OtvNpObject::setObjectInfo(ObjectCreateInfo *info) {
+void NpObj::setObjectInfo(ObjectCreateInfo *info) {
     if (info)
     {
         m_objectInfo.connAddr = info->connAddr;
@@ -1718,7 +1718,7 @@ void OtvNpObject::setObjectInfo(ObjectCreateInfo *info) {
  * It first verifies the handler is valid (in case the handler was removed between calling
  * this function and its execution), and then subsequent to invoking the handler, it cleans up the event data.
  */
-void OtvNpObject::executeHandler(void* userData) {
+void NpObj::executeHandler(void* userData) {
     NPVariant retval;
     _o_event_handler_data_t *eventCtx = (_o_event_handler_data_t *)userData;
     bool isValidHandler = false;
@@ -1732,7 +1732,7 @@ void OtvNpObject::executeHandler(void* userData) {
 
     //	O_LOG_TRACE("executing handler %d\n",eventCtx->pHandler->handlerId);
 
-    if(!((ccomx::OtvNpObject *)eventCtx->pSignal->remoteObjInst)->GetNPObject())
+    if(!((ccomx::NpObj *)eventCtx->pSignal->remoteObjInst)->GetNPObject())
     {
         // The NPObject has already been deleted by JS, so we are discarding the event
         isValidHandler = false;
@@ -1740,7 +1740,7 @@ void OtvNpObject::executeHandler(void* userData) {
     else
     {
         // is this a valid handler - it may have been removed
-        iter = ((ccomx::OtvNpObject *)eventCtx->pSignal->remoteObjInst)->getEventHandlers();
+        iter = ((ccomx::NpObj *)eventCtx->pSignal->remoteObjInst)->getEventHandlers();
         while (iter)
         {
             if (iter == eventCtx->pHandler) {
@@ -1766,10 +1766,10 @@ void OtvNpObject::executeHandler(void* userData) {
         if(objRef)
             NPN_RetainObject(objRef);
 
-#ifdef LOG_CCOMX_API
+#ifdef LOG_XCOMX_API
         string eventHandler = iter->event.c_str();
-        O_LOG_CCOMX_API("%-25s%s.%s\n", "[CCOMX API Event Handler Start] ",
-                NPIdentifierStr(((ccomx::OtvNpObject *)eventCtx->pSignal->remoteObjInst)->getJSObjectName()).c_str(),
+        O_LOG_XCOMX_API("%-25s%s.%s\n", "[XCOMX API Event Handler Start] ",
+                NPIdentifierStr(((ccomx::NpObj *)eventCtx->pSignal->remoteObjInst)->getJSObjectName()).c_str(),
                 eventHandler.c_str());
 #endif
         // NOTE: after the NPN_InvokeDefault() call below, eventCtx->pHandler may not be valid and should not be referenced
@@ -1783,9 +1783,9 @@ void OtvNpObject::executeHandler(void* userData) {
             NPN_ReleaseVariantValue(&retval);
         }
 
-#ifdef LOG_CCOMX_API
-        O_LOG_CCOMX_API("%-25s%s.%s\n", "[CCOMX API Event Handler End] ",
-                NPIdentifierStr(((ccomx::OtvNpObject *)eventCtx->pSignal->remoteObjInst)->getJSObjectName()).c_str(),
+#ifdef LOG_XCOMX_API
+        O_LOG_XCOMX_API("%-25s%s.%s\n", "[XCOMX API Event Handler End] ",
+                NPIdentifierStr(((ccomx::NpObj *)eventCtx->pSignal->remoteObjInst)->getJSObjectName()).c_str(),
                 eventHandler.c_str());
 #endif
 
@@ -1797,7 +1797,7 @@ void OtvNpObject::executeHandler(void* userData) {
     {
         /* Release object reference created by DispatchEvent and InvokeAsync */
         if(eventCtx->pSignal->remoteObjInst)
-            NPN_ReleaseObject(((OtvNpObject*)eventCtx->pSignal->remoteObjInst)->GetNPObject());
+            NPN_ReleaseObject(((NpObj*)eventCtx->pSignal->remoteObjInst)->GetNPObject());
 
         DelSignalData(eventCtx->pSignal);
     }
@@ -1806,16 +1806,16 @@ void OtvNpObject::executeHandler(void* userData) {
     //	O_LOG_TRACE("done with handler %d\n",eventCtx->pHandler->handlerId);
 }
 
-/* This function is called when a CCOMX OtvNpObject class fires an event.
+/* This function is called when a XCOMX NpObj class fires an event.
  * It is called with signal data (_o_atom_signal_data_t).
- * It sets the target property of the signal data to the OtvNpObject that it pertains to
+ * It sets the target property of the signal data to the NpObj that it pertains to
  * and then asynchronously calls each registered event handler pertaining to this event.
  * If registered handlers exist for this event, the executehandler method
  * will execute each handler asynchronously and clean up all signal data.
  * If no registered handlers exist for this event, this function cleans up the signal data.
  */
-void OtvNpObject::handleEvent(void* userData) {
-    OtvNpObject *remoteObjInst;
+void NpObj::handleEvent(void* userData) {
+    NpObj *remoteObjInst;
     std::string eventHandlerName;
     _o_atom_event_t *iter;
     bool registeredHandlerExists = false;
@@ -1830,9 +1830,9 @@ void OtvNpObject::handleEvent(void* userData) {
     }
 
     NPIdentifierStr signalMsgNameStr(signalCtx->msgName);
-    O_LOG_DEBUG("Received CCOM Event %s on thread %d\n",signalMsgNameStr.c_str(), (int)pthread_self());
+    O_LOG_DEBUG("Received XCOM Event %s on thread %d\n",signalMsgNameStr.c_str(), (int)pthread_self());
 
-    remoteObjInst=(OtvNpObject *)(signalCtx->remoteObjInst);
+    remoteObjInst=(NpObj *)(signalCtx->remoteObjInst);
     if(!remoteObjInst)
     {
         O_LOG_ERROR("Event was fired with no remoteObjInst!\n");
@@ -1906,9 +1906,9 @@ void OtvNpObject::handleEvent(void* userData) {
     // if there were no handlers for this event, delete the signal data here (otherwise, this is done in executeHandler)
     if (registeredHandlerExists == false)
     {
-#ifdef LOG_CCOMX_API
-        O_LOG_CCOMX_API("%-25s%s.%s\n", "[CCOMX API Event Handler Unregistered] ",
-                NPIdentifierStr(((ccomx::OtvNpObject *)signalCtx->remoteObjInst)->getJSObjectName()).c_str(),
+#ifdef LOG_XCOMX_API
+        O_LOG_XCOMX_API("%-25s%s.%s\n", "[XCOMX API Event Handler Unregistered] ",
+                NPIdentifierStr(((ccomx::NpObj *)signalCtx->remoteObjInst)->getJSObjectName()).c_str(),
                 eventHandlerName.c_str());
 #endif
 

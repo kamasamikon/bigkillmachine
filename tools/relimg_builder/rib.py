@@ -114,7 +114,7 @@ def calc_checksum(path):
     return m.hexdigest()
 
 def upload_gx_sh530cf_usb_bin(path):
-    squashfs_bin_md5 = calc_checksum("otv5_loader_kernel_squashfs.bin")
+    squashfs_bin_md5 = calc_checksum("ntv_loader_kernel_squashfs.bin")
 
     imgfile = "GX-SH530CF-usb.bin"
     remote_name = 'STOR i/%s-%s' % (imgfile, squashfs_bin_md5)
@@ -145,7 +145,7 @@ def do_command(cmd):
 
     if args[0] == "up":
         print2(">>> WILL MAKE IMAGE")
-        get_file(HTTP_ADDR + "otv5_loader_kernel_squashfs.bin")
+        get_file(HTTP_ADDR + "ntv_loader_kernel_squashfs.bin")
 
         os.chdir("root")
         os.chdir("sam_tools")

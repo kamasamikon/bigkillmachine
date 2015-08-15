@@ -57,3 +57,8 @@ static void runproc(int wait, const char *arg, ...)
 		}
 }
 
+// start pause resume stop
+// kill a tree all at once
+//
+// How to move on to next (by Parser)
+//

@@ -1,104 +1,43 @@
-
 export HI_PRJ_ROOT := $(CURDIR)
-
-.PHONY: all clean
-
-all: dagou daxia dr inotdo
-clean: dagou.clean daxia.clean dr.clean inotdo.clean
-
--include Makefile.defs
+export HI_PLATFORM := 'CURRENT'
+export HI_BUILD := 'test'
 
 #########################################################################
-# Banner: show current configuration
+## /media/auv/Windows8_OS/Users/nemo/work/bigkillmachine/Makefile.defs
 #
-.PHONY: banner
-banner:
-	@echo
-	@echo "***************************************************************"
-	@echo "* Architecture: $(BKM_PLATFORM)"
-	@echo "* Debug: $(BKM_DEBUG)"
-	@echo "***************************************************************"
-	@echo
+-include $(HI_PRJ_ROOT)/.configure
 
+ifeq ($(HILDA_DEBUG),yes)
+	CFLAGS += -g3
+else
+	CFLAGS += -O3
+endif
+
+CFLAGS += $(DEFINES) $(INCDIR)
+LDFLAGS += $(LIBS)
+
+MAKE += CC="$(CC)" AR="$(AR)" LD="$(LD)"
+
+PATH := $(GCC_PATH):$(PATH)
+
+.PHONY: all clean install uninstall
+all: netmon
 #########################################################################
-# neccesary
+## netmon
 #
-.PHONY: amust
-amust: banner
+all: netmon.all
+netmon.all:
+	@echo make -C /media/auv/Windows8_OS/Users/nemo/work/bigkillmachine/SRCS/netmon all
 
-#########################################################################
-# Architecture of target board
-#
-.PHONY: arch.x86
-arch.x86: clean
-	cp -f $(HI_PRJ_ROOT)/build/config/$(shell echo $@ | sed 's/arch.//g') $(HI_PRJ_ROOT)/.configure
+clean: netmon.clean
+netmon.clean:
+	@echo make -C /media/auv/Windows8_OS/Users/nemo/work/bigkillmachine/SRCS/netmon clean
 
-.PHONY: arch.7231
-arch.7231: clean
-	cp -f $(HI_PRJ_ROOT)/build/config/$(shell echo $@ | sed 's/arch.//g') $(HI_PRJ_ROOT)/.configure
+install: netmon.install
+netmon.install:
+	@echo make -C /media/auv/Windows8_OS/Users/nemo/work/bigkillmachine/SRCS/netmon install
 
-.PHONY: arch.sdtv
-arch.sdtv: clean
-	cp -f $(HI_PRJ_ROOT)/build/config/$(shell echo $@ | sed 's/arch.//g') $(HI_PRJ_ROOT)/.configure
+uninstall: netmon.uninstall
+netmon.uninstall:
+	@echo make -C /media/auv/Windows8_OS/Users/nemo/work/bigkillmachine/SRCS/netmon uninstall
 
-#########################################################################
-# Architecture of target board
-#
-.PHONY: debug.yes
-debug.yes: clean
-	@sed -i "s/BKM_DEBUG := no/BKM_DEBUG := yes/g" $(HI_PRJ_ROOT)/.configure
-
-.PHONY: debug.no
-debug.no: clean
-	@sed -i "s/BKM_DEBUG := yes/BKM_DEBUG := no/g" $(HI_PRJ_ROOT)/.configure
-
-#########################################################################
-# $(HI_PRJ_ROOT)/dagou
-#
-.PHONY: dagou
-dagou: amust
-	make -C $(HI_PRJ_ROOT)/dagou
-
-.PHONY: dagou.clean
-dagou.clean: amust
-	make -C $(HI_PRJ_ROOT)/dagou clean
-
-#########################################################################
-# $(HI_PRJ_ROOT)/daxia
-#
-.PHONY: daxia
-daxia: amust
-	make -C $(HI_PRJ_ROOT)/daxia
-
-.PHONY: daxia.clean
-daxia.clean: amust
-	make -C $(HI_PRJ_ROOT)/daxia clean
-
-#########################################################################
-# $(HI_PRJ_ROOT)/dr
-#
-.PHONY: dr
-dr: amust
-	make -C $(HI_PRJ_ROOT)/dr
-
-.PHONY: dr.clean
-dr.clean: amust
-	make -C $(HI_PRJ_ROOT)/dr clean
-
-#########################################################################
-# $(HI_PRJ_ROOT)/inotdo
-#
-.PHONY: inotdo
-inotdo: amust
-	make -C $(HI_PRJ_ROOT)/inotdo
-
-.PHONY: inotdo.clean
-inotdo.clean: amust
-	make -C $(HI_PRJ_ROOT)/inotdo clean
-
-#########################################################################
-# Target::install
-#
-.PHONY: install install.test
-install: dagou
-	@./build/install/${BKM_PLATFORM}
