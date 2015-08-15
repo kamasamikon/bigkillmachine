@@ -1,26 +1,26 @@
-export HI_PRJ_ROOT = ..
+export HI_PRJ_ROOT = ../..
 -include $(HI_PRJ_ROOT)/Makefile.defs
 
 SUB_OBJS_dagou = \
-				 $(HI_PRJ_ROOT)/dagou/nbuf.o \
-				 $(HI_PRJ_ROOT)/dagou/narg.o \
-				 $(HI_PRJ_ROOT)/dagou/dbus-print-message.o \
-				 $(HI_PRJ_ROOT)/dagou/helper.o \
-				 $(HI_PRJ_ROOT)/dagou/dagou_dbus.o \
-				 $(HI_PRJ_ROOT)/dagou/dagou_ioctol.o \
-				 $(HI_PRJ_ROOT)/dagou/dagou_nsulog.o \
-				 $(HI_PRJ_ROOT)/dagou/dagou_sqlite.o \
-				 $(HI_PRJ_ROOT)/dagou/dagou_syslog.o \
-				 $(HI_PRJ_ROOT)/dagou/dalog_setup.o \
-				 $(HI_PRJ_ROOT)/dagou/dalog.o
+				 ./nbuf.o \
+				 ./narg.o \
+				 ./dbus-print-message.o \
+				 ./helper.o \
+				 ./dagou_dbus.o \
+				 ./dagou_ioctol.o \
+				 ./dagou_nsulog.o \
+				 ./dagou_sqlite.o \
+				 ./dagou_syslog.o \
+				 ./dalog_setup.o \
+				 ./dalog.o
 
-				 # $(HI_PRJ_ROOT)/dagou/dagou_gconf.o \
+				 # ./dagou_gconf.o \
 
 LOCAL_OUT_OBJS = $(SUB_OBJS_dagou)
 LOCAL_OUT_LIB = dagou.a
 LOCAL_SHARE_LIB = libdagou.so
 
-CFLAGS += -I$(HI_PRJ_ROOT)/dagou
+CFLAGS += -I.
 
 CFLAGS += -I$(SYSROOT_DIR)/usr/include
 CFLAGS += -I$(SYSROOT_DIR)/usr/include/glib-2.0

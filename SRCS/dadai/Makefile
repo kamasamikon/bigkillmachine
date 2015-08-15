@@ -1,8 +1,8 @@
-export HI_PRJ_ROOT = ..
+export HI_PRJ_ROOT = ../..
 -include $(HI_PRJ_ROOT)/Makefile.defs
 
-LOCAL_OUT_ELF = dr
-LOCAL_OUT_OBJS = dr.o 
+LOCAL_OUT_ELF = dadai
+LOCAL_OUT_OBJS = dadai.o
 
 .PHONY: all clean
 
