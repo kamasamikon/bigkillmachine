@@ -27,6 +27,9 @@ import sys
 #           - xxx.c
 #       - SRC_DIR_NAME_B/
 
+if os.path.islink(__file__):
+    os.chdir(os.path.dirname(os.readlink(__file__)))
+
 PWD = os.getcwd()
 
 DIR_PLATFORMS = "PLATFORMS"
@@ -65,14 +68,13 @@ def update_settings():
     BUILD_ALL = get_builds()
 
     global SRCS
-    print PWD
-    print DIR_BUILDS
-    print BUILD_CUR
-    path = os.path.join(PWD, DIR_BUILDS, BUILD_CUR)
-    print path
-    if os.path.exists(path):
-        SRCS = get_srcs_from_build(path)
-    else:
+    try:
+        path = os.path.join(PWD, DIR_BUILDS, BUILD_CUR)
+        if os.path.exists(path):
+            SRCS = get_srcs_from_build(path)
+        else:
+            SRCS = []
+    except:
         SRCS = []
 
 def follow_symlink(name):
@@ -92,10 +94,13 @@ def get_platform_current():
         return None
 
 def get_builds():
-    l = os.listdir(DIR_BUILDS)
-    if FILE_CURRENT in l:
-        l.remove(FILE_CURRENT)
-    return l
+    try:
+        l = os.listdir(DIR_BUILDS)
+        if FILE_CURRENT in l:
+            l.remove(FILE_CURRENT)
+        return l
+    except:
+        return []
 
 def get_build_current():
     path = os.path.join(PWD, DIR_BUILDS, FILE_CURRENT)
@@ -131,7 +136,7 @@ def output_makefile():
 
     buff += "-include Makefile.defs\n"
 
-    buff += ".PHONY: all clean install uninstall\n\n"
+    buff += ".PHONY: all clean install uninstall info\n\n"
 
     for src in SRCS:
         buff += "#########################################################################\n"
@@ -143,6 +148,16 @@ def output_makefile():
             buff += "%s: %s.%s\n" % (pat, src, pat)
             buff += "%s.%s:\n" % (src, pat)
             buff += "\tmake -C %s %s\n\n" % (os.path.join(PWD, DIR_SRCS, src), pat)
+
+    buff += "#########################################################################\n"
+    buff += "## %s\n" % "Information"
+    buff += "#\n"
+    buff += "info:\n"
+    buff += "\t@echo '    ALL PLATFORMS : %s'\n" % ", ".join(PLATFORM_ALL)
+    buff += "\t@echo ' CURRENT PLATFORM : %s'\n" % PLATFORM_CUR
+    buff += "\t@echo '       ALL BUILDS : %s'\n" % ", ".join(BUILD_ALL)
+    buff += "\t@echo '    CURRENT BUILD : %s'\n" % BUILD_CUR
+    buff += "\t@echo '             SRCS : %s'\n" % ", ".join(SRCS)
 
     # print buff
 
@@ -162,7 +177,21 @@ def dump(platform = False, build = False):
 def help():
     print "Usage: kfg [platform|build] ..."
 
+def ensure_essential_dir():
+    path = os.path.join(PWD, DIR_PLATFORMS)
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    path = os.path.join(PWD, DIR_BUILDS)
+    if not os.path.exists(path):
+        os.mkdir(path)
+
+    path = os.path.join(PWD, DIR_SRCS)
+    if not os.path.exists(path):
+        os.mkdir(path)
+
 if __name__ == "__main__":
+    ensure_essential_dir()
     update_settings()
 
     argv = sys.argv
@@ -172,6 +201,7 @@ if __name__ == "__main__":
         help()
         print
         dump(True, True)
+        sys.exit(0)
 
     elif argc == 2 and argv[1] == "platform":
         dump(platform = True)
