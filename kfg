@@ -136,7 +136,7 @@ def output_makefile():
 
     buff += "-include Makefile.defs\n"
 
-    buff += ".PHONY: all clean install uninstall info\n\n"
+    buff += ".PHONY: all clean install uninstall info \n\n"
 
     for src in SRCS:
         buff += "#########################################################################\n"
@@ -155,6 +155,7 @@ def output_makefile():
     buff += "info:\n"
     buff += "\t@echo '    ALL PLATFORMS : %s'\n" % ", ".join(PLATFORM_ALL)
     buff += "\t@echo ' CURRENT PLATFORM : %s'\n" % PLATFORM_CUR
+    buff += "\t@echo ''\n"
     buff += "\t@echo '       ALL BUILDS : %s'\n" % ", ".join(BUILD_ALL)
     buff += "\t@echo '    CURRENT BUILD : %s'\n" % BUILD_CUR
     buff += "\t@echo '             SRCS : %s'\n" % ", ".join(SRCS)
@@ -169,13 +170,17 @@ def dump(platform = False, build = False):
     if platform:
         print "    ALL PLATFORMS : %s" % ", ".join(PLATFORM_ALL)
         print " CURRENT PLATFORM : %s" % PLATFORM_CUR
+
+    if platform and build:
+        print ""
+
     if build:
         print "       ALL BUILDS : %s" % ", ".join(BUILD_ALL)
         print "    CURRENT BUILD : %s" % BUILD_CUR
         print "             SRCS : %s" % ", ".join(SRCS)
 
 def help():
-    print "Usage: kfg [platform|build] ..."
+    print "usage: kfg [platform|build] ..."
 
 def ensure_essential_dir():
     path = os.path.join(PWD, DIR_PLATFORMS)
@@ -201,7 +206,6 @@ if __name__ == "__main__":
         help()
         print
         dump(True, True)
-        sys.exit(0)
 
     elif argc == 2 and argv[1] == "platform":
         dump(platform = True)
