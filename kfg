@@ -2,6 +2,7 @@
 
 import os
 import sys
+import getopt
 
 # ROOT
 #   - kfg
@@ -136,7 +137,7 @@ def output_makefile():
 
     buff += "-include Makefile.defs\n"
 
-    buff += ".PHONY: all clean install uninstall info \n\n"
+    buff += ".PHONY: all clean install uninstall info renew\n\n"
 
     for src in SRCS:
         buff += "#########################################################################\n"
@@ -153,12 +154,19 @@ def output_makefile():
     buff += "## %s\n" % "Information"
     buff += "#\n"
     buff += "info:\n"
-    buff += "\t@echo '    ALL PLATFORMS : %s'\n" % ", ".join(PLATFORM_ALL)
+    buff += "\t@echo '    ALL PLATFORMS : %s'\n" % " ".join(PLATFORM_ALL)
     buff += "\t@echo ' CURRENT PLATFORM : %s'\n" % PLATFORM_CUR
     buff += "\t@echo ''\n"
-    buff += "\t@echo '       ALL BUILDS : %s'\n" % ", ".join(BUILD_ALL)
+    buff += "\t@echo '       ALL BUILDS : %s'\n" % " ".join(BUILD_ALL)
     buff += "\t@echo '    CURRENT BUILD : %s'\n" % BUILD_CUR
-    buff += "\t@echo '             SRCS : %s'\n" % ", ".join(SRCS)
+    buff += "\t@echo '             SRCS : %s'\n" % " ".join(SRCS)
+
+    buff += "#########################################################################\n"
+    buff += "## %s\n" % "re-generate this Makefile"
+    buff += "#\n"
+    buff += "renew:\n"
+    buff += "\t@python kfg -b '%s' -p '%s'\n" % (BUILD_CUR, PLATFORM_CUR)
+    buff += "\t@python kfg -d"
 
     # print buff
 
@@ -166,21 +174,21 @@ def output_makefile():
     makefile.write(buff)
     makefile.close()
 
-def dump(platform = False, build = False):
+def dump_setting(platform = False, build = False):
     if platform:
-        print "    ALL PLATFORMS : %s" % ", ".join(PLATFORM_ALL)
+        print "    ALL PLATFORMS : %s" % " ".join(PLATFORM_ALL)
         print " CURRENT PLATFORM : %s" % PLATFORM_CUR
 
     if platform and build:
         print ""
 
     if build:
-        print "       ALL BUILDS : %s" % ", ".join(BUILD_ALL)
+        print "       ALL BUILDS : %s" % " ".join(BUILD_ALL)
         print "    CURRENT BUILD : %s" % BUILD_CUR
-        print "             SRCS : %s" % ", ".join(SRCS)
+        print "             SRCS : %s" % " ".join(SRCS)
 
 def help():
-    print "usage: kfg [platform|build] ..."
+    print "usage: -h -d -p platform -b build"
 
 def ensure_essential_dir():
     path = os.path.join(PWD, DIR_PLATFORMS)
@@ -199,46 +207,60 @@ if __name__ == "__main__":
     ensure_essential_dir()
     update_settings()
 
-    argv = sys.argv
-    argc = len(argv)
-
-    if argc == 1:
+    if len(sys.argv) == 1:
         help()
-        print
-        dump(True, True)
+        print "----"
+        dump_setting(True, True)
+        sys.exit(0)
 
-    elif argc == 2 and argv[1] == "platform":
-        dump(platform = True)
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hsdp:b:", [])
+    except getopt.GetoptError as err:
+        help()
+        print "----"
+        dump_setting(True, True)
+        sys.exit(0)
 
-    elif argc == 2 and argv[1] == "build":
-        dump(build = True)
+    slience = False
 
-    elif argc == 3 and argv[1] == "platform":
-        if argv[2] in PLATFORM_ALL:
-            if argv[2] != PLATFORM_CUR:
-                if os.path.exists(PATH_PLATFORM_CUR):
-                    os.remove(PATH_PLATFORM_CUR)
-                os.symlink(argv[2], PATH_PLATFORM_CUR)
-                update_settings()
-        else:
-            print "Platform (%s) not in PLATFORM_ALL %s" % (argv[2], PLATFORM_ALL)
+    for o, a in opts:
+        if o == '-h':
+            help()
             sys.exit(0)
 
-    elif argc == 3 and argv[1] == "build":
-        if argv[2] in BUILD_ALL:
-            if argv[2] != BUILD_CUR:
-                if os.path.exists(PATH_BUILD_CUR):
-                    os.remove(PATH_BUILD_CUR)
-                os.symlink(argv[2], PATH_BUILD_CUR)
-                update_settings()
+        elif o == '-s':
+            slience = True
+
+        elif o == '-d':
+            slience = False
+
+        elif o == '-p':
+            if a in PLATFORM_ALL:
+                if a != PLATFORM_CUR:
+                    if os.path.exists(PATH_PLATFORM_CUR):
+                        os.remove(PATH_PLATFORM_CUR)
+                    os.symlink(a, PATH_PLATFORM_CUR)
+                    update_settings()
+            else:
+                print "Platform (%s) not in PLATFORM_ALL %s" % (a, PLATFORM_ALL)
+                sys.exit(0)
+
+        elif o == '-b':
+            if a in BUILD_ALL:
+                if a != BUILD_CUR:
+                    if os.path.exists(PATH_BUILD_CUR):
+                        os.remove(PATH_BUILD_CUR)
+                    os.symlink(a, PATH_BUILD_CUR)
+                    update_settings()
+            else:
+                print "Build (%s) not in BUILD_ALL %s" % (a, BUILD_ALL)
+                sys.exit(0)
         else:
-            print "Build (%s) not in BUILD_ALL %s" % (argv[2], BUILD_ALL)
+            help()
+            print "----"
+            dump_setting(True, True)
             sys.exit(0)
 
-    else:
-        help()
-        print
-        dump(True, True)
 
     if PLATFORM_CUR and not PLATFORM_CUR in PLATFORM_ALL:
         print "PLATFORM_CUR (%s) not in PLATFORM_ALL %s" % (PLATFORM_CUR, PLATFORM_ALL)
@@ -249,4 +271,8 @@ if __name__ == "__main__":
     if PLATFORM_CUR and BUILD_ALL:
         link_dot_buildenv()
         output_makefile()
+
+    if not slience:
+        dump_setting(True, True)
+        sys.exit(0)
 

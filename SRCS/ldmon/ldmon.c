@@ -36,6 +36,9 @@ int main(int argc, char *argv[])
 	printf("\n");
 
 	output_file = argc > 1 ? argv[1] : "/dev/stdout";
+	if (!strcmp(output_file, "--help"))
+		return 0;
+
 	pause_time = argc > 2 ? atoi(argv[2]) : 500;
 
 	if (pause_time < 100)
@@ -54,7 +57,7 @@ int main(int argc, char *argv[])
 			if (!fp)
 				printf("Loop:%d, Open file '%s' failed.\n", loops, output_file);
 			else
-				printf(" CNT!     TIME!   UPTIME!   PS!  LD1!  LD5! LD15!     totalram!      freeram!    sharedram!    bufferram!    totalswap!     freeswap!    totalhigh!     freehigh!\n");
+				printf("   CNT!     TIME!   UPTIME!   PS!  LD1!  LD5! LD15!     totalram!      freeram!    sharedram!    bufferram!    totalswap!     freeswap!    totalhigh!     freehigh!\n");
 		}
 
 		sysinfo(&info);
@@ -74,7 +77,7 @@ int main(int argc, char *argv[])
 			}
 
 			fprintf(fp,
-					"%04u! %s! %8lu! %4u! %u.%02u! %u.%02u! %u.%02u! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu!\n",
+					"%06u! %s! %8lu! %4u! %u.%02u! %u.%02u! %u.%02u! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu!\n",
 					loops, tm_buf, info.uptime, info.procs,
 					LOAD_INT(info.loads[0]), LOAD_FRAC(info.loads[0]),
 					LOAD_INT(info.loads[1]), LOAD_FRAC(info.loads[1]),
@@ -85,7 +88,7 @@ int main(int argc, char *argv[])
 		} else {
 			/* The output file is not ready, save the information to cache */
 			snprintf(cache_line, sizeof(cache_line),
-					"%04u! %s! %8lu! %4u! %u.%02u! %u.%02u! %u.%02u! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu!\n",
+					"%06u! %s! %8lu! %4u! %u.%02u! %u.%02u! %u.%02u! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu! %12lu!\n",
 					loops, tm_buf, info.uptime, info.procs,
 					LOAD_INT(info.loads[0]), LOAD_FRAC(info.loads[0]),
 					LOAD_INT(info.loads[1]), LOAD_FRAC(info.loads[1]),
