@@ -102,7 +102,7 @@
 
 使用如下命令覆盖*Makefile.am*之外的文件，
 *Makefile.am*需要合并一下（仅仅是为了保险起见）。
-- `meld ../../nemotv/src/utils dazhu/ntvlog`
+- `meld ../../nemotv/src/utils dazhu/patch/ntvlog`
 
 ### 使大杀器能打印DBUS的活动
 
