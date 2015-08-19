@@ -1,6 +1,6 @@
 /**
  * This is a simple implementation of a logging mechanism that has
- * been abstracted to use XCOM's log methods for SVG, and console.log for
+ * been abstracted to use CCOM's log methods for SVG, and console.log for
  * HTML. By instantiating this class you get a function back that
  * when called will output the debug to the console in the given
  * module and class contexts. For example, you could log context
@@ -64,23 +64,23 @@ var $N = $N || {};
 				type = "debug";
 			}
 
-			if (window.XCOM && XCOM.dalog) {
+			if (window.CCOM && CCOM.dalog) {
                 switch (type) {
                 case "error":
-                    XCOM.dalog('E', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+                    CCOM.dalog('E', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
                     break;
 
                 case "warn":
-                    XCOM.dalog('W', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+                    CCOM.dalog('W', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
                     break;
 
                 case "info":
-                    XCOM.dalog('I', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+                    CCOM.dalog('I', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
                     break;
 
                 case "debug":
                 default:
-                    XCOM.dalog('D', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+                    CCOM.dalog('D', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
                     break;
                 }
 				return;

@@ -5,7 +5,7 @@
 
 import os, urllib.request, hashlib
 
-url = "http://nemoPC:8000/ntv_loader_kernel_squashfs.bin"
+url = "http://nemoPC:8000/otv5_loader_kernel_squashfs.bin"
 blDir = "C:\\Users\\neyu\\Desktop\\StarHub_GX-SH530CF_Bootloader_18092013"
 upanDir = "D:\\"
 
@@ -23,7 +23,7 @@ def httpGet(url, saveas):
         of.write(data)
         m.update(data)
     of.close()
-    print("Checksum for ntv_loader_kernel_squashfs is %s" % m.hexdigest())
+    print("Checksum for otv5_loader_kernel_squashfs is %s" % m.hexdigest())
 
 def update_update_version():
     print("Update version number in config3.txt and cfg.txt")
@@ -73,7 +73,7 @@ def update_update_version():
 if __name__ == "__main__":
 
     ### Get IMAGE file
-    saveas = os.path.join(blDir, "Tools", "ntv_loader_kernel_squashfs.bin")
+    saveas = os.path.join(blDir, "Tools", "otv5_loader_kernel_squashfs.bin")
     httpGet(url, saveas)
     os.system("pause")
 

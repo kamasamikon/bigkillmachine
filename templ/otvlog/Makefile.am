@@ -1,7 +1,7 @@
 # DO NOT BUILD TESTS BY DEFAULT 
 # SUBDIRS = . tests
 
-SYSUTILS_PC=utils.pc
+SYSUTILS_PC=sysutils.pc
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = $(SYSUTILS_PC)
@@ -17,7 +17,7 @@ AM_CFLAGS = 				\
 	      $(SYSUTILS_LIB_CFLAGS)	\
 	      $(SYSUTILS_CFLAGS)
 
-lib_LTLIBRARIES = libutils.la
+lib_LTLIBRARIES = libsysutils.la
 
 #============================================================================================================================
 # COMPILER ERROR OPTIONS. 
@@ -35,7 +35,7 @@ BUILD_ERR = -Werror=shadow -Werror=implicit -Werror=missing-prototypes -Werror=c
 BUILD_WARN = 
 AM_CFLAGS += $(BUILD_ERR) $(BUILD_WARN)
 
-libutils_la_SOURCES =	\
+libsysutils_la_SOURCES =	\
 	oshm.c      		\
 	opmutex.c   		\
 	otimer.c    		\
@@ -52,19 +52,19 @@ libutils_la_SOURCES =	\
 # NOTE:
 # Only expose the files that are public. utilsdefs.h are PRIVATE.
 # otracepriv is also private, but the traceparser needs it. 
-libutils_la_HEADERS =$(top_srcdir)/otypes.h \
-	$(top_srcdir)/outils.h \
+libsysutils_la_HEADERS =$(top_srcdir)/otypes.h \
+	$(top_srcdir)/osysutils.h \
 	$(top_srcdir)/osll.h \
 	$(top_srcdir)/otimer.h \
 	$(top_srcdir)/nsulog.h \
-	$(top_srcdir)/ntvlog.h \
+	$(top_srcdir)/otvlog.h \
 	$(top_srcdir)/userpool.h \
 	$(top_srcdir)/osignal.h \
 	$(top_srcdir)/otrace.h \
 	$(top_srcdir)/otracepriv.h
 
-libutils_la_LIBADD =  $(SYSUTILS_LIBS) -lrt
+libsysutils_la_LIBADD =  $(SYSUTILS_LIBS) -lrt
 
-libutils_ladir = $(includedir)/utils
+libsysutils_ladir = $(includedir)/sysutils
 
 
