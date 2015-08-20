@@ -16,6 +16,8 @@ export DALOG_TO_NETWORK=HOSTIP:9999
 
 # export DALOG_TO_SYSLOG=YES
 
+# export DALOG_NOISY=YES
+
 ### #####################################################################
 ## DAGOU
 #

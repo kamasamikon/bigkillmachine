@@ -97,6 +97,8 @@ struct _dalogcc_s {
 
 static dalogcc_s *__g_dalogcc = NULL;
 
+static int __noisy_mode = 0;
+
 /*-----------------------------------------------------------------------
  * Control Center
  */
@@ -121,7 +123,8 @@ int dalog_add_logger(DAL_NLOGGER logger)
 			return 0;
 
 	if (cc->nlogger_cnt >= MAX_NLOGGER) {
-		fprintf(stderr, "dalog_add_logger: Only up to %d logger supported.\n", MAX_NLOGGER);
+		if (__noisy_mode)
+			fprintf(stderr, "dalog_add_logger: Only up to %d logger supported.\n", MAX_NLOGGER);
 		return -1;
 	}
 
@@ -155,7 +158,8 @@ int dalog_add_rlogger(DAL_RLOGGER logger)
 			return 0;
 
 	if (cc->rlogger_cnt >= MAX_RLOGGER) {
-		fprintf(stderr, "dalog_add_logger: Only up to %d logger supported.\n", MAX_RLOGGER);
+		if (__noisy_mode)
+			fprintf(stderr, "dalog_add_logger: Only up to %d logger supported.\n", MAX_RLOGGER);
 		return -1;
 	}
 
@@ -322,7 +326,8 @@ static void load_cfg_file(char *path)
 
 	fp = fopen(path, "rt");
 	if (!fp) {
-		fprintf(stderr, "load_cfg_file: fopen '%s' failed, e:%d\n", path, errno);
+		if (__noisy_mode)
+			fprintf(stderr, "load_cfg_file: fopen '%s' failed, e:%d\n", path, errno);
 		return;
 	}
 
@@ -403,6 +408,9 @@ static void process_cfg(int argc, char *argv[])
 {
 	char *cfg;
 	int i;
+
+	if (getenv("DALOG_NOISY"))
+		__noisy_mode = 1;
 
 	/*
 	 * 0. Load from .dalog.cfg

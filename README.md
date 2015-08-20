@@ -102,7 +102,7 @@
 
 使用如下命令覆盖*Makefile.am*之外的文件，
 *Makefile.am*需要合并一下（仅仅是为了保险起见）。
-- `meld ../../nemotv/src/utils dazhu/patch/ntvlog`
+- `meld dazhu/patch/ntvlog ../../nemotv/src/utils`
 
 ### 使大杀器能打印DBUS的活动
 
@@ -112,6 +112,7 @@
 
 输入如下命令：
 - `meld dazhu/patch/dbus-connection.c bld_tf/build/dbus-1.4.16/dbus/dbus-connection.c`
+- `cd bld_tf/build/dbus-1.4.16`
 - `rm .stamp\_built .stamp\_staging\_installed .stamp\_target\_installed`
 - `./m.bld.tf`
 
@@ -138,8 +139,9 @@
     - `dhclientscript_LDADD += -lutils`
     - `dhclientscript_CFLAGS =-Wl,-rpath,/lib:/usr/lib:/usr/local/lib`
 1. 合并已经修改后的*Makefile.am*：
-    - `meld ../../nemotv/src/network/Makefile.am dazhu/patch/network_Makefile.am`
+    - `meld dazhu/patch/network_Makefile.am ../../nemotv/src/network/Makefile.am`
 
 ### nemotv/external/ntvwebkit/Source/WebKit/gtk/webkit/webkitwebview.cpp
 修改 *NTV_WEBKITVIEW_LOG* 宏为 `#define NTV_WEBKITVIEW_LOG nsulog_info` 即可。
+- `vim ../../nemotv/external/ntvwebkit/Source/WebKit/gtk/webkit/webkitwebview.cpp`
 

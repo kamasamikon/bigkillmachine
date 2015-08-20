@@ -65,24 +65,24 @@ var $N = $N || {};
 			}
 
 			if (window.XCOM && XCOM.dalog) {
-                switch (type) {
-                case "error":
-                    XCOM.dalog('E', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
-                    break;
+				switch (type) {
+				case "error":
+					XCOM.dalog('E', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+					break;
 
-                case "warn":
-                    XCOM.dalog('W', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
-                    break;
+				case "warn":
+					XCOM.dalog('W', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+					break;
 
-                case "info":
-                    XCOM.dalog('I', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
-                    break;
+				case "info":
+					XCOM.dalog('I', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+					break;
 
-                case "debug":
-                default:
-                    XCOM.dalog('D', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
-                    break;
-                }
+				case "debug":
+				default:
+					XCOM.dalog('D', "[" + moduleContext + ":" + classContext + "." + method + "] " + message);
+					break;
+				}
 				return;
 			}
 

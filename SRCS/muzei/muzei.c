@@ -226,7 +226,7 @@ static void load_muzei_opt()
 	narg_free(argv);
 }
 
-static void load_rc(const char *path, GHashTable *exe_map)
+static void load_env(const char *path, GHashTable *exe_map)
 {
 	FILE *fp;
 
@@ -245,7 +245,7 @@ static void load_rc(const char *path, GHashTable *exe_map)
 		showlog("Open '%s' success\n", path);
 
 	while ((bytes = getline(&line, &len, fp)) != -1) {
-		showlog("load_rc: file='%s', line=%s\n", path, line);
+		showlog("load_env: file='%s', line=%s\n", path, line);
 		if (narg_build(line, &exe_c, &exe_v))
 			continue;
 		g_hash_table_insert(exe_map, strdup(exe_v[0]), exe_v);
@@ -257,11 +257,11 @@ static void load_rc(const char *path, GHashTable *exe_map)
 
 static void load_all_rc(GHashTable *exe_map)
 {
-	load_rc("/etc/muzeirc", exe_map);
-	load_rc("~/.muzeirc", exe_map);
-	load_rc("./.muzeirc", exe_map);
-	load_rc(getenv("MUZEIRC"), exe_map);
-	load_rc("/tmp/.muzeirc", exe_map);
+	load_env("/etc/muzeirc", exe_map);
+	load_env("~/.muzeirc", exe_map);
+	load_env("./.muzeirc", exe_map);
+	load_env(getenv("MUZEIRC"), exe_map);
+	load_env("/tmp/.muzeirc", exe_map);
 }
 
 static void free_argv(void *data)
@@ -283,6 +283,7 @@ static void load_bkm_opt()
 	load_rc("/tmp/xxx", env_map)
 }
 
+// mz exe arg arg arg
 int main(int argc, char *argv[])
 {
 	GHashTable *opt_map;
@@ -309,5 +310,10 @@ int main(int argc, char *argv[])
 	}
 
 	return 0;
+}
+
+int main(int argc, char *argv[], char **env[])
+{
+
 }
 
