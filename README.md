@@ -1,25 +1,29 @@
 
-
+### 介绍
 #### 目录结构
 BKM的目录按照如下的方式组织。
+> 注意：
+> 
+> * 斜体的文件必须存在。
+> 
+> * #后边是注释
+> -  
 
 - ROOT
-	- kfg
-	- Makefile.defs
-	- Makefile.rules
-   - PLATFORMS/
-       - # GCC: x86, 7231, 7356
-       - CURRENT
-           - # LINK (link -s) to current PLATFORM
+	- *kfg*
+	- *Makefile.defs*
+	- *Makefile.rules*
+   - *PLATFORMS/*
+       - *CURRENT*
        - x86
        - 7231
        - 7356
-   - BUILDS/
-       - CURRENT
+   - *BUILDS/*
+       - *CURRENT*
            - # LINK (link -s) to current BUILD
        - BUILD_NAME_A
        - BUILD_NAME_B
-   - SRCS/
+   - *SRCS/*
        - SRC_DIR_NAME_A/
            - README.md
            - Makefile
@@ -60,13 +64,14 @@ BKM的目录按照如下的方式组织。
     - DAXIA\_FILE
         - Where the log will be saved to
 
-#### 如何使用
+### 如何方法
 
-##### **特别注意**
+> **特别注意：**
+> 
 > * NEMOBUILD的工具链把**LD\_PRELOAD**干掉了，要用老的**ld-uClibc-???**替换到当前使用的才可以。
 > * Release版本的网络也被关闭了，如果需要Log通过网络输出到别的机器上（参考 DALOG\_TO\_NETWORK)，需要把网络打开。
 
-##### 构造环境
+#### 构造环境
 所有的需要的文件都在`dazhu`里，需要把这个文件拷贝到某个Target目录下。 
 >    `cp <xyz>/dazhu <XYZ>/ntvtgt/<SHIT>/ -frvL`
 
@@ -79,7 +84,7 @@ BKM的目录按照如下的方式组织。
 
 
 编译过程和直接使用*make*类似，区别是使用*m.bld.tf*替换到*make*即可。
-> `./m.bld.tf <其他make的参数>`
+`./m.bld.tf <其他make的参数>`
 
 比如：
 > `./m.bld.tf all image V=1`
