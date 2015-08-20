@@ -1,0 +1,24 @@
+#!/usr/bin/env python
+
+import os
+
+if os.path.islink(__file__):
+    setupdazhu_path = os.readlink(__file__)
+else:
+    setupdazhu_path = __file__
+setupdazhu_name = os.path.basename(setupdazhu_path)
+
+if setupdazhu_name != "setupdazhu":
+    print "The original script must named setupdazhu"
+    exit(1)
+
+dazhu_path = os.path.dirname(setupdazhu_path)
+dazhu_name = os.path.basename(dazhu_path)
+
+if dazhu_name != "dazhu":
+    print "The original script must in dazhu dir"
+    exit(1)
+
+os.system("cp -frvL '%s' ." % dazhu_path)
+os.system("chmod a+x dazhu -R")
+
