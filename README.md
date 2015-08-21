@@ -30,6 +30,16 @@ BKM的目录按照如下的方式组织。
 	 - ...如此这般
 
 #### 组件介绍
+##### xxn
+开启网络，正常情况下，网络是在 `network` 中启用的，这会导致更早启动的进程的日志信息无法输出到网络上。在 `BKM> ` 提示符下，输入该命令会使盒子的 `eth0` 连上网络。
+
+特别注意的是，如果盒子是通过 `NFS` 启动的，则不需要执行这个命令。
+
+##### xmu
+这个命令设置大杀器的运行环境，具体而言，就是把 `/home/ntvroot/dapei` 和 `/home/ntvroot/dalog.dfcfg` 两个文件拷贝到 `/tmp` 目录，并生成 `dabao` 文件。
+
+因为大杀器实际上是使用 `/tmp` 目录下的这几个文件，所以，可以在 `BKM> ` 提示符下修改这几个文件。为了免于每次启动都修改，也可以直接修改 `/home/ntvroot` 目录下的原始文件。
+
 ##### dr
 运行时修改dalog的输出，直接运行 `dr` 可查看帮助。
 
@@ -52,7 +62,7 @@ E.g.
 这程序一般都在在PC上运行，所以应该将其编译成PC版本的。
 
 
-### 跋：如何方法
+### 跋：使用方法
 
 > **特别注意：**
 >
@@ -102,7 +112,7 @@ E.g.
 
 #### 中断启动，修改配置：
 
-* 非*Release*的工程，修改　`/etc/init.d/rcS`，在调用*pcd*之前，加上如下行：
+* 非 *Release* 的工程，修改　`/etc/init.d/rcS`，在调用 *pcd* 之前，加上如下行：
 > `PS1="BKM> " /bin/sh`
 	
 * *Release*版本，在sysinit调用***pcd***前，调用阻塞式的子进程来启动*/bin/sh*。
@@ -119,14 +129,18 @@ E.g.
 * 或者合并已经修改后的*Makefile.am*：
 	> `meld dazhu/patch/network_Makefile.am ../../nemotv/src/network/Makefile.am`
 
-###### nemotv/external/ntvwebkit/Source/WebKit/gtk/webkit/webkitwebview.cpp
+#### 修改nemotv/external/ntvwebkit/Source/WebKit/gtk/webkit/webkitwebview.cpp
 修改 *NTV_WEBKITVIEW_LOG* 宏为 `#define NTV_WEBKITVIEW_LOG nsulog_info` 即可。
 - `vim ../../nemotv/external/ntvwebkit/Source/WebKit/gtk/webkit/webkitwebview.cpp`
 
 #### 编译
-编译过程和直接使用*make*类似，区别是使用*m.bld.tf*替换到*make*即可。
-`./m.bld.tf <其他make的参数>`
+编译过程和直接使用 `make` 类似，区别是使用 `m.bld.tf` 替换到 `make` 即可。
+
+> `./m.bld.tf <其他make的参数>`
 
 比如：
 > `./m.bld.tf all image V=1`
+
+#### 运行
+系统启动后，会自动进入 `BKM> ` 提示符，在这里，请输入 `xxn` 和 `xmu` 命令，修改配置文件。等到一切就绪后，按 `Ctrl+D` 返回正常启动流程，盒子就启动起来了。
 
