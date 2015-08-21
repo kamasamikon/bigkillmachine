@@ -22,3 +22,18 @@ if dazhu_name != "dazhu":
 os.system("cp -frvL '%s' ." % dazhu_path)
 os.system("chmod a+x dazhu -R")
 
+fmt_red = "\033[1;31m%s\033[0m"
+fmt_yellow = "\033[1;33m%s\033[0m"
+
+print
+print "+++++++++++++++++++++++++++++ DONE +++++++++++++++++++++++++++++"
+print
+print
+print
+print "++++++++++++++++++++++++ WHAT ARE NEXT +++++++++++++++++++++++++"
+print
+print "Please run " + (fmt_yellow % "`ln -s dazhu/m m.<BUILD_TYPE>.<CONFIG_TYPE>`") + " to create the BKM make file"
+print "E.g.:"
+print fmt_red % "ln -s dazhu/m m.sdk.tbc_phase1"
+print fmt_red % "ln -s dazhu/m m.relase.tbc_phase1"
+
