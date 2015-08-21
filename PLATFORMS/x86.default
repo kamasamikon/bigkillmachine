@@ -1,7 +1,5 @@
 # => -DPLATFORM_X86
 BKM_PLATFORM := x86
-# yes => -g3, no => -O3
-BKM_DEBUG := yes
 
 # Will Add the $PATH
 GCC_PATH +=

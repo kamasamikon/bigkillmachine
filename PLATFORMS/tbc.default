@@ -1,15 +1,15 @@
-# => -DPLATFORM_7356
-BKM_PLATFORM := 7356
+# => -DPLATFORM_tbc
+BKM_PLATFORM := tbc
 
 # NTV Project Root directory
-PRJ_ROOT = /fedora/eoe/nemotv/neyu_nemopc_2331/NTV_OS/NemoTV5/DEVELOP/TLFA+
+PRJ_ROOT = /fedora/eoe/nemotv/neyu_nemopc_2331/NTV_OS/NemoTV5/DEVELOP/tbc_phase1
 
 # Will Add the $PATH
 GCC_PATH += $(PRJ_ROOT)/../toolchains/stbgcc-4.5.4-2.5/bin
 
-SYSROOT_DIR = $(PRJ_ROOT)/ntvtgt/tc7356d_uclibc_bc/bld_tf/staging
+SYSROOT_DIR = $(PRJ_ROOT)/ntvtgt/hc7583_uclibc_bc/bld_tbc_dta_phase1/staging
 
-PKG_CONFIG = $(PRJ_ROOT)/ntvtgt/tc7356d_uclibc_bc/bld_tf/host/usr/bin/pkg-config 
+PKG_CONFIG = $(PRJ_ROOT)/ntvtgt/hc7583_uclibc_bc/bld_tbc_dta_phase1/host/usr/bin/pkg-config 
 
 INCDIR += -I $(PRJ_ROOT)/../toolchains/stbgcc-4.5.4-2.5/mipsel-linux-uclibc/sys-root/usr/include  
 
@@ -17,7 +17,7 @@ LIBS += -lpthread -lrt -ldl
 
 DEFINES += -D_REENTRANT
 
-CFLAGS += -fno-strict-aliasing
+CFLAGS += -fno-strict-aliasing -O3
 
 PKG_CONFIG_PATH="$(SYSROOT_DIR)/usr/lib/pkgconfig:$(SYSROOT_DIR)/$(NEMOTV_INSTALL_DIR)/lib/pkgconfig:$(SYSROOT_DIR)/usr/share/pkgconfig" 
 

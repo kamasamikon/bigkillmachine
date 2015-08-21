@@ -1,5 +1,5 @@
-export HI_PRJ_ROOT = ../..
--include $(HI_PRJ_ROOT)/Makefile.defs
+export BKM_PRJ_ROOT = ../..
+-include $(BKM_PRJ_ROOT)/Makefile.defs
 
 SUB_OBJS_dagou = \
 				 ./nbuf.o \
@@ -42,4 +42,4 @@ LDFLAGS += -lglib-2.0
 
 all: $(LOCAL_OUT_LIB) $(LOCAL_SHARE_LIB)
 
--include $(HI_PRJ_ROOT)/Makefile.rules
+-include $(BKM_PRJ_ROOT)/Makefile.rules

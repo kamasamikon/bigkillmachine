@@ -1,10 +1,4 @@
--include $(HI_PRJ_ROOT)/.buildenv
-
-ifeq ($(HILDA_DEBUG),yes)
-	CFLAGS += -g3
-else
-	CFLAGS += -O3
-endif
+-include $(BKM_PRJ_ROOT)/.buildenv
 
 CFLAGS += $(DEFINES) $(INCDIR)
 LDFLAGS += $(LIBS)

@@ -1,5 +1,5 @@
-export HI_PRJ_ROOT = ../..
--include $(HI_PRJ_ROOT)/Makefile.defs
+export BKM_PRJ_ROOT = ../..
+-include $(BKM_PRJ_ROOT)/Makefile.defs
 
 LOCAL_OUT_ELF = inotdo
 LOCAL_OUT_OBJS = inotdo.o 
@@ -8,5 +8,5 @@ LOCAL_OUT_OBJS = inotdo.o
 
 all: $(LOCAL_OUT_ELF) $(LOCAL_OUT_OBJS) 
 
--include $(HI_PRJ_ROOT)/Makefile.rules
+-include $(BKM_PRJ_ROOT)/Makefile.rules
 
