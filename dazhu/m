@@ -13,6 +13,8 @@ if [ "${CMD}" != "m" ]; then
     exit
 fi
 
+OUTPUT_DIR=${BLD}_${CFG}
+
 ### #####################################################################
 ## Append bkmpost.sh to post_process.sh
 #
@@ -31,7 +33,7 @@ make DEBUG_INIT=1 CONFIG_TYPE=${CFG} BUILD_TYPE=${BLD} $1 $2 $3 $4 $5 $6 $7 $8 $
 TM_A=`date +%s`
 DIFF=`expr ${TM_A} - ${TM_B}`
 
-echo "Build cost: " `fmtTime.py ${DIFF}`
+echo "Build cost: " `dazhu/fmtTime.py ${DIFF}`
 
 sed -i "/bkmpost_placeHolder_83264/d" post_process.sh
 sed -i "/bkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
