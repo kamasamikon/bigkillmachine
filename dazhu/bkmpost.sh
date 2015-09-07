@@ -81,35 +81,35 @@ inst_busybox ${OUT}/${BLD}_${CFG}/target/bin
 inst_dagou() {
     echo "inst_dagou"
     # GouZi
-    cp -f ${OUT}/dazhu/libdagou.so ${OUT}/${BLD}_${CFG}/target/lib
+    cp -fa ${OUT}/dazhu/libdagou.so ${OUT}/${BLD}_${CFG}/target/lib
 }
 inst_dagou
 
 inst_daxia() {
     echo "inst_daxia"
     # XiaShuiDao
-    cp -f ${OUT}/dazhu/daxia ${OUT}/${BLD}_${CFG}/target/bin
+    cp -fa ${OUT}/dazhu/daxia ${OUT}/${BLD}_${CFG}/target/bin
 }
 inst_daxia
 
 inst_dr() {
     echo "inst_dr"
     # DA Runtime Configure
-    cp -f ${OUT}/dazhu/dr ${OUT}/${BLD}_${CFG}/target/bin
+    cp -fa ${OUT}/dazhu/dr ${OUT}/${BLD}_${CFG}/target/bin
 }
 inst_dr
 
 inst_inotdo() {
     echo "inst_inotdo"
     # DA Runtime Configure
-    cp -f ${OUT}/dazhu/inotdo ${OUT}/${BLD}_${CFG}/target/bin
+    cp -fa ${OUT}/dazhu/inotdo ${OUT}/${BLD}_${CFG}/target/bin
 }
 inst_inotdo
 
 inst_dabao() {
     echo "inst_dabao"
     # BaoGuoChengXu
-    cp -f ${OUT}/dazhu/dabao ${OUT}/${BLD}_${CFG}/target/home/ntvroot/dabao
+    cp -fa ${OUT}/dazhu/dabao ${OUT}/${BLD}_${CFG}/target/home/ntvroot/dabao
 }
 inst_dabao
 
@@ -129,17 +129,17 @@ inst_dabie
 inst_dapei() {
     echo "inst_dapei"
     # PeiZhiWenJian
-    cp -f ${OUT}/dazhu/dapei ${OUT}/${BLD}_${CFG}/target/home/ntvroot/dapei
+    cp -fa ${OUT}/dazhu/dapei ${OUT}/${BLD}_${CFG}/target/home/ntvroot/dapei
     sed -i "s@HOSTIP@`ifconfig eth0 | tr ':' ' ' | awk '/inet addr / { print $3 }'`@g" ${OUT}/${BLD}_${CFG}/target/home/ntvroot/dapei
 }
 inst_dapei
 
 inst_cfgXet() {
     echo "inst_cfgXet"
-    cp -f ${OUT}/${BLD}_${CFG}/build/dbus-1.4.16/tools/dbus-send ${OUT}/${BLD}_${CFG}/target/bin
+    cp -fa ${OUT}/${BLD}_${CFG}/build/dbus-1.4.16/tools/dbus-send ${OUT}/${BLD}_${CFG}/target/bin
 
-    cp -f ${OUT}/dazhu/cfgset ${OUT}/${BLD}_${CFG}/target/bin
-    cp -f ${OUT}/dazhu/cfgget ${OUT}/${BLD}_${CFG}/target/bin
+    cp -fa ${OUT}/dazhu/cfgset ${OUT}/${BLD}_${CFG}/target/bin
+    cp -fa ${OUT}/dazhu/cfgget ${OUT}/${BLD}_${CFG}/target/bin
 }
 inst_cfgXet
 
@@ -159,7 +159,7 @@ gen_telnet_script__xxn() {
 
     echo "" >> ${OUTPUT}
     echo "# start udhcpc" >> ${OUTPUT}
-    echo "cp /usr/share/udhcpc/default.script /tmp" >> ${OUTPUT}
+    echo "cp -fa /usr/share/udhcpc/default.script /tmp" >> ${OUTPUT}
     echo "sed -i 's/sbin/bin/g' /tmp/default.script" >> ${OUTPUT}
     echo "nohup udhcpc -s /tmp/default.script" >> ${OUTPUT}
     echo "" >> ${OUTPUT}
@@ -188,23 +188,23 @@ gen_mkm_stuff__xmu() {
     echo "chmod a+rwx /dev/console" >> ${OUTPUT}
 
     echo "" >> ${OUTPUT}
-    echo "cp /home/ntvroot/dalog.dfcfg /tmp/" >> ${OUTPUT}
+    echo "cp -fa /home/ntvroot/dalog.dfcfg /tmp/" >> ${OUTPUT}
     echo "touch /tmp/dalog.rtcfg" >> ${OUTPUT}
 
     echo "" >> ${OUTPUT}
     echo "# dabao stuff" >> ${OUTPUT}
-    echo "cp /home/ntvroot/dabao /tmp/" >> ${OUTPUT}
+    echo "cp -fa /home/ntvroot/dabao /tmp/" >> ${OUTPUT}
     for ntvapp in ${NTVAPPS}; do
-        echo "cp /tmp/dabao /tmp/dabao__${ntvapp}" >> ${OUTPUT}
+        echo "cp -fa /tmp/dabao /tmp/dabao__${ntvapp}" >> ${OUTPUT}
     done
 
     echo "" >> ${OUTPUT}
     echo "# dabao file" >> ${OUTPUT}
-    echo "cp /home/ntvroot/dapei /tmp/" >> ${OUTPUT}
+    echo "cp -fa /home/ntvroot/dapei /tmp/" >> ${OUTPUT}
 
     echo "" >> ${OUTPUT}
     echo "# Original PCD" >> ${OUTPUT}
-    echo "cp /etc/rules.pcd /tmp/" >> ${OUTPUT}
+    echo "cp -fa /etc/rules.pcd /tmp/" >> ${OUTPUT}
     echo "sed -i 's:/tmp/dabao__:/usr/local/bin/:g' /tmp/rules.pcd" >> ${OUTPUT}
 }
 gen_mkm_stuff__xmu

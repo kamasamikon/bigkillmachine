@@ -19,7 +19,7 @@ if dazhu_name != "dazhu":
     print "The original script must in dazhu dir"
     exit(1)
 
-os.system("cp -frvL '%s' ." % dazhu_path)
+os.system("cp -frvaL '%s' ." % dazhu_path)
 os.system("chmod a+x dazhu -R")
 
 fmt_red = "\033[1;31m%s\033[0m"

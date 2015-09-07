@@ -21,6 +21,7 @@ OUTPUT_DIR=${BLD}_${CFG}
 sed -i "/bkmpost_placeHolder_83264/d" post_process.sh
 sed -i "/bkmpost_placeHolder_83264/d" ${OUTPUT_DIR}/ntv_customize_fs.txt
 
+echo '' >> post_process.sh
 echo 'echo "${WORKING_DIR}/dazhu/bkmpost.sh ${BUILD_TYPE} ${CONFIG_TYPE} ${WORKING_DIR} bkmpost_placeHolder_83264" >> ${OUTPUT_DIR}/ntv_customize_fs.txt' >> post_process.sh
 
 ### #####################################################################

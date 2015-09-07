@@ -12,7 +12,7 @@ static pid_t run_command(char *const argv)
 {
 	pid_t pid;
 
-	pid = fork();
+	pid = vfork();
 	if (0 == pid) {
 		/* child process, execute the command */
 		printf("================================================================\n");

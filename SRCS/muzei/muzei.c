@@ -176,7 +176,7 @@ static pid_t run_command(char *const argv[], char *const envp[])
 {
 	pid_t pid;
 
-	pid = fork();
+	pid = vfork();
 	if (0 == pid) {
 		/* child process, execute the command */
 		execve(argv[0], argv, envp);
