@@ -11,12 +11,13 @@
 static pid_t run_command(char *const argv)
 {
 	pid_t pid;
+	int ret;
 
 	pid = vfork();
 	if (0 == pid) {
 		/* child process, execute the command */
 		printf("================================================================\n");
-		system(argv);
+		ret = system(argv);
 		printf("----------------------------------------------------------------\n");
 		exit(EXIT_FAILURE);
 	}
@@ -70,64 +71,66 @@ static unsigned int get_mask(const char *maskstr)
 
 static void dump_event(struct inotify_event *event)
 {
-	char mask_buff[1024];
+	char mask[1024], *name;
 	int bytes = 0;
 
 	if (event->mask & IN_ACCESS)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "ACCESS");
+		bytes += sprintf(&mask[bytes], " %s |", "ACCESS");
 	if (event->mask & IN_MODIFY)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "MODIFY");
+		bytes += sprintf(&mask[bytes], " %s |", "MODIFY");
 	if (event->mask & IN_ATTRIB)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "ATTRIB");
+		bytes += sprintf(&mask[bytes], " %s |", "ATTRIB");
 	if (event->mask & IN_CLOSE_WRITE)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "CLOSE_WRITE");
+		bytes += sprintf(&mask[bytes], " %s |", "CLOSE_WRITE");
 	if (event->mask & IN_CLOSE_NOWRITE)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "CLOSE_NOWRITE");
+		bytes += sprintf(&mask[bytes], " %s |", "CLOSE_NOWRITE");
 	if (event->mask & IN_OPEN)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "OPEN");
+		bytes += sprintf(&mask[bytes], " %s |", "OPEN");
 	if (event->mask & IN_MOVED_FROM)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "MOVED_FROM");
+		bytes += sprintf(&mask[bytes], " %s |", "MOVED_FROM");
 	if (event->mask & IN_MOVED_TO)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "MOVED_TO");
+		bytes += sprintf(&mask[bytes], " %s |", "MOVED_TO");
 	if (event->mask & IN_CREATE)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "CREATE");
+		bytes += sprintf(&mask[bytes], " %s |", "CREATE");
 	if (event->mask & IN_DELETE)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "DELETE");
+		bytes += sprintf(&mask[bytes], " %s |", "DELETE");
 	if (event->mask & IN_DELETE_SELF)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "DELETE_SELF");
+		bytes += sprintf(&mask[bytes], " %s |", "DELETE_SELF");
 	if (event->mask & IN_MOVE_SELF)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "MOVE_SELF");
+		bytes += sprintf(&mask[bytes], " %s |", "MOVE_SELF");
 
 	if (event->mask & IN_UNMOUNT)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "UNMOUNT");
+		bytes += sprintf(&mask[bytes], " %s |", "UNMOUNT");
 	if (event->mask & IN_Q_OVERFLOW)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "Q_OVERFLOW");
+		bytes += sprintf(&mask[bytes], " %s |", "Q_OVERFLOW");
 	if (event->mask & IN_IGNORED)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "IGNORED");
+		bytes += sprintf(&mask[bytes], " %s |", "IGNORED");
 
 	if (event->mask & IN_ONLYDIR)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "ONLYDIR");
+		bytes += sprintf(&mask[bytes], " %s |", "ONLYDIR");
 	if (event->mask & IN_DONT_FOLLOW)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "DONT_FOLLOW");
+		bytes += sprintf(&mask[bytes], " %s |", "DONT_FOLLOW");
 #if 0
 	if (event->mask & IN_EXCL_UNLINK)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "EXCL_UNLINK");
+		bytes += sprintf(&mask[bytes], "%s |", "EXCL_UNLINK");
 #endif
 
 	if (event->mask & IN_MASK_ADD)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "MASK_ADD");
+		bytes += sprintf(&mask[bytes], " %s |", "MASK_ADD");
 	if (event->mask & IN_ISDIR)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "ISDIR");
+		bytes += sprintf(&mask[bytes], " %s |", "ISDIR");
 	if (event->mask & IN_ONESHOT)
-		bytes += sprintf(&mask_buff[bytes], " %s |", "ONESHOT");
+		bytes += sprintf(&mask[bytes], " %s |", "ONESHOT");
 
-	printf("> name : %s\n", (event->len > 0) ? event->name : "(null)");
+	name = (event->len > 0) ? event->name : "(null)";
+	printf("> name : %s\n", name);
 
 	if (bytes) {
-		mask_buff[bytes - 2] = '\0';
-		printf("> mask :%s\n\n", mask_buff);
-	} else
+		mask[bytes - 2] = '\0';
+		printf("> mask :%s\n\n", mask);
+	} else {
 		printf("> mask :%s\n\n", " (null)");
+	}
 }
 
 static void dump_events(struct inotify_event *events, int len)
@@ -144,6 +147,119 @@ static void dump_events(struct inotify_event *events, int len)
 
 		offset += sizeof(struct inotify_event) + event->len;
 	}
+}
+
+static void set_subenv(struct inotify_event *event, int index)
+{
+	char mask[1024], *name;
+	int bytes = 0;
+
+	char envname[256], envmask[256];
+
+	sprintf(envname, "WBG_NAME_%d", index);
+	sprintf(envmask, "WBG_MASK_%d", index);
+
+	if (event->mask & IN_ACCESS)
+		bytes += sprintf(&mask[bytes], " %s |", "ACCESS");
+	if (event->mask & IN_MODIFY)
+		bytes += sprintf(&mask[bytes], " %s |", "MODIFY");
+	if (event->mask & IN_ATTRIB)
+		bytes += sprintf(&mask[bytes], " %s |", "ATTRIB");
+	if (event->mask & IN_CLOSE_WRITE)
+		bytes += sprintf(&mask[bytes], " %s |", "CLOSE_WRITE");
+	if (event->mask & IN_CLOSE_NOWRITE)
+		bytes += sprintf(&mask[bytes], " %s |", "CLOSE_NOWRITE");
+	if (event->mask & IN_OPEN)
+		bytes += sprintf(&mask[bytes], " %s |", "OPEN");
+	if (event->mask & IN_MOVED_FROM)
+		bytes += sprintf(&mask[bytes], " %s |", "MOVED_FROM");
+	if (event->mask & IN_MOVED_TO)
+		bytes += sprintf(&mask[bytes], " %s |", "MOVED_TO");
+	if (event->mask & IN_CREATE)
+		bytes += sprintf(&mask[bytes], " %s |", "CREATE");
+	if (event->mask & IN_DELETE)
+		bytes += sprintf(&mask[bytes], " %s |", "DELETE");
+	if (event->mask & IN_DELETE_SELF)
+		bytes += sprintf(&mask[bytes], " %s |", "DELETE_SELF");
+	if (event->mask & IN_MOVE_SELF)
+		bytes += sprintf(&mask[bytes], " %s |", "MOVE_SELF");
+
+	if (event->mask & IN_UNMOUNT)
+		bytes += sprintf(&mask[bytes], " %s |", "UNMOUNT");
+	if (event->mask & IN_Q_OVERFLOW)
+		bytes += sprintf(&mask[bytes], " %s |", "Q_OVERFLOW");
+	if (event->mask & IN_IGNORED)
+		bytes += sprintf(&mask[bytes], " %s |", "IGNORED");
+
+	if (event->mask & IN_ONLYDIR)
+		bytes += sprintf(&mask[bytes], " %s |", "ONLYDIR");
+	if (event->mask & IN_DONT_FOLLOW)
+		bytes += sprintf(&mask[bytes], " %s |", "DONT_FOLLOW");
+#if 0
+	if (event->mask & IN_EXCL_UNLINK)
+		bytes += sprintf(&mask[bytes], "%s |", "EXCL_UNLINK");
+#endif
+
+	if (event->mask & IN_MASK_ADD)
+		bytes += sprintf(&mask[bytes], " %s |", "MASK_ADD");
+	if (event->mask & IN_ISDIR)
+		bytes += sprintf(&mask[bytes], " %s |", "ISDIR");
+	if (event->mask & IN_ONESHOT)
+		bytes += sprintf(&mask[bytes], " %s |", "ONESHOT");
+
+	name = (event->len > 0) ? event->name : "(null)";
+	setenv(envname, name, 1);
+
+	if (bytes) {
+		mask[bytes - 2] = '\0';
+		setenv(envmask, &mask[1], 1);
+	} else {
+		setenv(envmask, "(null)", 1);
+	}
+}
+
+static void unset_old_env()
+{
+	char *wbg_events;
+	int i, count;
+	char env[255];
+
+	wbg_events = getenv("WBG_EVENTS");
+	if (!wbg_events)
+		return;
+
+	count = atoi(wbg_events);
+	for (i = 0; i < count; i++) {
+		snprintf(env, sizeof(env), "WBG_NAME_%d", i);
+		unsetenv(env);
+		snprintf(env, sizeof(env), "WBG_MASK_%d", i);
+		unsetenv(env);
+	}
+	unsetenv("WBG_EVENTS");
+}
+
+static void set_subenvs(struct inotify_event *events, int len)
+{
+	unsigned char *ptr = (unsigned char*)events;
+	int offset, index;
+	char count[24];
+
+	struct inotify_event *event;
+
+	unset_old_env();
+
+	offset = 0;
+	index = 0;
+	while (offset < len) {
+		event = (struct inotify_event*)(void*)(&ptr[offset]);
+		set_subenv(event, index);
+
+		offset += sizeof(struct inotify_event) + event->len;
+		index++;
+	}
+
+	sprintf(count, "%d", index);
+	setenv("WBG_EVENTS", count, 1);
 }
 
 int main(int argc, char *argv[])
@@ -222,8 +338,10 @@ int main(int argc, char *argv[])
 			if (verbose)
 				dump_events(events, bytes);
 
-			if (commandline)
+			if (commandline) {
+				set_subenvs(events, bytes);
 				run_command(commandline);
+			}
 		}
 	}
 
