@@ -74,60 +74,60 @@ static void dump_event(struct inotify_event *event)
 	int bytes = 0;
 
 	if (event->mask & IN_ACCESS)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "ACCESS");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "ACCESS");
 	if (event->mask & IN_MODIFY)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "MODIFY");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "MODIFY");
 	if (event->mask & IN_ATTRIB)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "ATTRIB");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "ATTRIB");
 	if (event->mask & IN_CLOSE_WRITE)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "CLOSE_WRITE");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "CLOSE_WRITE");
 	if (event->mask & IN_CLOSE_NOWRITE)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "CLOSE_NOWRITE");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "CLOSE_NOWRITE");
 	if (event->mask & IN_OPEN)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "OPEN");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "OPEN");
 	if (event->mask & IN_MOVED_FROM)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "MOVED_FROM");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "MOVED_FROM");
 	if (event->mask & IN_MOVED_TO)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "MOVED_TO");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "MOVED_TO");
 	if (event->mask & IN_CREATE)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "CREATE");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "CREATE");
 	if (event->mask & IN_DELETE)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "DELETE");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "DELETE");
 	if (event->mask & IN_DELETE_SELF)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "DELETE_SELF");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "DELETE_SELF");
 	if (event->mask & IN_MOVE_SELF)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "MOVE_SELF");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "MOVE_SELF");
 
 	if (event->mask & IN_UNMOUNT)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "UNMOUNT");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "UNMOUNT");
 	if (event->mask & IN_Q_OVERFLOW)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "Q_OVERFLOW");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "Q_OVERFLOW");
 	if (event->mask & IN_IGNORED)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "IGNORED");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "IGNORED");
 
 	if (event->mask & IN_ONLYDIR)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "ONLYDIR");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "ONLYDIR");
 	if (event->mask & IN_DONT_FOLLOW)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "DONT_FOLLOW");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "DONT_FOLLOW");
 #if 0
 	if (event->mask & IN_EXCL_UNLINK)
 		bytes += sprintf(&mask_buff[bytes], "%s |", "EXCL_UNLINK");
 #endif
 
 	if (event->mask & IN_MASK_ADD)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "MASK_ADD");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "MASK_ADD");
 	if (event->mask & IN_ISDIR)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "ISDIR");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "ISDIR");
 	if (event->mask & IN_ONESHOT)
-		bytes += sprintf(&mask_buff[bytes], "%s |", "ONESHOT");
+		bytes += sprintf(&mask_buff[bytes], " %s |", "ONESHOT");
 
 	printf("> name : %s\n", (event->len > 0) ? event->name : "(null)");
 
 	if (bytes) {
 		mask_buff[bytes - 2] = '\0';
-		printf("> mask : %s\n\n", mask_buff);
+		printf("> mask :%s\n\n", mask_buff);
 	} else
-		printf("> mask : %s\n\n", "(null)");
+		printf("> mask :%s\n\n", " (null)");
 }
 
 static void dump_events(struct inotify_event *events, int len)
@@ -153,9 +153,11 @@ int main(int argc, char *argv[])
 	unsigned int mask;
 	int bytes;
 
+	char *commandline;
+
 	int verbose;
 
-	if (argc < 4) {
+	if (argc < 3) {
 		printf("usage: inotdo file mask command ...\n");
 		printf("mask:\n");
 		printf("        access : File was accessed.\n");
@@ -198,6 +200,11 @@ int main(int argc, char *argv[])
 	else
 		verbose = 0;
 
+	if (argc > 3)
+		commandline = argv[3];
+	else
+		commandline = NULL;
+
 	while (1) {
 		struct pollfd pfd = { fd, POLLIN, 0 };
 		int ret = poll(&pfd, 1, 50);
@@ -214,7 +221,9 @@ int main(int argc, char *argv[])
 
 			if (verbose)
 				dump_events(events, bytes);
-			run_command(argv[3]);
+
+			if (commandline)
+				run_command(commandline);
 		}
 	}
 
