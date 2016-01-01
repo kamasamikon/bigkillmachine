@@ -2,19 +2,38 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/inotify.h>
+#include <sys/time.h>
 #include <poll.h>
 
-static pid_t run_command(char *const argv)
+static void set_subenvs(struct inotify_event *events, int len);
+
+static uint64_t cur_time(void)
+{
+	uint64_t us;
+	struct timeval tv;
+
+	gettimeofday(&tv, NULL);
+
+	us = tv.tv_sec;
+	us *= 1000 * 1000;
+	us += tv.tv_usec;
+
+	return us;
+}
+static pid_t run_command(char *const argv, struct inotify_event *events, int len)
 {
 	pid_t pid;
 	int ret;
 
 	pid = vfork();
 	if (0 == pid) {
+		set_subenvs(events, len);
+
 		/* child process, execute the command */
 		printf("================================================================\n");
 		ret = system(argv);
@@ -218,26 +237,6 @@ static void set_subenv(struct inotify_event *event, int index)
 	}
 }
 
-static void unset_old_env()
-{
-	char *wbg_events;
-	int i, count;
-	char env[255];
-
-	wbg_events = getenv("WBG_EVENTS");
-	if (!wbg_events)
-		return;
-
-	count = atoi(wbg_events);
-	for (i = 0; i < count; i++) {
-		snprintf(env, sizeof(env), "WBG_NAME_%d", i);
-		unsetenv(env);
-		snprintf(env, sizeof(env), "WBG_MASK_%d", i);
-		unsetenv(env);
-	}
-	unsetenv("WBG_EVENTS");
-}
-
 static void set_subenvs(struct inotify_event *events, int len)
 {
 	unsigned char *ptr = (unsigned char*)events;
@@ -245,8 +244,6 @@ static void set_subenvs(struct inotify_event *events, int len)
 	char count[24];
 
 	struct inotify_event *event;
-
-	unset_old_env();
 
 	offset = 0;
 	index = 0;
@@ -268,10 +265,12 @@ int main(int argc, char *argv[])
 	struct inotify_event events[1024];
 	unsigned int mask;
 	int bytes;
+	int cmd_delayed = 0;
 
-	char *commandline;
+	char *commandline = NULL;
 
-	int verbose;
+	int verbose = 0, delay_mode = 0;
+	uint64_t delay_time;
 
 	if (argc < 3) {
 		printf("usage: inotdo file mask command ...\n");
@@ -293,6 +292,7 @@ int main(int argc, char *argv[])
 		printf("           all : Ored all above.\n");
 		printf("\n");
 		printf("env[WBG_DEBUG] : Show verbose.\n");
+		printf("env[WBG_DELAY] : Delay the command after some ms.\n");
 		printf("\n");
 		printf("e.g.: inotdo /tmp/abc access,move 'echo \"xxx\"; ls'\n");
 		return -1;
@@ -311,24 +311,34 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	if (getenv("WBG_DEBUG"))
+	if (getenv("WBG_DEBUG")) {
+		printf("WBG: WBG_DEBUG set.\n");
 		verbose = 1;
-	else
-		verbose = 0;
+	}
+
+	if (getenv("WBG_DELAY")) {
+		delay_mode = 1;
+		delay_time = atoi(getenv("WBG_DELAY"));
+		if (delay_time < 50)
+			delay_time = 50;
+
+		printf("WBG: WBG_DELAY set, is %d ms.\n", (int)(long)delay_time);
+		delay_time *= 1000;
+	}
 
 	if (argc > 3)
 		commandline = argv[3];
-	else
-		commandline = NULL;
 
 	while (1) {
 		struct pollfd pfd = { fd, POLLIN, 0 };
-		int ret = poll(&pfd, 1, 50);
+		int ret = poll(&pfd, 1, 10);
+
 		if (ret < 0) {
 			fprintf(stderr, "poll failed: %s\n", strerror(errno));
-		} else if (ret == 0) {
-			// Timeout with no events, move on.
-		} else {
+			continue;
+		}
+
+		if (ret > 0) {
 			bytes = read(fd, (void*)&events, sizeof(events));
 			if (-1 == bytes) {
 				fprintf(stderr, "read NG: %s\n", strerror(errno));
@@ -338,9 +348,29 @@ int main(int argc, char *argv[])
 			if (verbose)
 				dump_events(events, bytes);
 
-			if (commandline) {
-				set_subenvs(events, bytes);
-				run_command(commandline);
+			if (!commandline)
+				continue;
+
+			if (delay_mode) {
+				cmd_delayed = 1;
+				continue;
+			}
+
+			run_command(commandline, events, bytes);
+		}
+
+		/*
+		 * timeout happens, check the delay command
+		 */
+		if (delay_mode && commandline && cmd_delayed) {
+			static uint64_t last_command_time = 0;
+			uint64_t now = cur_time();
+
+			if (now - last_command_time > delay_time) {
+				run_command(commandline, NULL, 0);
+
+				last_command_time = now;
+				cmd_delayed = 0;
 			}
 		}
 	}

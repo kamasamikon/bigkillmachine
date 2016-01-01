@@ -34,6 +34,6 @@ print "++++++++++++++++++++++++ WHAT ARE NEXT +++++++++++++++++++++++++"
 print
 print "Please run " + (fmt_yellow % "`ln -s dazhu/m m.<BUILD_TYPE>.<CONFIG_TYPE>`") + " to create the BKM make file"
 print "E.g.:"
-print fmt_red % "ln -s dazhu/m m.sdk.tbc_phase1"
+print fmt_red % "ln -s dazhu/m m.bld.tbc_phase1"
 print fmt_red % "ln -s dazhu/m m.relase.tbc_phase1"
 
