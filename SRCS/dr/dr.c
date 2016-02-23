@@ -26,6 +26,9 @@ static void help()
 	printf("Marks:\n");
 	printf("    P=prog M=modu F=file H=func N=line\n");
 	printf("    s=RTM S=ATM j=PID x=TID\n");
+	printf("\n");
+	printf("Note:\n");
+	printf("    If env DR_RTCFG not set, use /tmp/klog.rtcfg instead.\n");
 }
 
 int main(int argc, char *argv[])
@@ -34,11 +37,16 @@ int main(int argc, char *argv[])
 
 	int argl;
 	char *args;
+	char *rtcfg;
 
 	static char prog[SZ], modu[SZ], file[SZ], func[SZ], line[SZ], mask[SZ];
 	static char cfgline[SZ];
 
 	FILE *fp;
+
+	rtcfg = getenv("DR_RTCFG");
+	if (!rtcfg)
+		rtcfg = (char*)"/tmp/klog.rtcfg";
 
 	for (i = 1; i < argc; i++) {
 		args = argv[i];
@@ -155,11 +163,13 @@ int main(int argc, char *argv[])
 	strcat(cfgline, "mask=");
 	strcat(cfgline, mask);
 
-	printf("%s\n", cfgline);
+	printf("  RTCFG : %s\n", rtcfg);
+	printf("CFGLINE : %s\n", cfgline);
 
-	fp = fopen("/tmp/dalog.rtcfg", "a");
+	fp = fopen(rtcfg, "a");
 	if (!fp) {
-		printf("Open /tmp/dalog.rtcfg failed, errno: %d\n", errno);
+		printf("Open %s failed, errno: %d\n", rtcfg, errno);
+		return -1;
 	}
 
 	fprintf(fp, "%s\n", cfgline);
