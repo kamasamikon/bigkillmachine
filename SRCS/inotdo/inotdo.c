@@ -2,43 +2,99 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
 #include <sys/inotify.h>
-#include <sys/time.h>
 #include <poll.h>
+#include <stdarg.h>
 
-static void set_subenvs(struct inotify_event *events, int len);
+typedef struct _watchinf_s watchinf_s;
+struct _watchinf_s {
+	int wd;
+	int msc_idx;
+	int cmd_idx;
+	char *file;
+};
 
-static uint64_t cur_time(void)
+static int __argc;
+static char **__argv;
+
+static watchinf_s *__wchinf = NULL;
+static int __wchinf_cnt = 0;
+
+static int __debug_mode = 0;
+
+static void set_subenv(struct inotify_event *event);
+
+/* Mask array and Command arrary */
+int __msc_cnt = 0;
+char **__msc_name, **__msc_content;
+
+int __cmd_idx = 0;
+char **__cmd_name, **__cmd_content;
+
+static void logmsg(const char *fmt, ...)
 {
-	uint64_t us;
-	struct timeval tv;
+	va_list ap;
 
-	gettimeofday(&tv, NULL);
-
-	us = tv.tv_sec;
-	us *= 1000 * 1000;
-	us += tv.tv_usec;
-
-	return us;
+	if (__debug_mode) {
+		va_start(ap, fmt);
+		vprintf(fmt, ap);
+		va_end(ap);
+	}
 }
-static pid_t run_command(char *const argv, struct inotify_event *events, int len)
+
+static watchinf_s *watchinf_find(int wd)
+{
+	int i;
+	watchinf_s *wi;
+
+	for (i = 0; i < __wchinf_cnt; i++) {
+		wi = &__wchinf[i];
+		if (wi->wd < 0)
+			return NULL;
+		if (wi->wd == wd)
+			return wi;
+	}
+	return NULL;
+}
+
+static unsigned int uptime(void)
+{
+	FILE *fp = fopen("/proc/uptime", "r");
+	unsigned int retval = 0;
+	char tmp[64] = { 0 };
+	char *res = NULL;
+
+	if (fp) {
+		res = fgets(tmp, sizeof(tmp), fp);
+		retval = (int)(atof(tmp)) * 1000;
+		fclose(fp);
+	}
+
+	return retval;
+}
+
+static pid_t run_command(char *const argv, struct inotify_event *event)
 {
 	pid_t pid;
 	int ret;
 
-	pid = vfork();
+	pid = fork();
 	if (0 == pid) {
-		set_subenvs(events, len);
+		set_subenv(event);
 
 		/* child process, execute the command */
+#if 0
+		execvp(argv[0], argv);
+		_exit(EXIT_FAILURE);
+#else
 		printf("================================================================\n");
 		ret = system(argv);
 		printf("----------------------------------------------------------------\n");
-		exit(EXIT_FAILURE);
+		exit(ret);
+#endif
 	}
 
 	return pid;
@@ -90,7 +146,7 @@ static unsigned int get_mask(const char *maskstr)
 
 static void dump_event(struct inotify_event *event)
 {
-	char mask[1024], *name;
+	char mask[1024];
 	int bytes = 0;
 
 	if (event->mask & IN_ACCESS)
@@ -141,42 +197,28 @@ static void dump_event(struct inotify_event *event)
 	if (event->mask & IN_ONESHOT)
 		bytes += sprintf(&mask[bytes], " %s |", "ONESHOT");
 
-	name = (event->len > 0) ? event->name : "(null)";
-	printf("> name : %s\n", name);
+	watchinf_s *wi = watchinf_find(event->wd);
+	if (wi)
+		logmsg("> file : %s\n", wi->file);
+
 
 	if (bytes) {
 		mask[bytes - 2] = '\0';
-		printf("> mask :%s\n\n", mask);
+		logmsg("> mask :%s\n\n", mask);
 	} else {
-		printf("> mask :%s\n\n", " (null)");
+		logmsg("> mask :%s\n\n", " (null)");
 	}
 }
 
-static void dump_events(struct inotify_event *events, int len)
+static void set_subenv(struct inotify_event *event)
 {
-	unsigned char *ptr = (unsigned char*)events;
-	int offset;
-
-	struct inotify_event *event;
-
-	offset = 0;
-	while (offset < len) {
-		event = (struct inotify_event*)(void*)(&ptr[offset]);
-		dump_event(event);
-
-		offset += sizeof(struct inotify_event) + event->len;
-	}
-}
-
-static void set_subenv(struct inotify_event *event, int index)
-{
-	char mask[1024], *name;
+	char mask[1024];
 	int bytes = 0;
 
 	char envname[256], envmask[256];
 
-	sprintf(envname, "WBG_NAME_%d", index);
-	sprintf(envmask, "WBG_MASK_%d", index);
+	sprintf(envname, "WBG_NAME");
+	sprintf(envmask, "WBG_MASK");
 
 	if (event->mask & IN_ACCESS)
 		bytes += sprintf(&mask[bytes], " %s |", "ACCESS");
@@ -226,8 +268,9 @@ static void set_subenv(struct inotify_event *event, int index)
 	if (event->mask & IN_ONESHOT)
 		bytes += sprintf(&mask[bytes], " %s |", "ONESHOT");
 
-	name = (event->len > 0) ? event->name : "(null)";
-	setenv(envname, name, 1);
+	watchinf_s *wi = watchinf_find(event->wd);
+	if (wi)
+		setenv(envname, wi->file, 1);
 
 	if (bytes) {
 		mask[bytes - 2] = '\0';
@@ -237,42 +280,58 @@ static void set_subenv(struct inotify_event *event, int index)
 	}
 }
 
-static void set_subenvs(struct inotify_event *events, int len)
+static int rule_split(const char *rule, char mask[256], char comm[256])
 {
-	unsigned char *ptr = (unsigned char*)events;
-	int offset, index;
-	char count[24];
+	int i;
+	const char *p = rule;
 
-	struct inotify_event *event;
+	if ((*p++ != '-'))
+		return -1;
 
-	offset = 0;
-	index = 0;
-	while (offset < len) {
-		event = (struct inotify_event*)(void*)(&ptr[offset]);
-		set_subenv(event, index);
+	if ((*p++ != 'r'))
+		return -1;
 
-		offset += sizeof(struct inotify_event) + event->len;
-		index++;
+	if (!*p) {
+		mask[0] = '\0';
+		comm[0] = '\0';
+		return 0;
+	}
+	if (*p != ',')
+		return -1;
+
+	for (i = 0, p++; *p && *p != ','; p++) {
+		mask[i++] = *p;
+	}
+	mask[i] = '\0';
+
+	if (!*p) {
+		comm[0] = '\0';
+		return 0;
 	}
 
-	sprintf(count, "%d", index);
-	setenv("WBG_EVENTS", count, 1);
+	for (i = 0, p++; *p && *p != ','; p++) {
+		comm[i++] = *p;
+	}
+	comm[i] = '\0';
+
+	return 0;
 }
 
 int main(int argc, char *argv[])
 {
-	int fd, wd;
-	struct inotify_event events[1024];
+	watchinf_s *wi = NULL;
+	char cur_mask[256], cur_comm[256];
+
+	int fd, wd, i, j, k, bytes;
 	unsigned int mask;
-	int bytes;
-	int cmd_delayed = 0;
+	char *command;
 
-	char *commandline = NULL;
+	int poll_timeout = 1000;
 
-	int verbose = 0, delay_mode = 0;
-	uint64_t delay_time;
+	__argc = argc;
+	__argv = argv;
 
-	if (argc < 3) {
+	if (argc < 4) {
 		printf("usage: inotdo file mask command ...\n");
 		printf("mask:\n");
 		printf("        access : File was accessed.\n");
@@ -292,10 +351,40 @@ int main(int argc, char *argv[])
 		printf("           all : Ored all above.\n");
 		printf("\n");
 		printf("env[WBG_DEBUG] : Show verbose.\n");
-		printf("env[WBG_DELAY] : Delay the command after some ms.\n");
 		printf("\n");
-		printf("e.g.: inotdo /tmp/abc access,move 'echo \"xxx\"; ls'\n");
+		printf("e.g.: inotdo -m1 access,move -ca 'echo \"xxx\"; ls' -r,1,a /tmp/abc ~/haha.c ... \n");
 		return -1;
+	}
+
+	__msc_name = (char**)calloc(argc, sizeof(char*));
+	__msc_content = (char**)calloc(argc, sizeof(char*));
+	__cmd_name = (char**)calloc(argc, sizeof(char*));
+	__cmd_content = (char**)calloc(argc, sizeof(char*));
+
+	for (i = 1; i < argc; i++) {
+		char *arg = argv[i];
+
+		if (arg[0] == '-' && arg[1] == 'm') {
+			__msc_name[__msc_cnt] = &arg[2];
+			__msc_content[__msc_cnt] = argv[i + 1];
+			__msc_cnt++;
+
+			argv[i] = NULL;
+			argv[i + 1] = NULL;
+
+			i++;
+		}
+
+		if (arg[0] == '-' && arg[1] == 'c') {
+			__cmd_name[__cmd_idx] = &arg[2];
+			__cmd_content[__cmd_idx] = argv[i + 1];
+			__cmd_idx++;
+
+			argv[i] = NULL;
+			argv[i + 1] = NULL;
+
+			i++;
+		}
 	}
 
 	fd = inotify_init();
@@ -304,80 +393,138 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	mask = get_mask(argv[2]);
-	wd = inotify_add_watch(fd, argv[1], mask);
-	if (wd < 0) {
-		fprintf(stderr, "inotify_add_watch NG\n");
-		return -1;
+	cur_mask[0] = '\0';
+	cur_comm[0] = '\0';
+	__wchinf = (watchinf_s*)calloc(argc, sizeof(watchinf_s));
+	for (i = 1; i < argc; i++) {
+		char *arg = argv[i];
+		char *file = argv[i + 1];
+
+		if (!arg) {
+			/* reset current mask and command */
+			cur_mask[0] = '\0';
+			cur_comm[0] = '\0';
+
+			/* skip stripped -m and -c */
+			continue;
+		}
+
+		if (rule_split(arg, cur_mask, cur_comm))
+			file = arg;
+		else
+			i++;
+
+		if (!file)
+			break;
+
+		logmsg("cur_mask:%c:%s\n", cur_mask[0], cur_mask);
+		logmsg("cur_comm:%c:%s\n", cur_comm[0], cur_comm);
+
+		for (j = 0; j < __msc_cnt; j++) {
+			if (!strcmp(cur_mask, __msc_name[j]))
+				break;
+		}
+		if (j == __msc_cnt) {
+			printf("Bad mask '%s' for [%s].\n", cur_mask, arg);
+			continue;
+		}
+
+		for (k = 0; k < __cmd_idx; k++) {
+			if (!strcmp(cur_comm, __cmd_name[k]))
+				break;
+		}
+		if (k == __cmd_idx) {
+			printf("Bad command '%s' for [%s].\n", cur_comm, arg);
+			continue;
+		}
+
+		mask = get_mask(__msc_content[j]);
+		wd = inotify_add_watch(fd, file, mask);
+		if (wd < 0) {
+			fprintf(stderr, "inotify_add_watch NG: FILE:'%s' ERR:%s\n",
+					argv[i], strerror(errno));
+			continue;
+		}
+
+		wi = &__wchinf[__wchinf_cnt++];
+		wi->wd = wd;
+		wi->msc_idx = j;
+		wi->cmd_idx = k;
+		wi->file = file;
 	}
+
+
+	size_t evbuflen = argc * 2 * sizeof(struct inotify_event);
+	unsigned char *evbuf = (unsigned char*)malloc(evbuflen);
 
 	if (getenv("WBG_DEBUG")) {
 		printf("WBG: WBG_DEBUG set.\n");
-		verbose = 1;
+		__debug_mode = 1;
 	}
-
-	if (getenv("WBG_DELAY")) {
-		delay_mode = 1;
-		delay_time = atoi(getenv("WBG_DELAY"));
-		if (delay_time < 50)
-			delay_time = 50;
-
-		printf("WBG: WBG_DELAY set, is %d ms.\n", (int)(long)delay_time);
-		delay_time *= 1000;
-	}
-
-	if (argc > 3)
-		commandline = argv[3];
 
 	while (1) {
 		struct pollfd pfd = { fd, POLLIN, 0 };
-		int ret = poll(&pfd, 1, 10);
-
+		int ret = poll(&pfd, 1, poll_timeout);
 		if (ret < 0) {
 			fprintf(stderr, "poll failed: %s\n", strerror(errno));
 			continue;
 		}
 
 		if (ret > 0) {
-			bytes = read(fd, (void*)&events, sizeof(events));
+			bytes = read(fd, (void*)evbuf, evbuflen);
 			if (-1 == bytes) {
 				fprintf(stderr, "read NG: %s\n", strerror(errno));
 				goto clean_quit;
 			}
 
-			if (verbose)
-				dump_events(events, bytes);
+			int i, ofs = 0;
+			struct inotify_event *ev;
 
-			if (!commandline)
-				continue;
+			while (ofs < bytes) {
+				ev = (struct inotify_event*)(void*)(&evbuf[ofs]);
+				if (__debug_mode)
+					dump_event(ev);
 
-			if (delay_mode) {
-				cmd_delayed = 1;
-				continue;
+				for (i = 0; i < __wchinf_cnt; i++) {
+					wi = &__wchinf[i];
+					if (wi->wd != ev->wd)
+						continue;
+
+					command = __cmd_content[wi->cmd_idx];
+					logmsg("WD:%d, CMD: [%s]\n", wi->wd, command);
+					if (command && command[0])
+						run_command(command, ev);
+					break;
+				}
+
+				ofs += sizeof(struct inotify_event) + ev->len;
 			}
 
-			run_command(commandline, events, bytes);
-		}
-
-		/*
-		 * timeout happens, check the delay command
-		 */
-		if (delay_mode && commandline && cmd_delayed) {
-			static uint64_t last_command_time = 0;
-			uint64_t now = cur_time();
-
-			if (now - last_command_time > delay_time) {
-				run_command(commandline, NULL, 0);
-
-				last_command_time = now;
-				cmd_delayed = 0;
-			}
 		}
 	}
 
 clean_quit:
-	inotify_rm_watch(fd, wd);
+	if (__wchinf) {
+		for (i = 0; i < argc - 3; i++) {
+			wi = &__wchinf[i];
+			if (wi->wd < 0)
+				break;
+			inotify_rm_watch(fd, wd);
+		}
+		free(__wchinf);
+	}
+
+	if (__msc_name)
+		free(__msc_name);
+	if (__msc_content)
+		free(__msc_content);
+	if (__cmd_name)
+		free(__cmd_name);
+	if (__cmd_content)
+		free(__cmd_content);
+
 	close(fd);
+	free(evbuf);
 
 	return 0;
 }
