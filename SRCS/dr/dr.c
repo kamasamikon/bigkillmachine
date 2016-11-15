@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 
 		if (!strcmp("--help", args)) {
 			help();
-			exit(1);
+			exit(0);
 
 
 		} else if (!strncmp("prog=", args, 5)) {
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
 
 	if (!mask[0]) {
 		help();
-		exit(1);
+		exit(0);
 	}
 
 	if (prog[0]) {
