@@ -315,7 +315,7 @@ int main(int argc, char *argv[])
 	__argv = argv;
 
 	if (argc < 4) {
-		printf("usage: inotdo [-reload] [-token token-string] [-s] [-v | -nov] -m<mask> mask [-c<cmd> command] -r,<mask>,<cmd> files ...");
+		printf("usage: inotdo [-reload] [-token token-string] [-s] [-v | -nov] -m<mask> mask [-c<cmd> command] -r,<mask>,<cmd> files ...\n");
 		printf("mask:\n");
 		printf("        access : File was accessed.\n");
 		printf("        modify : File was modified.\n");
