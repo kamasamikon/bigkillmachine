@@ -7,7 +7,7 @@ SUB_OBJS_dagou = \
 				 ./dbus-print-message.o \
 				 ./helper.o \
 				 ./dagou_dbus.o \
-				 ./dagou_ioctol.o \
+				 ./dagou_ioctl.o \
 				 ./dagou_nsulog.o \
 				 ./dagou_sqlite.o \
 				 ./dagou_syslog.o \
